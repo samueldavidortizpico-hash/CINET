@@ -1,0 +1,26 @@
+/* =========================================================
+   Hoja maestra: define el orden de la cascada.
+   Mismo orden en que las páginas del prototipo cargaban sus hojas:
+   globales → componentes → estilos propios de cada página.
+   ========================================================= */
+
+@import "./main.css";
+@import "./responsive.css";
+
+@import "./components/movie-preview.css";
+@import "./components/trailer.css";
+@import "./components/watch-platforms.css";
+@import "./components/app.css";
+@import "./components/experience.css";
+
+@import "./pages/home.css";
+@import "./pages/movie-detail.css";
+@import "./pages/functions.css";
+@import "./pages/create-plan.css";
+@import "./pages/plan.css";
+@import "./pages/about.css";
+@import "./pages/duo.css";
+@import "./pages/cine.css";
+
+/* Capa de diseño: tokens, tipografía y componentes compartidos (gana por orden). */
+@import "./design.css";

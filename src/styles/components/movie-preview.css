@@ -1,0 +1,99 @@
+/* =========================================================
+   CINEHUB - MOVIE PREVIEW OVERLAY
+   Póster de las cards del catálogo (estado, favorito y enfoque).
+   Glow dinamico via --card-accent extraido del poster.
+   ========================================================= */
+
+/* =========================================================
+   GLOW DINAMICO EN CARD
+   ========================================================= */
+
+.movie-card {
+  --card-accent: var(--pink);
+}
+
+.movie-card:hover {
+  border-color: color-mix(in srgb, var(--card-accent) 70%, transparent);
+  box-shadow:
+    0 28px 56px rgba(0, 0, 0, .55),
+    0 0 0 1px color-mix(in srgb, var(--card-accent) 35%, transparent),
+    0 0 70px color-mix(in srgb, var(--card-accent) 14%, transparent);
+}
+
+/* =========================================================
+   OVERLAY
+   ========================================================= */
+
+/* =========================================================
+   META EN EL OVERLAY
+   ========================================================= */
+
+/* =========================================================
+   BOTONES DE ACCION
+   ========================================================= */
+
+/* =========================================================
+   DISPOSITIVOS TOUCH
+   ========================================================= */
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .movie-card:hover {
+    box-shadow: 0 20px 40px rgba(0, 0, 0, .45), 0 0 0 1px var(--card-accent);
+  }
+}
+
+/* =========================================================
+   FOCUS VISIBLE EN CARD
+   ========================================================= */
+
+.movie-card:focus-visible {
+  outline: 2px solid var(--card-accent);
+  outline-offset: 3px;
+}
+
+/* =========================================================
+   CONTENER LAYOUT PARA EVITAR SALTOS
+   ========================================================= */
+
+.movie-card {
+  will-change: transform;
+  contain: layout style;
+}
+
+.movie-card:hover {
+  z-index: 2;
+}
+
+/* =========================================================
+   POSTER — BRILLO EN HOVER
+   ========================================================= */
+
+.movie-card:hover .movie-poster-wrapper img {
+  filter: brightness(.6) saturate(1.12);
+}
+
+/* =========================================================
+   CARD BUTTON — COLOR DINAMICO
+   ========================================================= */
+
+.movie-card-button {
+  border-color: color-mix(in srgb, var(--card-accent, var(--pink)) 45%, transparent);
+  color: color-mix(in srgb, var(--card-accent, var(--pink-light)) 90%, #fff);
+}
+
+.movie-card-button:hover {
+  background: var(--card-accent, var(--pink));
+  border-color: var(--card-accent, var(--pink));
+  color: #fff;
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--card-accent, var(--pink)) 35%, transparent);
+}
+
+/* =========================================================
+   RESPONSIVE MOVIL MUY PEQUENO
+   ========================================================= */
+

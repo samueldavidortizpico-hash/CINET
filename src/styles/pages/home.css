@@ -1,0 +1,1306 @@
+/* Home / catálogo (antes <style> de index.html).
+   Encapsulado con :where([data-page="…"]): solo aplica en su página y no altera
+   la especificidad de las reglas legacy. */
+
+@keyframes movieEnter {
+
+  from {
+
+    opacity: 0;
+
+    transform:
+      translateY(18px);
+  }
+
+  to {
+
+    opacity: 1;
+
+    transform:
+      translateY(0);
+  }
+
+}
+
+:where([data-page="home"], [data-page="movies"], [data-page="dashboard"], [data-page="profile"]) {
+  /* Reinicio de márgenes equivalente al preflight de Tailwind (CDN) que usaba
+     esta página. Especificidad 0: cualquier regla legacy lo sobrescribe. */
+  :where(p, h1, h2, h3, h4, ul, ol, figure, blockquote, dl, dd) {
+    margin: 0;
+  }
+
+  /* =====================================================
+     HERO
+     ===================================================== */
+
+  .eyebrow {
+
+    margin-bottom: 12px;
+
+    color: #ff4f9a;
+
+    font-size: 0.75rem;
+
+    font-weight: 900;
+
+    letter-spacing: 0.18em;
+
+    text-transform: uppercase;
+  }
+
+  /* =====================================================
+     BUSCADOR
+     ===================================================== */
+
+  .search-form {
+
+    width: min(
+      720px,
+      100%
+    );
+
+    margin-top: 30px;
+  }
+
+  .search-form label {
+
+    display: block;
+
+    margin-bottom: 8px;
+
+    color: #ddd5e1;
+
+    font-size: 0.8rem;
+
+    font-weight: 800;
+  }
+
+  .search-row {
+
+    display: flex;
+
+    gap: 10px;
+  }
+
+  .search-row input {
+
+    flex: 1;
+
+    min-width: 0;
+
+    height: 58px;
+
+    padding: 0 20px;
+
+    border:
+      1px solid
+      rgba(
+        168,
+        85,
+        247,
+        0.55
+      );
+
+    border-radius: 14px;
+
+    outline: none;
+
+    background:
+      rgba(
+        10,
+        7,
+        15,
+        0.85
+      );
+
+    color: white;
+
+    font-size: 0.95rem;
+
+    backdrop-filter:
+      blur(15px);
+
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .search-row input::placeholder {
+    color: #817889;
+  }
+
+  .search-row input:focus {
+
+    border-color:
+      #e50914;
+
+    box-shadow:
+      0 0 0 4px
+      rgba(
+        255,
+        46,
+        136,
+        0.12
+      );
+  }
+
+  .search-row .btn {
+
+    min-width: 125px;
+
+    border: none;
+
+    border-radius: 14px;
+
+    background:
+      linear-gradient(
+        135deg,
+        #e50914,
+        #8c0a14
+      );
+
+    color: white;
+
+    font-weight: 900;
+
+    cursor: pointer;
+
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .search-row .btn:hover {
+
+    transform:
+      translateY(-2px);
+
+    box-shadow:
+      0 15px 35px
+      rgba(
+        255,
+        46,
+        136,
+        0.25
+      );
+  }
+
+  .search-hint {
+
+    margin-top: 8px;
+
+    color: #817889;
+
+    font-size: 0.72rem;
+  }
+
+  .search-status {
+
+    min-height: 20px;
+
+    margin-top: 8px;
+
+    color: #ff4d5a;
+
+    font-size: 0.75rem;
+  }
+
+  /* =====================================================
+     HERO TAGS
+     ===================================================== */
+
+  /* =====================================================
+     CATÁLOGO
+     ===================================================== */
+
+  .catalog-section {
+
+    position: relative;
+
+    padding:
+      80px 5%;
+
+    background:
+      #07050d;
+  }
+
+  .section-heading {
+
+    display: flex;
+
+    align-items: end;
+
+    justify-content: space-between;
+
+    gap: 30px;
+
+    margin-bottom: 35px;
+  }
+
+  .section-heading h2 {
+
+    margin: 0;
+
+    color: white;
+
+    font-size:
+      clamp(
+        2rem,
+        4vw,
+        3.3rem
+      );
+
+    font-weight: 950;
+
+    letter-spacing: -0.05em;
+  }
+
+  .section-heading > p {
+
+    max-width: 450px;
+
+    margin: 0;
+
+    color: #8f8798;
+
+    font-size: 0.85rem;
+
+    line-height: 1.7;
+
+    text-align: right;
+  }
+
+  /* =====================================================
+     TOOLBAR
+     ===================================================== */
+
+  .catalog-toolbar {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 15px;
+
+    margin-bottom: 18px;
+
+    padding: 10px;
+
+    border:
+      1px solid
+      rgba(
+        255,
+        255,
+        255,
+        0.08
+      );
+
+    border-radius: 15px;
+
+    background:
+      rgba(
+        255,
+        255,
+        255,
+        0.025
+      );
+
+    backdrop-filter:
+      blur(15px);
+  }
+
+  .filter-group {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 7px;
+  }
+
+  .filter-btn {
+
+    padding:
+      8px 13px;
+
+    border:
+      1px solid
+      #30263a;
+
+    border-radius: 999px;
+
+    background:
+      #110c17;
+
+    color:
+      #9e94a7;
+
+    cursor:
+      pointer;
+
+    font-size:
+      0.73rem;
+
+    font-weight:
+      850;
+
+    transition:
+      all 0.2s ease;
+  }
+
+  .filter-btn:hover {
+
+    color: white;
+
+    border-color:
+      rgba(
+        255,
+        46,
+        136,
+        0.5
+      );
+
+    transform:
+      translateY(-1px);
+  }
+
+  .filter-btn.active {
+
+    border-color:
+      #e50914;
+
+    background:
+      rgba(
+        255,
+        46,
+        136,
+        0.12
+      );
+
+    color:
+      white;
+  }
+
+  #sort-movies {
+
+    min-width: 190px;
+
+    padding:
+      10px;
+
+    border:
+      1px solid
+      #30263a;
+
+    border-radius: 10px;
+
+    background:
+      #110c17;
+
+    color: white;
+
+    outline: none;
+
+    cursor: pointer;
+  }
+
+  /* =====================================================
+     GRID
+     ===================================================== */
+
+  #movie-grid {
+
+    display: grid;
+
+    grid-template-columns:
+      repeat(
+        5,
+        minmax(
+          0,
+          1fr
+        )
+      );
+
+    gap: 18px;
+  }
+
+  /* =====================================================
+     TARJETAS
+     ===================================================== */
+
+  .movie-card {
+
+    position: relative;
+
+    overflow: hidden;
+
+    border:
+      1px solid
+      rgba(
+        255,
+        255,
+        255,
+        0.08
+      );
+
+    border-radius: 17px;
+
+    background:
+      #120d19;
+
+    box-shadow:
+      0 12px 35px
+      rgba(
+        0,
+        0,
+        0,
+        0.25
+      );
+
+    transition:
+      transform 0.3s ease,
+      border-color 0.3s ease,
+      box-shadow 0.3s ease;
+  }
+
+  .movie-card:hover {
+
+    transform:
+      translateY(-9px);
+
+    border-color:
+      rgba(
+        255,
+        46,
+        136,
+        0.65
+      );
+
+    box-shadow:
+      0 25px 55px
+      rgba(
+        0,
+        0,
+        0,
+        0.45
+      );
+  }
+
+  .movie-card img {
+
+    display: block;
+
+    width: 100%;
+
+    aspect-ratio: 2 / 3;
+
+    object-fit: cover;
+
+    transition:
+      transform 0.5s ease,
+      filter 0.5s ease;
+  }
+
+  .movie-card:hover img {
+
+    transform:
+      scale(1.06);
+
+    filter:
+      brightness(0.68);
+  }
+
+  .movie-card h3 {
+
+    margin: 0 0 5px;
+
+    color: white;
+
+    font-size: 0.92rem;
+
+    line-height: 1.25;
+
+    font-weight: 900;
+  }
+
+  .movie-card p {
+
+    margin: 0;
+
+    color: #817889;
+
+    font-size: 0.72rem;
+  }
+
+  .movie-rating {
+
+    display: block;
+
+    margin-top: 7px;
+
+    color: #ffd166;
+
+    font-size: 0.78rem;
+
+    font-weight: 900;
+  }
+
+  .movie-card-button {
+
+    display: block;
+
+    width: 100%;
+
+    margin-top: 12px;
+
+    padding: 9px;
+
+    border:
+      1px solid
+      rgba(
+        255,
+        46,
+        136,
+        0.35
+      );
+
+    border-radius: 9px;
+
+    background:
+      rgba(
+        255,
+        46,
+        136,
+        0.06
+      );
+
+    color:
+      #ff4d5a;
+
+    text-align: center;
+
+    text-decoration: none;
+
+    font-size: 0.72rem;
+
+    font-weight: 900;
+
+    transition:
+      all 0.2s ease;
+  }
+
+  .movie-card-button:hover {
+
+    background:
+      #e50914;
+
+    color: white;
+
+    transform:
+      translateY(-1px);
+  }
+
+  /* =====================================================
+     FAVORITO
+     ===================================================== */
+
+  .favorite-btn {
+
+    position: absolute;
+
+    top: 10px;
+
+    right: 10px;
+
+    z-index: 20;
+
+    display: grid;
+
+    place-items: center;
+
+    width: 38px;
+
+    height: 38px;
+
+    border:
+      1px solid
+      rgba(
+        255,
+        255,
+        255,
+        0.15
+      );
+
+    border-radius: 50%;
+
+    background:
+      rgba(
+        5,
+        3,
+        10,
+        0.78
+      );
+
+    color: white;
+
+    font-size: 1.2rem;
+
+    cursor: pointer;
+
+    backdrop-filter:
+      blur(10px);
+
+    transition:
+      transform 0.2s ease,
+      background 0.2s ease;
+  }
+
+  .favorite-btn:hover {
+
+    transform:
+      scale(1.12);
+  }
+
+  .favorite-btn.is-favorite {
+
+    background:
+      #e50914;
+
+    box-shadow:
+      0 10px 30px
+      rgba(
+        255,
+        46,
+        136,
+        0.30
+      );
+  }
+
+  /* =====================================================
+     ANIMACIÓN
+     ===================================================== */
+
+  .movie-enter {
+
+    animation:
+      movieEnter
+      450ms
+      ease both;
+
+    animation-delay:
+      var(--delay, 0ms);
+  }
+
+  /* =====================================================
+     EMPTY STATE
+     ===================================================== */
+
+  .empty-state {
+
+    padding: 50px 20px;
+
+    margin-top: 25px;
+
+    border:
+      1px dashed
+      #34283e;
+
+    border-radius: 16px;
+
+    color: #8c8395;
+
+    text-align: center;
+  }
+
+  .empty-state h3 {
+
+    margin-top: 10px;
+
+    color: white;
+  }
+
+  /* =====================================================
+     PLANES
+     ===================================================== */
+
+  .plans-section {
+
+    padding:
+      80px 5%;
+
+    background:
+      #0b0812;
+  }
+
+  .section-inner {
+
+    width:
+      min(
+        1200px,
+        100%
+      );
+
+    margin:
+      0 auto;
+  }
+
+  .plans-section h2,
+  .signup h2,
+  .faq h2 {
+
+    margin: 0;
+
+    color: white;
+
+    font-size:
+      clamp(
+        2rem,
+        4vw,
+        3.2rem
+      );
+
+    font-weight: 950;
+
+    letter-spacing:
+      -0.05em;
+  }
+
+  .plans-list {
+
+    display:
+      grid;
+
+    grid-template-columns:
+      repeat(
+        auto-fit,
+        minmax(
+          260px,
+          1fr
+        )
+      );
+
+    gap: 15px;
+
+    margin-top: 25px;
+  }
+
+  .plan-card {
+
+    padding: 20px;
+
+    border:
+      1px solid
+      rgba(
+        255,
+        255,
+        255,
+        0.08
+      );
+
+    border-radius: 15px;
+
+    background:
+      #15101c;
+
+    box-shadow:
+      0 15px 35px
+      rgba(
+        0,
+        0,
+        0,
+        0.25
+      );
+  }
+
+  .plan-card h3 {
+
+    margin:
+      8px 0;
+
+    color: white;
+  }
+
+  .plan-card p {
+
+    color:
+      #958c9e;
+
+    font-size:
+      0.8rem;
+  }
+
+  .status {
+
+    color:
+      #ff4f9a;
+
+    font-size:
+      0.7rem;
+
+    font-weight:
+      900;
+
+    letter-spacing:
+      0.12em;
+  }
+
+  .delete-plan {
+
+    margin-top: 8px;
+
+    padding:
+      7px 11px;
+
+    border:
+      1px solid
+      rgba(
+        255,
+        85,
+        127,
+        0.35
+      );
+
+    border-radius:
+      8px;
+
+    background:
+      rgba(
+        255,
+        85,
+        127,
+        0.08
+      );
+
+    color:
+      #ff557f;
+
+    cursor:
+      pointer;
+
+    font-size:
+      0.75rem;
+
+    font-weight:
+      800;
+  }
+
+  /* =====================================================
+     REGISTRO
+     ===================================================== */
+
+  .signup {
+
+    padding:
+      80px 5%;
+
+    background:
+      #07050d;
+  }
+
+  .signup-form {
+
+    display:
+      grid;
+
+    gap:
+      15px;
+
+    max-width:
+      600px;
+
+    margin-top:
+      30px;
+  }
+
+  .field {
+
+    display:
+      grid;
+
+    gap:
+      6px;
+  }
+
+  .field label {
+
+    color:
+      #c9c0d0;
+
+    font-size:
+      0.78rem;
+
+    font-weight:
+      850;
+  }
+
+  .field input {
+
+    height:
+      50px;
+
+    padding:
+      0 15px;
+
+    border:
+      1px solid
+      #30263a;
+
+    border-radius:
+      10px;
+
+    outline:
+      none;
+
+    background:
+      #110c17;
+
+    color:
+      white;
+  }
+
+  .field input:focus {
+
+    border-color:
+      #e50914;
+
+    box-shadow:
+      0 0 0 4px
+      rgba(
+        255,
+        46,
+        136,
+        0.08
+      );
+  }
+
+  .field-error {
+
+    margin: 0;
+
+    color:
+      #ff557f;
+
+    font-size:
+      0.72rem;
+  }
+
+  /* =====================================================
+     FAQ
+     ===================================================== */
+
+  .faq {
+
+    padding:
+      80px 5%;
+
+    background:
+      #0b0812;
+  }
+
+  .faq-item {
+
+    margin-top:
+      12px;
+
+    border:
+      1px solid
+      rgba(
+        255,
+        255,
+        255,
+        0.08
+      );
+
+    border-radius:
+      13px;
+
+    background:
+      #15101c;
+
+    overflow:
+      hidden;
+  }
+
+  .faq-item details {
+
+    padding:
+      18px;
+  }
+
+  .faq-item summary {
+
+    color:
+      white;
+
+    cursor:
+      pointer;
+
+    font-weight:
+      850;
+  }
+
+  .faq-item p {
+
+    color:
+      #968d9e;
+
+    line-height:
+      1.7;
+  }
+
+  /* =====================================================
+     TOAST
+     ===================================================== */
+
+  .cinehub-toast {
+
+    position:
+      fixed;
+
+    right:
+      20px;
+
+    bottom:
+      20px;
+
+    z-index:
+      9999;
+
+    max-width:
+      360px;
+
+    padding:
+      14px 17px;
+
+    border:
+      1px solid
+      rgba(
+        255,
+        255,
+        255,
+        0.12
+      );
+
+    border-radius:
+      12px;
+
+    background:
+      rgba(
+        20,
+        13,
+        28,
+        0.94
+      );
+
+    color:
+      white;
+
+    box-shadow:
+      0 20px 50px
+      rgba(
+        0,
+        0,
+        0,
+        0.40
+      );
+
+    backdrop-filter:
+      blur(15px);
+
+    opacity:
+      0;
+
+    transform:
+      translateY(20px);
+
+    pointer-events:
+      none;
+
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .cinehub-toast.show {
+
+    opacity:
+      1;
+
+    transform:
+      translateY(0);
+  }
+
+  /* =====================================================
+     RESPONSIVE
+     ===================================================== */
+
+  @media (max-width: 1100px) {
+
+    #movie-grid {
+
+      grid-template-columns:
+        repeat(
+          4,
+          minmax(
+            0,
+            1fr
+          )
+        );
+    }
+
+  }
+
+  @media (max-width: 850px) {
+
+    .site-header {
+
+      flex-wrap:
+        wrap;
+    }
+
+    .nav-list {
+
+      order:
+        3;
+
+      width:
+        100%;
+
+      justify-content:
+        center;
+    }
+
+    .section-heading {
+
+      align-items:
+        flex-start;
+
+      flex-direction:
+        column;
+    }
+
+    .section-heading > p {
+
+      text-align:
+        left;
+    }
+
+    .catalog-toolbar {
+
+      align-items:
+        stretch;
+
+      flex-direction:
+        column;
+    }
+
+    #sort-movies {
+
+      width:
+        100%;
+    }
+
+    #movie-grid {
+
+      grid-template-columns:
+        repeat(
+          3,
+          minmax(
+            0,
+            1fr
+          )
+        );
+    }
+
+  }
+
+  @media (max-width: 600px) {
+
+    .search-row {
+
+      flex-direction:
+        column;
+    }
+
+    .search-row input,
+    .search-row .btn {
+
+      width:
+        100%;
+    }
+
+    .catalog-section,
+    .plans-section,
+    .signup,
+    .faq {
+
+      padding:
+        60px 20px;
+    }
+
+    #movie-grid {
+
+      grid-template-columns:
+        repeat(
+          2,
+          minmax(
+            0,
+            1fr
+          )
+        );
+
+      gap:
+        10px;
+    }
+
+    .movie-card h3 {
+
+      font-size:
+        0.78rem;
+    }
+
+    .movie-card p,
+    .movie-rating {
+
+      font-size:
+        0.66rem;
+    }
+
+    .site-footer {
+
+      flex-direction:
+        column;
+
+      align-items:
+        flex-start;
+
+      padding:
+        25px 20px;
+    }
+
+  }
+
+  /* =====================================================
+     REDUCIR ANIMACIONES
+     ===================================================== */
+
+  @media (
+    prefers-reduced-motion: reduce
+  ) {
+
+    * {
+
+      scroll-behavior:
+        auto !important;
+
+      animation-duration:
+        0.01ms !important;
+
+      transition-duration:
+        0.01ms !important;
+    }
+
+  }
+}

@@ -1,0 +1,325 @@
+/* =========================================================
+   Estilos nuevos de la versión React (sin equivalente legacy):
+   estadísticas, acciones de planes, dashboard y perfil.
+   Usan los tokens de main.css para mantener la identidad visual.
+   ========================================================= */
+
+.section-cta {
+  display: flex;
+  justify-content: center;
+  margin-top: 35px;
+}
+
+
+/* Buscador dentro del catálogo (/movies) */
+.catalog-search { margin: 0 0 20px; }
+html:not(.dark) .catalog-search label { color: var(--text-soft); }
+html:not(.dark) .catalog-search .search-row input {
+  background: var(--bg);
+  color: var(--text);
+  border-color: rgba(0, 0, 0, 0.18);
+}
+
+/* Complementos de .plan-card (main.css) */
+.plan-card-message { font-style: italic; }
+
+.plan-card-rsvp {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+  color: var(--text-soft);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.plan-card-actions {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.plan-card-actions .delete-plan { margin-top: 0; }
+.plan-edit-button { margin-top: 1.5rem; }
+
+/* Estadísticas de planes */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+html:not(.dark) .stat-card { background: var(--surface); }
+.stat-icon { font-size: 1.6rem; }
+
+.stat-card div span {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.stat-card strong {
+  color: var(--text);
+  font-size: 1.8rem;
+  font-weight: 950;
+  line-height: 1.1;
+}
+
+/* Lista de planes: crear + filtro (mismo estilo que #sort-movies) */
+.plans-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.plans-filter {
+  min-width: 190px;
+  padding: 10px;
+  border: 1px solid #30263a;
+  border-radius: 10px;
+  outline: none;
+  background: #110c17;
+  color: white;
+  cursor: pointer;
+}
+
+.plans-filter:focus { border-color: var(--pink); }
+
+html:not(.dark) .plans-filter {
+  background: var(--bg);
+  color: var(--text);
+  border-color: rgba(0, 0, 0, 0.14);
+}
+
+/* Dashboard */
+.dashboard-title {
+  margin: 45px 0 18px;
+  color: var(--text);
+  font-size: 1.3rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.hero-editor { margin: 28px 0 34px; padding: 24px; border: 1px solid rgba(229, 9, 20, .28); border-radius: var(--radius-xl); background: linear-gradient(135deg, rgba(229, 9, 20, .12), var(--surface)); box-shadow: var(--shadow); }
+.hero-editor-heading { display: flex; justify-content: space-between; gap: 18px; align-items: flex-start; }
+.hero-editor-heading h3 { margin: 0 0 5px; color: var(--text); font-size: 1.35rem; }
+.hero-editor-heading p:not(.eyebrow) { margin: 0; color: var(--text-muted); font-size: .86rem; }
+.hero-editor-badge { padding: 7px 12px; border-radius: 999px; background: rgba(229, 9, 20, .14); color: var(--pink-light); font-size: .75rem; font-weight: 800; white-space: nowrap; }
+.hero-editor-controls { margin-top: 20px; }
+.hero-editor-controls label { display: block; margin-bottom: 8px; color: var(--text-soft); font-size: .78rem; font-weight: 800; }
+.hero-editor-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.hero-editor-row select { flex: 1 1 260px; min-height: 44px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-2); color: var(--text); }
+.hero-editor-list { display: grid; gap: 8px; margin: 20px 0 0; padding: 0; list-style: none; }
+.hero-editor-list li { display: flex; align-items: center; gap: 10px; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-md); background: rgba(0,0,0,.12); }
+.hero-editor-list li.is-primary { border-color: rgba(229, 9, 20, .55); }
+.hero-editor-list img { width: 36px; height: 50px; border-radius: 6px; object-fit: cover; }
+.hero-editor-number { width: 20px; color: var(--text-muted); font-weight: 900; text-align: center; }
+.hero-editor-title { flex: 1; color: var(--text); font-weight: 800; }
+.hero-editor-title small { display: block; color: var(--text-muted); font-size: .7rem; font-weight: 600; }
+.hero-editor-action, .hero-editor-remove { border: 0; background: none; color: var(--pink-light); cursor: pointer; font-size: .76rem; font-weight: 800; }
+.hero-editor-remove { color: var(--text-muted); font-size: 1.25rem; }
+.hero-editor-empty { margin: 18px 0 0; color: var(--text-muted); font-size: .84rem; }
+@media (max-width: 600px) { .hero-editor-heading { flex-direction: column; } .hero-editor { padding: 18px; } }
+
+/* Perfil y autenticación */
+.auth-modes { margin-top: 25px; }
+
+.signup .section-inner > .auth-notice {
+  margin-top: 20px;
+  padding: 12px 15px;
+  border: 1px solid rgba(229, 9, 20, 0.3);
+  border-radius: 12px;
+  background: rgba(229, 9, 20, 0.08);
+  color: var(--pink-light);
+}
+
+.profile-card { display: grid; gap: 22px; }
+.profile-header { display: flex; align-items: center; gap: 16px; }
+
+.profile-avatar {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--pink), var(--purple));
+  color: white;
+  font-size: 1.4rem;
+  font-weight: 950;
+}
+
+.profile-header h3 { margin: 0; color: var(--text); font-size: 1.2rem; font-weight: 900; }
+.profile-header p { margin: 2px 0 0; color: var(--text-muted); font-size: 0.8rem; }
+
+.profile-stats,
+.profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.profile-stats span {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-soft);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.profile-stats strong { color: var(--pink-light); }
+
+@media (max-width: 850px) {
+  .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .plans-heading { flex-direction: column; align-items: stretch; }
+  .plans-filter { width: 100%; }
+}
+
+/* El menú ahora tiene 6 enlaces: en móvil ocupa todo el ancho y se desplaza
+   horizontalmente en lugar de quedar centrado y recortado por la izquierda.
+   `safe center` se ve igual que antes cuando los enlaces caben. */
+@media (max-width: 600px) {
+  .site-header > nav { width: 100%; min-width: 0; }
+  .site-header .nav-list { justify-content: safe center; }
+}
+
+/* En modo claro el botón de tema heredaba texto claro sobre fondo claro. */
+html:not(.dark) #theme-toggle {
+  border-color: rgba(0, 0, 0, 0.12);
+  color: var(--text);
+}
+
+/* ---------- TMDB: filtros avanzados, búsqueda global y detalle enriquecido ---------- */
+
+.catalog-notice {
+  padding: 12px 16px;
+  border: 1px solid rgba(255, 209, 102, 0.35);
+  border-radius: var(--radius-md);
+  background: rgba(255, 209, 102, 0.08);
+  color: var(--text-soft);
+}
+
+.tmdb-attribution { margin-top: 24px; color: var(--text-muted); font-size: 0.75rem; }
+
+.people-results { margin: 28px 0 24px; }
+.people-results h3 { margin: 0 0 12px; color: var(--text); }
+.people-results ul { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; list-style: none; }
+
+.person-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 320px;
+  padding: 8px 14px 8px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.person-chip img,
+.person-chip > span { width: 44px; height: 44px; flex-shrink: 0; border-radius: 50%; object-fit: cover; display: grid; place-items: center; }
+.person-chip small { display: block; color: var(--text-muted); font-size: 0.72rem; }
+
+/* Por encima del fondo del detalle, igual que .movie-detail */
+.movie-extras { position: relative; z-index: 10; padding: 10px 20px 70px; }
+.movie-extras-inner { width: min(1250px, 100%); margin: 0 auto; display: grid; gap: 28px; }
+.extras-block h2 { margin: 0 0 14px; color: var(--text); font-size: 1.3rem; }
+.extras-block p { color: var(--text-soft); }
+.extras-note { font-size: 0.8rem; }
+.extras-note a { color: var(--pink); font-weight: 800; }
+
+.extras-providers,
+.extras-crew { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; list-style: none; }
+
+.extras-providers li,
+.extras-crew li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 800;
+}
+
+.extras-crew li { padding: 8px 12px; }
+.extras-crew small { color: var(--text-muted); font-weight: 700; }
+.extras-providers img { width: 36px; height: 36px; border-radius: 8px; }
+
+.extras-people,
+.extras-similar {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 130px), 1fr));
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.extras-people li { display: grid; gap: 2px; color: var(--text); font-size: 0.85rem; }
+.extras-people small { color: var(--text-muted); }
+
+.extras-photo,
+.extras-similar a { display: grid; place-items: center; overflow: hidden; border-radius: var(--radius-md); background: var(--surface-2); font-size: 2rem; }
+.extras-photo { aspect-ratio: 2 / 3; margin-bottom: 6px; }
+.extras-photo img,
+.extras-similar img { width: 100%; height: 100%; object-fit: cover; }
+
+.extras-similar a { gap: 8px; padding-bottom: 10px; color: var(--text); font-size: 0.85rem; font-weight: 800; text-decoration: none; text-align: center; }
+.extras-similar img { aspect-ratio: 2 / 3; }
+
+/* Indicador de conexión con TMDB (pie de página, catálogo y Duo) */
+.tmdb-status {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.tmdb-status-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--text-muted); }
+.tmdb-status[data-state="connected"] .tmdb-status-dot { background: var(--green); box-shadow: 0 0 0 3px rgba(66, 230, 149, 0.2); }
+.tmdb-status[data-state="local"] .tmdb-status-dot { background: var(--yellow); }
+.tmdb-status[data-state="error"] { border-color: rgba(255, 93, 115, 0.45); }
+.tmdb-status[data-state="error"] .tmdb-status-dot { background: var(--danger); }
+.tmdb-status-detail { color: var(--text-muted); font-weight: 600; }
+.footer-tmdb { margin: 0; }
+.extras-offer { margin-bottom: 14px; }
+.extras-offer h3 { margin: 0 0 8px; color: var(--text-soft); font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase; }
+
+/* ---------- Capa offline (HW07) ---------- */
+.tmdb-status[data-state="saved"] { border-color: rgba(255, 196, 0, 0.45); }
+.tmdb-status[data-state="saved"] .tmdb-status-dot { background: var(--yellow); }
+.tmdb-status-network { padding: 1px 8px; border-radius: 999px; font-size: 0.75rem; font-weight: 700; background: rgba(66, 230, 149, 0.15); }
+.tmdb-status-network[data-online="false"] { background: rgba(255, 93, 115, 0.2); }
+.offline-banner { margin: 0; padding: 10px 16px; text-align: center; font-weight: 600; background: var(--danger); color: #fff; }

@@ -1,0 +1,391 @@
+/* =========================================================
+   Capa de diseño de CineHub (va la última en la cascada).
+   Tokens, tipografía (Outfit para títulos, Inter para leer),
+   botones, foco visible, cabecera, carrusel del inicio,
+   tarjetas y botón de dado. Las imágenes mandan: la interfaz
+   usa neutros cálidos y un solo acento rojo.
+   ========================================================= */
+
+:root {
+  --bg: #0a090c;
+  --bg-soft: #0f0e12;
+  --surface: #141318;
+  --surface-2: #1a191f;
+  --surface-3: #222128;
+  --border: rgba(255, 255, 255, 0.08);
+  --text: #f6f4f8;
+  --text-soft: #cbc7d1;
+  --text-muted: #908b99;
+  --pink: #e50914;
+  --pink-light: #ff4b55;
+  --purple: #9b0b14;
+  --yellow: #f5c518;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --font-display: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+html:not(.dark) {
+  --bg: #f7f6f9;
+  --bg-soft: #efedf2;
+  --surface: #ffffff;
+  --surface-2: #f3f1f6;
+  --surface-3: #e7e4ec;
+  --border: rgba(20, 16, 28, 0.12);
+  --text: #131118;
+  --text-soft: #3b3644;
+  --text-muted: #6a6474;
+}
+
+/* ---------- Tipografía ---------- */
+
+body {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+h1,
+h2,
+h3,
+.logo,
+.eyebrow,
+.btn,
+.nav-list a,
+.section-heading h2 {
+  font-family: var(--font-display);
+}
+
+h1,
+h2 { text-wrap: balance; }
+p { text-wrap: pretty; }
+
+.eyebrow {
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* ---------- Foco visible ---------- */
+
+:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px rgba(229, 9, 20, 0.55);
+}
+
+html:not(.dark) :focus-visible { outline-color: #131118; }
+
+/* ---------- Botones ---------- */
+
+.btn {
+  min-height: 44px;
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.btn:hover { transform: translateY(-1px); }
+.btn-primary { background: var(--pink); box-shadow: 0 8px 24px rgba(229, 9, 20, 0.28); }
+.btn-primary:hover { background: #f5141f; }
+
+.btn:disabled,
+.btn[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+html:not(.dark) .btn:not(.btn-primary) { color: var(--text); background: var(--surface); }
+
+/* ---------- Cabecera ---------- */
+
+.site-header { background: rgba(10, 9, 12, 0.82); }
+.nav-list a { font-weight: 600; font-size: 0.9rem; }
+
+/* ---------- Carrusel del inicio ---------- */
+
+.hero { position: relative; }
+
+.hero-carousel {
+  position: relative;
+  min-height: clamp(560px, 80vh, 780px); /* altura estable: no salta al cambiar de diapositiva */
+  overflow: hidden;
+  isolation: isolate;
+  background: #050407;
+  color: #fff;
+  touch-action: pan-y;
+}
+
+.hero-slides { position: absolute; inset: 0; }
+
+.hero-slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.7s var(--ease), visibility 0s linear 0.7s;
+}
+
+.hero-slide.is-active { opacity: 1; visibility: visible; transition: opacity 0.7s var(--ease); }
+
+.hero-image,
+.hero-ambient {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 22%;
+}
+
+/* Sin fondo horizontal: el póster nítido manda y su versión difuminada da el color de ambiente. */
+.hero-ambient { filter: blur(48px) saturate(1.3) brightness(0.5); transform: scale(1.25); }
+
+.hero-poster {
+  position: absolute;
+  top: 50%;
+  right: max(5%, calc((100% - 1280px) / 2));
+  width: clamp(200px, 21vw, 300px);
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 40px 90px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.12);
+  transform: translateY(-56%);
+}
+
+.hero-slide:has(.hero-poster) .hero-content { max-width: min(720px, 60%); }
+
+.hero-shade {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(90deg, rgba(5, 4, 7, 0.94) 0%, rgba(5, 4, 7, 0.66) 42%, rgba(5, 4, 7, 0.08) 78%),
+    linear-gradient(0deg, rgba(5, 4, 7, 0.95) 0%, transparent 42%);
+}
+
+.hero-content { width: 100%; max-width: 720px; padding: 120px 5% 112px; }
+.hero-content .eyebrow { margin: 0 0 12px; color: #ff6b73; }
+
+.hero-title {
+  margin: 0 0 14px;
+  color: #fff;
+  font-size: clamp(2.3rem, 5.6vw, 4.5rem);
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+}
+
+.hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 0 0 14px;
+  color: #e9e4ec;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.hero-meta span + span::before { content: "·"; margin-right: 14px; color: rgba(255, 255, 255, 0.45); }
+.hero-rating { color: var(--yellow); }
+
+.hero-overview {
+  display: -webkit-box;
+  max-width: 58ch;
+  margin: 0 0 24px;
+  overflow: hidden;
+  color: #d9d3dd;
+  font-size: 1.02rem;
+  line-height: 1.6;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.hero-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.hero-actions .btn { min-height: 48px; color: #fff; }
+.hero-actions .btn:not(.btn-primary) { border-color: rgba(255, 255, 255, 0.22); background: rgba(12, 10, 14, 0.55); backdrop-filter: blur(8px); }
+.hero-actions .hero-fav.is-active { border-color: var(--pink); color: #ff8a92; }
+
+.hero-controls {
+  position: absolute;
+  z-index: 2;
+  right: 5%;
+  bottom: 30px;
+  left: 5%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hero-arrow,
+.hero-pause {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 50%;
+  background: rgba(12, 10, 14, 0.55);
+  color: #fff;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+}
+
+.hero-pause { margin-left: auto; font-size: 0.8rem; letter-spacing: -0.1em; }
+.hero-arrow:hover,
+.hero-pause:hover { background: rgba(255, 255, 255, 0.16); }
+.hero-dots { display: flex; gap: 8px; }
+
+.hero-dot {
+  position: relative;
+  width: 26px;
+  height: 6px;
+  padding: 0;
+  border: 0;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+}
+
+.hero-dot::after { content: ""; position: absolute; inset: -19px -4px; } /* área táctil de 44 px */
+.hero-dot[aria-current="true"] { width: 52px; }
+
+.hero-dot-progress {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: #fff;
+  transform-origin: left;
+}
+
+.hero-carousel.is-running .hero-dot-progress { animation: hero-progress var(--duration) linear both; }
+
+@keyframes hero-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.hero-placeholder .hero-content { display: grid; gap: 12px; }
+.hero-search { position: relative; z-index: 2; padding: 22px 5% 8px; }
+.hero-search .featured-search { max-width: 880px; margin: 0; }
+
+/* ---------- Tarjetas ---------- */
+
+.movie-info { display: flex; flex-direction: column; gap: 4px; }
+.movie-info h3 { font-family: var(--font-display); }
+.movie-meta { margin: 0; color: var(--text-muted); font-size: 0.8rem; font-weight: 500; }
+.movie-genres { margin: 0; overflow: hidden; color: var(--text-soft); font-size: 0.8rem; text-overflow: ellipsis; white-space: nowrap; }
+
+.movie-reason {
+  margin: 4px 0 0;
+  padding: 6px 9px;
+  border-radius: var(--radius-sm);
+  background: rgba(229, 9, 20, 0.12);
+  color: var(--text-soft);
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
+/* Detalles y tráiler apilados a todo el ancho: caben en cualquier tarjeta sin partir el texto. */
+.movie-card-links { display: grid; gap: 8px; margin-top: auto; padding-top: 8px; }
+.movie-card-links .movie-card-button { margin: 0; white-space: nowrap; }
+
+.movie-card-trailer {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-soft);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.movie-card-trailer:hover { border-color: var(--pink); color: var(--text); }
+
+/* "Ver película" en modo cine es un enlace: mismo aspecto que el botón. */
+a.watch-btn { text-decoration: none; }
+
+/* ---------- Botón de dado ---------- */
+
+.dice-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #3a0f16, #1a0a0d);
+  color: #fff;
+  font: 700 0.9rem var(--font-display);
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.2s var(--ease);
+}
+
+.dice-btn:hover { border-color: var(--pink); transform: translateY(-1px); }
+.dice-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+.dice-btn[aria-busy="true"] { cursor: progress; }
+.dice-btn-compact { width: 44px; padding: 0; }
+.dice-btn.is-rolling .dice-icon { animation: dice-roll 0.45s var(--ease); }
+
+@keyframes dice-roll {
+  0% { transform: rotate(0) scale(1); }
+  50% { transform: rotate(200deg) scale(0.8); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+/* ---------- Móvil ---------- */
+
+@media (max-width: 700px) {
+  .hero-carousel { min-height: 620px; }
+  .hero-content { padding: 96px 16px 100px; }
+  /* En el móvil (vertical) el póster ocupa toda la diapositiva, nítido. */
+  .hero-ambient { filter: none; transform: none; object-position: center top; }
+  .hero-poster { display: none; }
+  .hero-slide:has(.hero-poster) .hero-content { max-width: none; }
+  .hero-slide:has(.hero-poster) .hero-shade { background: linear-gradient(0deg, rgba(5, 4, 7, 0.97) 10%, rgba(5, 4, 7, 0.78) 55%, rgba(5, 4, 7, 0.15) 100%); }
+  .hero-shade { background: linear-gradient(0deg, rgba(5, 4, 7, 0.97) 8%, rgba(5, 4, 7, 0.55) 60%, rgba(5, 4, 7, 0.2) 100%); }
+  .hero-actions .btn { flex: 1 1 calc(50% - 10px); justify-content: center; }
+  .hero-controls { right: 16px; left: 16px; bottom: 24px; }
+  .hero-search { padding: 18px 16px 4px; }
+}
+
+/* ---------- Movimiento reducido: sin autoplay (JS) ni transiciones largas ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- Logo CINET (images/cinet-logo.png, sin modificar) ---------- */
+.logo-brand::before { content: none; }
+.logo-img { display: block; width: auto; height: 44px; max-width: 100%; object-fit: contain; }
+/* Letras negras en el PNG: en modo oscuro un contorno claro las separa del fondo. */
+html.dark .logo-img { filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.7)) drop-shadow(0 0 1px rgba(255, 255, 255, 0.4)); }
+@media (max-width: 640px) { .logo-img { height: 36px; } }

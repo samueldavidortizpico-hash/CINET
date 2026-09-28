@@ -1,0 +1,159 @@
+/* Crear plan (antes <style> de crear-plan.html).
+   También aplica en /plan/:id, donde PlanForm se reutiliza para editar.
+   Encapsulado con :where([data-page="…"]): solo aplica en su página y no altera
+   la especificidad de las reglas legacy. */
+
+:where([data-page="create-plan"], [data-page="plan"]) {
+  .create-plan-page {
+    min-height: 100vh;
+    padding: 3rem 1.5rem 5rem;
+    background:
+      radial-gradient(
+        circle at top right,
+        rgba(229, 9, 20, 0.12),
+        transparent 30%
+      ),
+      #14121a;
+  }
+
+  .create-plan-container {
+    width: min(900px, 100%);
+    margin: auto;
+  }
+
+  .plan-form-card {
+    margin-top: 2rem;
+    padding: 2rem;
+
+    background: #1e1b26;
+    border: 1px solid #332d3d;
+    border-radius: 20px;
+  }
+
+  .selected-plan {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 1.5rem;
+
+    padding: 1.5rem;
+
+    margin-bottom: 2rem;
+
+    background: #211d2b;
+    border-radius: 16px;
+  }
+
+  .selected-plan img {
+    width: 140px;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    border-radius: 10px;
+  }
+
+  .selected-plan h1 {
+    margin-bottom: .5rem;
+  }
+
+  .selected-plan p {
+    color: #c7c2d1;
+  }
+
+  .plan-data {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .plan-data div {
+    padding: 1rem;
+    background: #211d2b;
+    border-radius: 12px;
+  }
+
+  .plan-data span {
+    display: block;
+    color: #9992a5;
+    font-size: .8rem;
+    margin-bottom: .3rem;
+  }
+
+  .plan-data strong {
+    color: white;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .form-group label {
+    font-weight: 700;
+    color: white;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    width: 100%;
+    padding: .85rem 1rem;
+
+    border: 1px solid #3a3348;
+    border-radius: 10px;
+
+    background: #14121a;
+    color: white;
+
+    font: inherit;
+  }
+
+  .form-group textarea {
+    min-height: 120px;
+    resize: vertical;
+  }
+
+  .form-group input:focus,
+  .form-group textarea:focus {
+    outline: none;
+    border-color: #e50914;
+    box-shadow: 0 0 0 3px rgba(229, 9, 20,.15);
+  }
+
+  .error-message {
+    color: #ff668e;
+    font-size: .85rem;
+  }
+
+  .create-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  @media (max-width: 700px) {
+
+    .selected-plan {
+      grid-template-columns: 1fr;
+    }
+
+    .selected-plan img {
+      width: 160px;
+      margin: auto;
+    }
+
+    .plan-data {
+      grid-template-columns: 1fr;
+    }
+
+    .create-actions {
+      flex-direction: column;
+    }
+
+    .create-actions .btn {
+      width: 100%;
+    }
+
+  }
+}

@@ -1,0 +1,594 @@
+/* =========================================================
+   CINEHUB
+   RESPONSIVE.CSS
+   Adaptación para PC, tablet y móvil
+   ========================================================= */
+
+/* =========================================================
+   TABLET GRANDE
+   1101px - 1300px
+   ========================================================= */
+
+@media (min-width: 1101px) and (max-width: 1300px) {
+
+  #movie-grid {
+    grid-template-columns:
+      repeat(4, minmax(0, 1fr));
+  }
+
+  .plans-list {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+
+}
+
+/* =========================================================
+   TABLET
+   851px - 1100px
+   ========================================================= */
+
+@media (min-width: 851px) and (max-width: 1100px) {
+
+  .site-header {
+    padding:
+      12px 4%;
+  }
+
+  .nav-list {
+    gap:
+      3px;
+  }
+
+  .nav-list a {
+    padding:
+      8px 9px;
+
+    font-size:
+      .72rem;
+  }
+
+  .section-heading {
+    align-items:
+      flex-start;
+
+    flex-direction:
+      column;
+  }
+
+  .section-heading > p {
+    max-width:
+      600px;
+
+    text-align:
+      left;
+  }
+
+  .catalog-toolbar {
+    align-items:
+      stretch;
+
+    flex-direction:
+      column;
+  }
+
+  #sort-movies {
+    width:
+      100%;
+  }
+
+  #movie-grid {
+    grid-template-columns:
+      repeat(4, minmax(0, 1fr));
+  }
+
+}
+
+/* =========================================================
+   TABLET PEQUEÑO
+   601px - 850px
+   ========================================================= */
+
+@media (min-width: 601px) and (max-width: 850px) {
+
+  .site-header {
+    flex-wrap:
+      wrap;
+
+    padding:
+      12px 4%;
+
+    gap:
+      12px;
+  }
+
+  .nav-list {
+    order:
+      3;
+
+    width:
+      100%;
+
+    justify-content:
+      center;
+
+    overflow-x:
+      auto;
+
+    padding-bottom:
+      3px;
+  }
+
+  .nav-list a {
+    white-space:
+      nowrap;
+  }
+
+  .section-heading {
+    align-items:
+      flex-start;
+
+    flex-direction:
+      column;
+  }
+
+  .section-heading > p {
+    max-width:
+      650px;
+
+    text-align:
+      left;
+  }
+
+  .catalog-toolbar {
+    align-items:
+      stretch;
+
+    flex-direction:
+      column;
+  }
+
+  #sort-movies {
+    width:
+      100%;
+  }
+
+  #movie-grid {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+
+    gap:
+      15px;
+  }
+
+  .plans-list {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+}
+
+/* =========================================================
+   MÓVIL
+   Hasta 600px
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+  /* -------------------------------------------------------
+     HEADER
+     ------------------------------------------------------- */
+
+  .site-header {
+    position:
+      relative;
+
+    flex-wrap:
+      wrap;
+
+    justify-content:
+      center;
+
+    padding:
+      14px 5%;
+
+    gap:
+      10px;
+  }
+
+  .logo {
+    width:
+      100%;
+
+    justify-content:
+      center;
+  }
+
+  #theme-toggle {
+    width:
+      100%;
+
+    min-height:
+      42px;
+  }
+
+  .nav-list {
+    order:
+      3;
+
+    width:
+      100%;
+
+    justify-content:
+      flex-start;
+
+    overflow-x:
+      auto;
+
+    padding:
+      2px 0 5px;
+
+    scrollbar-width:
+      none;
+  }
+
+  .nav-list::-webkit-scrollbar {
+    display:
+      none;
+  }
+
+  .nav-list a {
+    flex:
+      0 0 auto;
+
+    white-space:
+      nowrap;
+
+    font-size:
+      .7rem;
+  }
+
+  /* -------------------------------------------------------
+     HERO
+     ------------------------------------------------------- */
+
+  .eyebrow {
+    font-size:
+      .65rem;
+
+    letter-spacing:
+      .16em;
+  }
+
+  /* -------------------------------------------------------
+     SEARCH
+     ------------------------------------------------------- */
+
+  .search-form {
+    width:
+      100%;
+
+    margin-top:
+      24px;
+  }
+
+  .search-row {
+    flex-direction:
+      column;
+
+    gap:
+      9px;
+  }
+
+  .search-row input {
+    width:
+      100%;
+
+    height:
+      52px;
+  }
+
+  .search-row .btn {
+    width:
+      100%;
+
+    min-height:
+      50px;
+  }
+
+  .search-hint {
+    font-size:
+      .66rem;
+  }
+
+  /* -------------------------------------------------------
+     HERO TAGS
+     ------------------------------------------------------- */
+
+  /* -------------------------------------------------------
+     SECCIONES
+     ------------------------------------------------------- */
+
+  .catalog-section,
+  .plans-section,
+  .signup-section,
+  .faq-section {
+    padding:
+      60px 5%;
+  }
+
+  .section-heading {
+    align-items:
+      flex-start;
+
+    flex-direction:
+      column;
+
+    gap:
+      12px;
+
+    margin-bottom:
+      25px;
+  }
+
+  .section-heading h2 {
+    font-size:
+      2rem;
+  }
+
+  .section-heading > p {
+    max-width:
+      100%;
+
+    font-size:
+      .76rem;
+
+    text-align:
+      left;
+  }
+
+  /* -------------------------------------------------------
+     TOOLBAR
+     ------------------------------------------------------- */
+
+  .catalog-toolbar {
+    align-items:
+      stretch;
+
+    flex-direction:
+      column;
+
+    gap:
+      10px;
+
+    padding:
+      9px;
+  }
+
+  .filter-group {
+    display:
+      flex;
+
+    flex-wrap:
+      nowrap;
+
+    overflow-x:
+      auto;
+
+    padding-bottom:
+      3px;
+
+    scrollbar-width:
+      none;
+  }
+
+  .filter-group::-webkit-scrollbar {
+    display:
+      none;
+  }
+
+  .filter-btn {
+    flex:
+      0 0 auto;
+
+    white-space:
+      nowrap;
+  }
+
+  #sort-movies {
+    width:
+      100%;
+
+    min-width:
+      0;
+  }
+
+  /* -------------------------------------------------------
+     PELÍCULAS
+     ------------------------------------------------------- */
+
+  #movie-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap:
+      12px;
+  }
+
+  .movie-card {
+    border-radius:
+      13px;
+  }
+
+  .movie-card h3 {
+    font-size:
+      .78rem;
+  }
+
+  .movie-card p {
+    font-size:
+      .63rem;
+  }
+
+  .movie-rating {
+    font-size:
+      .68rem;
+  }
+
+  .movie-card-button {
+    padding:
+      8px 6px;
+
+    font-size:
+      .65rem;
+  }
+
+  .favorite-btn {
+    width:
+      33px;
+
+    height:
+      33px;
+
+    font-size:
+      1rem;
+  }
+
+  /* -------------------------------------------------------
+     PLANES
+     ------------------------------------------------------- */
+
+  .plans-list {
+    grid-template-columns:
+      1fr;
+
+    gap:
+      13px;
+  }
+
+  .plan-card {
+    padding:
+      18px;
+  }
+
+  /* -------------------------------------------------------
+     REGISTRO
+     ------------------------------------------------------- */
+
+  .signup-form {
+    width:
+      100%;
+
+    padding:
+      20px 17px;
+  }
+
+  /* -------------------------------------------------------
+     FAQ
+     ------------------------------------------------------- */
+
+  .faq-item summary {
+    padding:
+      16px 18px;
+
+    padding-right:
+      45px;
+
+    font-size:
+      .78rem;
+  }
+
+  .faq-item p {
+    padding:
+      0 18px 18px;
+
+    font-size:
+      .72rem;
+  }
+
+  /* -------------------------------------------------------
+     FOOTER
+     ------------------------------------------------------- */
+
+  .site-footer {
+    padding:
+      30px 5%;
+
+    font-size:
+      .66rem;
+  }
+
+  /* -------------------------------------------------------
+     TOAST
+     ------------------------------------------------------- */
+
+  .cinehub-toast {
+    left:
+      15px;
+
+    right:
+      15px;
+
+    bottom:
+      15px;
+
+    max-width:
+      none;
+
+    text-align:
+      center;
+  }
+
+}
+
+/* =========================================================
+   MÓVIL MUY PEQUEÑO
+   Hasta 380px
+   ========================================================= */
+
+@media (max-width: 380px) {
+
+  #movie-grid {
+    grid-template-columns:
+      1fr;
+  }
+
+  .filter-group {
+    gap:
+      5px;
+  }
+
+  .filter-btn {
+    padding:
+      7px 10px;
+
+    font-size:
+      .66rem;
+  }
+
+}
+
+/* =========================================================
+   PANTALLAS MUY GRANDES
+   1600px+
+   ========================================================= */
+
+@media (min-width: 1600px) {
+
+  .catalog-section,
+  .plans-section,
+  .signup-section,
+  .faq-section {
+    padding-left:
+      7%;
+
+    padding-right:
+      7%;
+  }
+
+  #movie-grid {
+    grid-template-columns:
+      repeat(6, minmax(0, 1fr));
+  }
+
+}

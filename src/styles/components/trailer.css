@@ -1,0 +1,247 @@
+/* =========================================================
+   CineHub — Trailer Modal
+   ========================================================= */
+
+/* ── Botón "Ver tráiler" ─────────────────────────────── */
+
+.trailer-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 12px 22px;
+  border: none;
+  border-radius: 11px;
+  background: linear-gradient(135deg, #e50914 0%, #b0060f 100%);
+  color: #fff;
+  font-size: .82rem;
+  font-weight: 900;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease,
+    filter .18s ease;
+  box-shadow: 0 4px 16px rgba(0,0,0,.5);
+}
+
+.trailer-btn:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 8px 24px rgba(0,0,0,.65);
+  filter: brightness(1.1);
+}
+
+.trailer-btn:active {
+  transform: translateY(0) scale(.97);
+  box-shadow: 0 2px 8px rgba(0,0,0,.4);
+}
+
+.trailer-btn:focus-visible {
+  outline: 3px solid #e50914;
+  outline-offset: 3px;
+}
+
+.trailer-btn:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.trailer-btn-icon {
+  font-size: 1.1em;
+  line-height: 1;
+}
+
+/* ── Overlay ──────────────────────────────────────────── */
+
+.trailer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, .88);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity .28s ease,
+    visibility .28s ease;
+}
+
+.trailer-overlay.is-open {
+  opacity: 1;
+  visibility: visible;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trailer-overlay { transition: none; }
+}
+
+/* ── Dialog ───────────────────────────────────────────── */
+
+.trailer-dialog {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  background: #0a0a0f;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow:
+    0 32px 80px rgba(0,0,0,.9),
+    0 0 0 1px rgba(255,255,255,.07);
+  transform: scale(.94) translateY(12px);
+  transition: transform .28s cubic-bezier(.34,1.56,.64,1);
+}
+
+.trailer-overlay.is-open .trailer-dialog {
+  transform: scale(1) translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trailer-dialog { transition: none; }
+}
+
+/* ── Header ───────────────────────────────────────────── */
+
+.trailer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: rgba(255,255,255,.04);
+  border-bottom: 1px solid rgba(255,255,255,.07);
+}
+
+.trailer-title {
+  font-size: .85rem;
+  font-weight: 700;
+  color: rgba(255,255,255,.85);
+  letter-spacing: .03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: calc(100% - 48px);
+}
+
+.trailer-close {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,.08);
+  border: none;
+  border-radius: 50%;
+  color: rgba(255,255,255,.8);
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background .16s, color .16s, transform .16s;
+}
+
+.trailer-close:hover {
+  background: rgba(229,9,20,.7);
+  color: #fff;
+  transform: rotate(90deg);
+}
+
+.trailer-close:focus-visible {
+  outline: 2px solid #e50914;
+  outline-offset: 2px;
+}
+
+/* ── Player area ─────────────────────────────────────── */
+
+.trailer-player-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+}
+
+/* Loading */
+.trailer-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  color: rgba(255,255,255,.55);
+  font-size: .82rem;
+}
+
+.trailer-spinner {
+  width: 42px;
+  height: 42px;
+  border: 3px solid rgba(255,255,255,.12);
+  border-top-color: #e50914;
+  border-radius: 50%;
+  animation: trailer-spin .8s linear infinite;
+}
+
+@keyframes trailer-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trailer-spinner { animation: none; border-top-color: #e50914; }
+}
+
+/* Error / no trailer */
+.trailer-message {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: rgba(255,255,255,.55);
+  font-size: .84rem;
+  text-align: center;
+  padding: 24px;
+}
+
+.trailer-message-icon {
+  font-size: 2.4rem;
+  opacity: .6;
+}
+
+.trailer-message.is-visible {
+  display: flex;
+}
+
+/* YouTube iframe */
+#trailer-iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  opacity: 0;
+  transition: opacity .35s ease;
+}
+
+#trailer-iframe.is-ready {
+  opacity: 1;
+}
+
+/* ── TMDB attribution ────────────────────────────────── */
+
+.trailer-attribution {
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: .68rem;
+  color: rgba(255,255,255,.3);
+  border-top: 1px solid rgba(255,255,255,.05);
+}

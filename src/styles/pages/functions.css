@@ -1,0 +1,511 @@
+/* Funciones (antes styles/funciones.css).
+   Encapsulado con :where([data-page="…"]): solo aplica en su página y no altera
+   la especificidad de las reglas legacy. */
+
+:where([data-page="functions"]) {
+  /* =====================================================
+     CINEHUB — FUNCIONES
+     ===================================================== */
+
+  .showtimes-page {
+    min-height: 100vh;
+    padding: 2rem 1.5rem 5rem;
+    background:
+      radial-gradient(
+        circle at top right,
+        rgba(229, 9, 20, 0.10),
+        transparent 30%
+      ),
+      #14121a;
+  }
+
+  .showtimes-container {
+    width: min(1150px, 100%);
+    margin: 0 auto;
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    margin-bottom: 2rem;
+
+    color: #c7c2d1;
+    font-weight: 600;
+
+    transition:
+      color 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .back-link:hover {
+    color: #e50914;
+    transform: translateX(-4px);
+  }
+
+
+  /* =====================================================
+     PELÍCULA
+     ===================================================== */
+
+  .selected-movie {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 2rem;
+
+    padding: 2rem;
+
+    margin-bottom: 3rem;
+
+    background:
+      linear-gradient(
+        135deg,
+        rgba(229, 9, 20, 0.12),
+        rgba(255, 255, 255, 0.02)
+      );
+
+    border: 1px solid #332d3d;
+    border-radius: 20px;
+
+    overflow: hidden;
+  }
+
+  .selected-movie-poster {
+    width: 220px;
+    aspect-ratio: 2 / 3;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    overflow: hidden;
+
+    border-radius: 14px;
+
+    background: #211d2b;
+
+    font-size: 4rem;
+  }
+
+  .selected-movie-poster img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+  }
+
+  .selected-movie-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .selected-movie-info h1 {
+    margin: 0.4rem 0 0.8rem;
+
+    font-size: clamp(2rem, 5vw, 3.5rem);
+
+    color: #fff;
+  }
+
+  .selected-movie-meta {
+    color: #e50914;
+    font-weight: 700;
+
+    margin-bottom: 1rem;
+  }
+
+  .selected-movie-info p {
+    max-width: 700px;
+
+    color: #c7c2d1;
+
+    line-height: 1.7;
+  }
+
+  .movie-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .movie-tags span {
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    background: rgba(255,255,255,.07);
+    border: 1px solid rgba(255,255,255,.1);
+    color: #c7c2d1;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: .04em;
+  }
+
+
+  /* =====================================================
+     PASOS
+     ===================================================== */
+
+  .selection-section {
+    margin-bottom: 3rem;
+  }
+
+  .step-heading {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    margin-bottom: 1.5rem;
+  }
+
+  .step-number {
+    width: 48px;
+    height: 48px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #e50914;
+    color: white;
+
+    font-weight: 900;
+  }
+
+
+  /* =====================================================
+     CINES
+     ===================================================== */
+
+  .cinema-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  .cinema-card {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    padding: 1.25rem;
+
+    border: 1px solid #332d3d;
+    border-radius: 14px;
+
+    background: #1e1b26;
+    color: #fff;
+
+    cursor: pointer;
+
+    text-align: left;
+
+    transition:
+      transform 0.2s ease,
+      border-color 0.2s ease,
+      background-color 0.2s ease;
+  }
+
+  .cinema-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(229, 9, 20,.6);
+    box-shadow: 0 8px 24px rgba(0,0,0,.3);
+  }
+
+  .cinema-card.selected {
+    border-color: #e50914;
+    background: rgba(229, 9, 20, 0.12);
+    box-shadow: 0 0 0 1px rgba(229, 9, 20,.3), 0 8px 24px rgba(229, 9, 20,.1);
+  }
+
+  .cinema-icon {
+    font-size: 2rem;
+  }
+
+  .cinema-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .cinema-info small {
+    color: #aaa3b5;
+  }
+
+  .selection-check {
+    margin-left: auto;
+
+    width: 25px;
+    height: 25px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 2px solid #51495e;
+    border-radius: 50%;
+
+    color: transparent;
+  }
+
+  .cinema-card.selected .selection-check {
+    background: #e50914;
+    border-color: #e50914;
+    color: white;
+  }
+
+
+  /* =====================================================
+     FECHAS
+     ===================================================== */
+
+  .date-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+  }
+
+  .date-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    padding: 1rem;
+
+    border: 1px solid #332d3d;
+    border-radius: 14px;
+
+    background: #1e1b26;
+    color: white;
+
+    cursor: pointer;
+
+    transition:
+      transform 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  .date-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(229, 9, 20,.6);
+    box-shadow: 0 8px 20px rgba(0,0,0,.25);
+  }
+
+  .date-card.selected {
+    background: #e50914;
+    border-color: #e50914;
+    box-shadow: 0 4px 20px rgba(229, 9, 20,.35);
+    transform: translateY(-2px);
+  }
+
+  .date-card span,
+  .date-card small {
+    color: #aaa3b5;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .date-card strong {
+    margin: 0.3rem 0;
+
+    font-size: 2rem;
+  }
+
+  .date-card.selected span,
+  .date-card.selected small {
+    color: white;
+  }
+
+
+  /* =====================================================
+     HORARIOS
+     ===================================================== */
+
+  .time-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+  }
+
+  .time-card {
+    padding: 1rem;
+
+    border: 1px solid #332d3d;
+    border-radius: 12px;
+
+    background: #1e1b26;
+    color: white;
+
+    font-size: 1rem;
+    font-weight: 800;
+
+    cursor: pointer;
+
+    transition:
+      transform 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  .time-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(229, 9, 20,.6);
+    box-shadow: 0 8px 20px rgba(0,0,0,.25);
+  }
+
+  .time-card.selected {
+    background: #e50914;
+    border-color: #e50914;
+    box-shadow: 0 4px 20px rgba(229, 9, 20,.35);
+    transform: translateY(-2px);
+  }
+
+
+  /* =====================================================
+     RESUMEN
+     ===================================================== */
+
+  .booking-summary {
+    display: grid;
+    grid-template-columns: 1fr auto;
+
+    gap: 2rem;
+
+    padding: 2rem;
+
+    margin-top: 3rem;
+
+    border: 1px solid rgba(229, 9, 20,.2);
+    border-radius: 20px;
+
+    background: linear-gradient(135deg, rgba(229, 9, 20,.06), #1e1b26 60%);
+  }
+
+  .summary-details {
+    grid-column: 1 / -1;
+
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+
+    gap: 1rem;
+  }
+
+  .summary-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+
+    padding: 1rem;
+
+    border-radius: 12px;
+
+    background: #211d2b;
+  }
+
+  .summary-item span {
+    color: #9992a5;
+    font-size: 0.8rem;
+  }
+
+  .summary-item strong {
+    color: white;
+  }
+
+  .continue-button {
+    min-width: 180px;
+    justify-self: end;
+  }
+
+  .continue-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .selection-message {
+    grid-column: 1 / -1;
+
+    margin: 0;
+
+    color: #9992a5;
+    font-size: 0.9rem;
+  }
+
+
+  /* =====================================================
+     RESPONSIVE
+     ===================================================== */
+
+  @media (max-width: 800px) {
+
+    .selected-movie {
+      grid-template-columns: 150px 1fr;
+    }
+
+    .selected-movie-poster {
+      width: 150px;
+    }
+
+    .cinema-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .date-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .time-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .summary-details {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+  }
+
+
+  @media (max-width: 600px) {
+
+    .showtimes-page {
+      padding: 1.5rem 1rem 4rem;
+    }
+
+    .selected-movie {
+      grid-template-columns: 1fr;
+      padding: 1.25rem;
+    }
+
+    .selected-movie-poster {
+      width: 180px;
+      margin: 0 auto;
+    }
+
+    .selected-movie-info h1 {
+      font-size: 2rem;
+    }
+
+    .date-grid,
+    .time-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .booking-summary {
+      grid-template-columns: 1fr;
+    }
+
+    .summary-details {
+      grid-template-columns: 1fr;
+    }
+
+    .continue-button {
+      width: 100%;
+      justify-self: stretch;
+    }
+
+  }
+}

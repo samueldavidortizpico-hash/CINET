@@ -1,0 +1,3432 @@
+/* =========================================================
+   CINEHUB
+   MAIN.CSS
+   Diseño principal
+   ========================================================= */
+
+/* =========================================================
+   VARIABLES
+   ========================================================= */
+
+:root {
+
+  --bg:
+    #07050d;
+
+  --bg-soft:
+    #0c0912;
+
+  --surface:
+    #110c17;
+
+  --surface-2:
+    #160f1d;
+
+  --surface-3:
+    #1c1325;
+
+  --border:
+    rgba(255, 255, 255, .08);
+
+  --border-strong:
+    rgba(229, 9, 20, .35);
+
+  --text:
+    #ffffff;
+
+  --text-soft:
+    #c9c0d0;
+
+  --text-muted:
+    #817889;
+
+  --pink:
+    #e50914;
+
+  --pink-light:
+    #ff4d5a;
+
+  --purple:
+    #8c0a14;
+
+  --yellow:
+    #ffd166;
+
+  --green:
+    #42e695;
+
+  --danger:
+    #ff5d73;
+
+  --radius-sm:
+    9px;
+
+  --radius-md:
+    14px;
+
+  --radius-lg:
+    18px;
+
+  --radius-xl:
+    24px;
+
+  --shadow:
+    0 20px 60px rgba(0, 0, 0, .35);
+
+  --shadow-hover:
+    0 30px 80px rgba(0, 0, 0, .55);
+
+  --transition:
+    .25s ease;
+
+}
+
+/* =========================================================
+   MODO CLARO
+   ========================================================= */
+
+html:not(.dark) {
+
+  --bg:
+    #f5f2fa;
+
+  --bg-soft:
+    #ede9f6;
+
+  --surface:
+    #e6e0f0;
+
+  --surface-2:
+    #ddd6e8;
+
+  --surface-3:
+    #d3cade;
+
+  --border:
+    rgba(0, 0, 0, .11);
+
+  --border-strong:
+    rgba(190, 10, 90, .3);
+
+  --text:
+    #0a0712;
+
+  --text-soft:
+    #2a2035;
+
+  --text-muted:
+    #5c5068;
+
+  --shadow:
+    0 20px 60px rgba(0, 0, 0, .12);
+
+  --shadow-hover:
+    0 30px 80px rgba(0, 0, 0, .2);
+
+  color-scheme: light;
+
+}
+
+html:not(.dark) body {
+
+  background:
+    var(--bg);
+
+  color:
+    var(--text);
+
+}
+
+html:not(.dark) .site-header {
+
+  background:
+    rgba(245, 242, 250, .95);
+
+  border-bottom:
+    1px solid
+    rgba(0, 0, 0, .1);
+
+}
+
+html:not(.dark) .logo {
+
+  color:
+    var(--text);
+
+}
+
+html:not(.dark) .nav-list a {
+
+  color:
+    var(--text-soft);
+
+}
+
+html:not(.dark) .nav-list a:hover,
+html:not(.dark) .nav-list a.active {
+
+  background:
+    rgba(0, 0, 0, .07);
+
+  color:
+    var(--text);
+
+}
+
+html:not(.dark) .catalog-section,
+html:not(.dark) .plans-section,
+html:not(.dark) .signup,
+html:not(.dark) .signup-section,
+html:not(.dark) .faq,
+html:not(.dark) .faq-section {
+
+  background:
+    var(--bg);
+
+}
+
+html:not(.dark) .section-heading h2 {
+
+  color:
+    var(--text);
+
+}
+
+html:not(.dark) .section-heading > p {
+
+  color:
+    var(--text-muted);
+
+}
+
+html:not(.dark) .catalog-toolbar {
+
+  background:
+    var(--surface);
+
+  border-color:
+    rgba(0, 0, 0, .1);
+
+}
+
+html:not(.dark) .filter-btn {
+
+  background:
+    var(--bg);
+
+  color:
+    var(--text-soft);
+
+  border:
+    1px solid
+    rgba(0, 0, 0, .14);
+
+}
+
+html:not(.dark) .filter-btn:hover {
+
+  background:
+    rgba(0, 0, 0, .06);
+
+  color:
+    var(--text);
+
+}
+
+html:not(.dark) .filter-btn.active {
+
+  background:
+    var(--pink);
+
+  color:
+    white;
+
+  border-color:
+    var(--pink);
+
+}
+
+html:not(.dark) #sort-movies {
+
+  background:
+    var(--bg);
+
+  color:
+    var(--text);
+
+  border:
+    1px solid
+    rgba(0, 0, 0, .14);
+
+}
+
+html:not(.dark) .movie-card {
+
+  background:
+    var(--surface);
+
+  border-color:
+    rgba(0, 0, 0, .1);
+
+}
+
+html:not(.dark) .movie-card h3,
+html:not(.dark) .movie-info h3 {
+
+  color:
+    var(--text);
+
+}
+
+html:not(.dark) .movie-description {
+
+  color:
+    var(--text-muted);
+
+}
+
+html:not(.dark) .movie-card-button {
+
+  background:
+    rgba(0, 0, 0, .06);
+
+  color:
+    var(--text-soft);
+
+  border-color:
+    rgba(0, 0, 0, .12);
+
+}
+
+html:not(.dark) .movie-card-button:hover {
+
+  background:
+    var(--pink);
+
+  color:
+    white;
+
+  border-color:
+    var(--pink);
+
+}
+
+html:not(.dark) .plan-card {
+
+  background:
+    var(--surface);
+
+  border-color:
+    rgba(0, 0, 0, .1);
+
+  color:
+    var(--text);
+
+}
+
+html:not(.dark) .plan-card h3 {
+
+  color:
+    var(--text);
+
+}
+
+html:not(.dark) .signup-form {
+
+  background:
+    var(--surface);
+
+  border-color:
+    rgba(0, 0, 0, .1);
+
+}
+
+html:not(.dark) .field label {
+
+  color:
+    var(--text-soft);
+
+}
+
+html:not(.dark) .field input,
+html:not(.dark) .field select,
+html:not(.dark) .field textarea {
+
+  background:
+    var(--bg);
+
+  color:
+    var(--text);
+
+  border-color:
+    rgba(0, 0, 0, .18);
+
+}
+
+html:not(.dark) .faq-item {
+
+  border-color:
+    rgba(0, 0, 0, .1);
+
+  background:
+    var(--surface);
+
+}
+
+html:not(.dark) .faq-item summary {
+
+  color:
+    var(--text);
+
+}
+
+html:not(.dark) .faq-item p {
+
+  color:
+    var(--text-soft);
+
+}
+
+html:not(.dark) .site-footer {
+
+  background:
+    var(--surface);
+
+  color:
+    var(--text-muted);
+
+  border-top:
+    1px solid
+    rgba(0, 0, 0, .1);
+
+}
+
+/* =========================================================
+   RESET
+   ========================================================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+
+  margin: 0;
+
+  min-height: 100vh;
+
+  background:
+    var(--bg);
+
+  color:
+    var(--text);
+
+  font-family:
+    Outfit,
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+
+  overflow-x: hidden;
+
+  line-height: 1.55;
+
+  text-wrap: pretty;
+
+}
+
+img {
+
+  max-width: 100%;
+
+}
+
+button,
+input,
+select,
+textarea {
+
+  font: inherit;
+
+}
+
+button {
+
+  border: 0;
+
+}
+
+a {
+
+  color: inherit;
+
+}
+
+::selection {
+
+  background:
+    var(--pink);
+
+  color:
+    white;
+
+}
+
+/* =========================================================
+   SCROLLBAR
+   ========================================================= */
+
+::-webkit-scrollbar {
+
+  width:
+    9px;
+
+}
+
+::-webkit-scrollbar-track {
+
+  background:
+    #05030a;
+
+}
+
+::-webkit-scrollbar-thumb {
+
+  background:
+    linear-gradient(
+      180deg,
+      var(--pink),
+      var(--purple)
+    );
+
+  border-radius:
+    999px;
+
+}
+
+::-webkit-scrollbar-thumb:hover {
+
+  background:
+    var(--pink-light);
+
+}
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.site-header {
+
+  position:
+    sticky;
+
+  top:
+    0;
+
+  z-index:
+    1000;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    space-between;
+
+  gap:
+    25px;
+
+  min-height:
+    76px;
+
+  padding:
+    12px 5%;
+
+  border-bottom:
+    1px solid
+    rgba(255,255,255,.06);
+
+  background:
+    rgba(7,5,13,.78);
+
+  backdrop-filter:
+    blur(20px);
+
+  -webkit-backdrop-filter:
+    blur(20px);
+
+}
+
+/* =========================================================
+   LOGO
+   ========================================================= */
+
+.logo {
+
+  position:
+    relative;
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  gap:
+    8px;
+
+  color:
+    white;
+
+  text-decoration:
+    none;
+
+  font-size:
+    1.45rem;
+
+  font-weight:
+    950;
+
+  letter-spacing:
+    -.05em;
+
+}
+
+.logo::before {
+
+  content:
+    "▶";
+
+  display:
+    grid;
+
+  place-items:
+    center;
+
+  width:
+    30px;
+
+  height:
+    30px;
+
+  border-radius:
+    9px;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--pink),
+      var(--purple)
+    );
+
+  color:
+    white;
+
+  font-size:
+    .65rem;
+
+  box-shadow:
+    0 8px 25px
+    rgba(229, 9, 20,.25);
+
+}
+
+.logo:hover {
+
+  transform:
+    translateY(-1px);
+
+}
+
+/* =========================================================
+   NAVEGACIÓN
+   ========================================================= */
+
+.nav-list {
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    6px;
+
+  margin:
+    0;
+
+  padding:
+    0;
+
+  list-style:
+    none;
+
+}
+
+.nav-list a {
+
+  position:
+    relative;
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  padding:
+    9px 12px;
+
+  border-radius:
+    10px;
+
+  color:
+    #a69cac;
+
+  text-decoration:
+    none;
+
+  font-size:
+    .78rem;
+
+  font-weight:
+    800;
+
+  transition:
+    color var(--transition),
+    background var(--transition);
+
+}
+
+.nav-list a::after {
+
+  content:
+    "";
+
+  position:
+    absolute;
+
+  left:
+    12px;
+
+  right:
+    12px;
+
+  bottom:
+    4px;
+
+  height:
+    2px;
+
+  border-radius:
+    999px;
+
+  background:
+    linear-gradient(
+      90deg,
+      var(--pink),
+      var(--purple)
+    );
+
+  transform:
+    scaleX(0);
+
+  transform-origin:
+    center;
+
+  transition:
+    transform var(--transition);
+
+}
+
+.nav-list a:hover {
+
+  color:
+    white;
+
+  background:
+    rgba(255,255,255,.045);
+
+}
+
+.nav-list a:hover::after {
+
+  transform:
+    scaleX(1);
+
+}
+
+/* =========================================================
+   BOTONES GENERALES
+   ========================================================= */
+
+.btn {
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    8px;
+
+  min-height:
+    42px;
+
+  padding:
+    10px 17px;
+
+  border:
+    1px solid
+    rgba(255,255,255,.1);
+
+  border-radius:
+    11px;
+
+  background:
+    rgba(255,255,255,.045);
+
+  color:
+    white;
+
+  text-decoration:
+    none;
+
+  font-size:
+    .78rem;
+
+  font-weight:
+    850;
+
+  cursor:
+    pointer;
+
+  transition:
+    transform var(--transition),
+    background var(--transition),
+    border-color var(--transition),
+    box-shadow var(--transition);
+
+}
+
+.btn:hover {
+
+  transform:
+    translateY(-2px);
+
+  border-color:
+    rgba(229, 9, 20,.4);
+
+  background:
+    rgba(229, 9, 20,.09);
+
+  box-shadow:
+    0 12px 30px
+    rgba(0,0,0,.25);
+
+}
+
+.btn:active {
+
+  transform:
+    translateY(0)
+    scale(.96);
+
+}
+
+.btn:focus-visible {
+
+  outline:
+    2px solid
+    var(--pink);
+
+  outline-offset:
+    3px;
+
+}
+
+.btn-primary {
+
+  border-color:
+    transparent;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--pink),
+      var(--purple)
+    );
+
+  box-shadow:
+    0 10px 30px
+    rgba(229, 9, 20,.2);
+
+}
+
+.btn-primary:hover {
+
+  background:
+    linear-gradient(
+      135deg,
+      #f5222d,
+      #a8121f
+    );
+
+}
+
+.btn-secondary {
+
+  background:
+    rgba(255,255,255,.035);
+
+}
+
+/* =========================================================
+   THEME BUTTON
+   ========================================================= */
+
+#theme-toggle {
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  min-height:
+    40px;
+
+  padding:
+    9px 13px;
+
+  border:
+    1px solid
+    rgba(255,255,255,.09);
+
+  border-radius:
+    11px;
+
+  background:
+    rgba(255,255,255,.04);
+
+  color:
+    #e5dfea;
+
+  font-size:
+    .72rem;
+
+  font-weight:
+    850;
+
+  cursor:
+    pointer;
+
+  backdrop-filter:
+    blur(10px);
+
+  transition:
+    all var(--transition);
+
+}
+
+#theme-toggle:hover {
+
+  transform:
+    translateY(-2px);
+
+  border-color:
+    rgba(229, 9, 20,.45);
+
+  background:
+    rgba(229, 9, 20,.09);
+
+}
+
+/* =========================================================
+   HERO
+   ========================================================= */
+
+@keyframes heroGlow {
+
+  from {
+    transform:
+      translate3d(0,0,0)
+      scale(1);
+  }
+
+  to {
+    transform:
+      translate3d(-35px,25px,0)
+      scale(1.08);
+  }
+
+}
+
+/* =========================================================
+   HERO CONTENT
+   ========================================================= */
+
+.eyebrow {
+
+  margin:
+    0 0 12px;
+
+  color:
+    var(--pink-light);
+
+  font-size:
+    .72rem;
+
+  font-weight:
+    950;
+
+  letter-spacing:
+    .2em;
+
+  text-transform:
+    uppercase;
+
+}
+
+/* =========================================================
+   SEARCH
+   ========================================================= */
+
+.search-form {
+
+  width:
+    min(720px,100%);
+
+  margin-top:
+    30px;
+
+}
+
+.search-form label {
+
+  display:
+    block;
+
+  margin-bottom:
+    8px;
+
+  color:
+    #ddd5e1;
+
+  font-size:
+    .78rem;
+
+  font-weight:
+    850;
+
+}
+
+.search-row {
+
+  display:
+    flex;
+
+  gap:
+    10px;
+
+}
+
+.search-row input {
+
+  flex:
+    1;
+
+  min-width:
+    0;
+
+  height:
+    58px;
+
+  padding:
+    0 20px;
+
+  border:
+    1px solid
+    rgba(140, 10, 20,.55);
+
+  border-radius:
+    14px;
+
+  outline:
+    none;
+
+  background:
+    rgba(10,7,15,.82);
+
+  color:
+    white;
+
+  font-size:
+    .92rem;
+
+  backdrop-filter:
+    blur(15px);
+
+  transition:
+    border-color var(--transition),
+    box-shadow var(--transition),
+    transform var(--transition);
+
+}
+
+.search-row input::placeholder {
+
+  color:
+    #817889;
+
+}
+
+.search-row input:focus {
+
+  transform:
+    translateY(-1px);
+
+  border-color:
+    var(--pink);
+
+  box-shadow:
+    0 0 0 4px
+    rgba(229, 9, 20,.12),
+    0 15px 40px
+    rgba(0,0,0,.25);
+
+}
+
+.search-row .btn {
+
+  min-width:
+    125px;
+
+  border:
+    0;
+
+  border-radius:
+    14px;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--pink),
+      var(--purple)
+    );
+
+  color:
+    white;
+
+  font-weight:
+    900;
+
+  cursor:
+    pointer;
+
+  transition:
+    transform var(--transition),
+    box-shadow var(--transition);
+
+}
+
+.search-row .btn:hover {
+
+  transform:
+    translateY(-2px);
+
+  box-shadow:
+    0 15px 35px
+    rgba(229, 9, 20,.25);
+
+}
+
+.search-hint {
+
+  margin-top:
+    8px;
+
+  color:
+    var(--text-muted);
+
+  font-size:
+    .7rem;
+
+}
+
+.search-status {
+
+  min-height:
+    20px;
+
+  margin-top:
+    8px;
+
+  color:
+    var(--pink-light);
+
+  font-size:
+    .75rem;
+
+}
+
+/* =========================================================
+   HERO FEATURES
+   ========================================================= */
+
+/* =========================================================
+   CATALOG SECTION
+   ========================================================= */
+
+.catalog-section {
+
+  position:
+    relative;
+
+  padding:
+    85px 5%;
+
+  background:
+    var(--bg);
+
+}
+
+.catalog-section::before {
+
+  content:
+    "";
+
+  position:
+    absolute;
+
+  top:
+    0;
+
+  left:
+    5%;
+
+  right:
+    5%;
+
+  height:
+    1px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(229, 9, 20,.35),
+      rgba(140, 10, 20,.35),
+      transparent
+    );
+
+}
+
+.section-heading {
+
+  display:
+    flex;
+
+  align-items:
+    end;
+
+  justify-content:
+    space-between;
+
+  gap:
+    30px;
+
+  margin-bottom:
+    35px;
+
+}
+
+.section-heading h2 {
+
+  margin:
+    0;
+
+  color:
+    white;
+
+  font-size:
+    clamp(
+      2.2rem,
+      4.5vw,
+      3.6rem
+    );
+
+  font-weight:
+    900;
+
+  letter-spacing:
+    -.06em;
+
+  line-height:
+    .92;
+
+  text-wrap:
+    balance;
+
+}
+
+.section-heading > p {
+
+  max-width:
+    450px;
+
+  margin:
+    0;
+
+  color:
+    #8f8798;
+
+  font-size:
+    .85rem;
+
+  line-height:
+    1.7;
+
+  text-align:
+    right;
+
+}
+
+/* =========================================================
+   TOOLBAR
+   ========================================================= */
+
+.catalog-toolbar {
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    space-between;
+
+  gap:
+    15px;
+
+  margin-bottom:
+    20px;
+
+  padding:
+    10px;
+
+  border:
+    1px solid
+    var(--border);
+
+  border-radius:
+    15px;
+
+  background:
+    rgba(255,255,255,.025);
+
+  backdrop-filter:
+    blur(15px);
+
+}
+
+.filter-group {
+
+  display:
+    flex;
+
+  flex-wrap:
+    wrap;
+
+  gap:
+    7px;
+
+}
+
+.filter-btn {
+
+  padding:
+    8px 13px;
+
+  border:
+    1px solid
+    #30263a;
+
+  border-radius:
+    999px;
+
+  background:
+    #110c17;
+
+  color:
+    #9e94a7;
+
+  cursor:
+    pointer;
+
+  font-size:
+    .72rem;
+
+  font-weight:
+    850;
+
+  transition:
+    all var(--transition);
+
+}
+
+.filter-btn:hover {
+
+  color:
+    white;
+
+  border-color:
+    rgba(229, 9, 20,.5);
+
+  transform:
+    translateY(-1px);
+
+}
+
+.filter-btn.active {
+
+  border-color:
+    var(--pink);
+
+  background:
+    var(--pink);
+
+  color:
+    white;
+
+  box-shadow:
+    0 6px 20px
+    rgba(229, 9, 20,.35);
+
+}
+
+.filter-btn:active {
+
+  transform:
+    scale(.96);
+
+}
+
+.filter-btn:focus-visible {
+
+  outline:
+    2px solid
+    var(--pink);
+
+  outline-offset:
+    3px;
+
+}
+
+#sort-movies {
+
+  min-width:
+    190px;
+
+  padding:
+    10px;
+
+  border:
+    1px solid
+    #30263a;
+
+  border-radius:
+    10px;
+
+  outline:
+    none;
+
+  background:
+    #110c17;
+
+  color:
+    white;
+
+  cursor:
+    pointer;
+
+}
+
+#sort-movies:focus {
+
+  border-color:
+    var(--pink);
+
+}
+
+/* =========================================================
+   RESULT COUNT
+   ========================================================= */
+
+#results-count {
+
+  margin:
+    0 0 18px;
+
+  color:
+    var(--text-muted);
+
+  font-size:
+    .76rem;
+
+}
+
+#results-count strong {
+
+  color:
+    var(--pink-light);
+
+}
+
+/* =========================================================
+   MOVIE GRID
+   ========================================================= */
+
+#movie-grid {
+
+  display:
+    grid;
+
+  grid-template-columns:
+    repeat(
+      5,
+      minmax(0,1fr)
+    );
+
+  gap:
+    18px;
+
+}
+
+/* =========================================================
+   MOVIE CARD
+   ========================================================= */
+
+.movie-card {
+
+  position:
+    relative;
+
+  overflow:
+    hidden;
+
+  border:
+    1px solid
+    rgba(255,255,255,.08);
+
+  border-radius:
+    17px;
+
+  background:
+    #120d19;
+
+  box-shadow:
+    0 12px 35px
+    rgba(0,0,0,.25);
+
+  isolation:
+    isolate;
+
+  transition:
+    transform .3s ease,
+    border-color .3s ease,
+    box-shadow .3s ease;
+
+}
+
+.movie-card:hover {
+
+  transform:
+    translateY(-10px)
+    scale(1.01);
+
+  border-color:
+    rgba(229, 9, 20,.8);
+
+  box-shadow:
+    0 30px 60px rgba(0,0,0,.55),
+    0 0 0 1px rgba(229, 9, 20,.3),
+    0 0 80px rgba(229, 9, 20,.12);
+
+}
+
+/* =========================================================
+   MOVIE IMAGE
+   ========================================================= */
+
+.movie-card > div:first-child {
+
+  position:
+    relative;
+
+  overflow:
+    hidden;
+
+}
+
+.movie-card > div:first-child::after {
+
+  content:
+    "";
+
+  position:
+    absolute;
+
+  inset:
+    0;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(0,0,0,.05),
+      transparent 50%,
+      rgba(0,0,0,.55)
+    );
+
+  opacity:
+    .65;
+
+  pointer-events:
+    none;
+
+  transition:
+    opacity .3s ease;
+
+}
+
+.movie-card:hover > div:first-child::after {
+
+  opacity:
+    .95;
+
+}
+
+.movie-card img {
+
+  display:
+    block;
+
+  width:
+    100%;
+
+  aspect-ratio:
+    2 / 3;
+
+  object-fit:
+    cover;
+
+  transition:
+    transform .55s ease,
+    filter .55s ease;
+
+}
+
+.movie-card:hover img {
+
+  transform:
+    scale(1.07);
+
+  filter:
+    brightness(.68)
+    saturate(1.1);
+
+}
+
+/* =========================================================
+   MOVIE CONTENT
+   ========================================================= */
+
+.movie-card h3 {
+
+  margin:
+    0 0 5px;
+
+  color:
+    white;
+
+  font-size:
+    .92rem;
+
+  line-height:
+    1.25;
+
+  font-weight:
+    900;
+
+}
+
+.movie-card p {
+
+  margin:
+    6px 0 0;
+
+  color:
+    #9a9099;
+
+  font-size:
+    .72rem;
+
+  line-height:
+    1.55;
+
+  display:
+    -webkit-box;
+
+  -webkit-line-clamp:
+    2;
+
+  -webkit-box-orient:
+    vertical;
+
+  overflow:
+    hidden;
+
+}
+
+.movie-rating {
+
+  display:
+    block;
+
+  margin-top:
+    7px;
+
+  color:
+    var(--yellow);
+
+  font-size:
+    .78rem;
+
+  font-weight:
+    900;
+
+}
+
+/* =========================================================
+   CARD BUTTON
+   ========================================================= */
+
+.movie-card-button {
+
+  position:
+    relative;
+
+  display:
+    block;
+
+  width:
+    100%;
+
+  margin-top:
+    12px;
+
+  padding:
+    9px;
+
+  overflow:
+    hidden;
+
+  border:
+    1px solid
+    rgba(229, 9, 20,.35);
+
+  border-radius:
+    9px;
+
+  background:
+    rgba(229, 9, 20,.06);
+
+  color:
+    var(--pink-light);
+
+  text-align:
+    center;
+
+  text-decoration:
+    none;
+
+  font-size:
+    .72rem;
+
+  font-weight:
+    900;
+
+  transition:
+    all var(--transition);
+
+}
+
+.movie-card-button::before {
+
+  content:
+    "";
+
+  position:
+    absolute;
+
+  top:
+    0;
+
+  left:
+    -100%;
+
+  width:
+    100%;
+
+  height:
+    100%;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,255,255,.25),
+      transparent
+    );
+
+  transition:
+    left .5s ease;
+
+}
+
+.movie-card-button:hover::before {
+
+  left:
+    100%;
+
+}
+
+.movie-card-button:hover {
+
+  background:
+    var(--pink);
+
+  color:
+    white;
+
+  transform:
+    translateY(-1px);
+
+  box-shadow:
+    0 10px 25px
+    rgba(229, 9, 20,.2);
+
+}
+
+/* =========================================================
+   FAVORITE BUTTON
+   ========================================================= */
+
+.favorite-btn {
+
+  position:
+    absolute;
+
+  top:
+    10px;
+
+  right:
+    10px;
+
+  z-index:
+    20;
+
+  display:
+    grid;
+
+  place-items:
+    center;
+
+  width:
+    38px;
+
+  height:
+    38px;
+
+  border:
+    1px solid
+    rgba(255,255,255,.15);
+
+  border-radius:
+    50%;
+
+  background:
+    rgba(5,3,10,.78);
+
+  color:
+    white;
+
+  font-size:
+    1.2rem;
+
+  cursor:
+    pointer;
+
+  backdrop-filter:
+    blur(10px);
+
+  transition:
+    transform .2s ease,
+    background .2s ease,
+    box-shadow .2s ease;
+
+}
+
+.favorite-btn:hover {
+
+  transform:
+    scale(1.15);
+
+  background:
+    rgba(229, 9, 20,.25);
+
+  border-color:
+    rgba(229, 9, 20,.5);
+
+}
+
+.favorite-btn:active {
+
+  transform:
+    scale(.92);
+
+}
+
+.favorite-btn.is-favorite {
+
+  background:
+    var(--pink);
+
+  border-color:
+    var(--pink);
+
+  box-shadow:
+    0 6px 25px
+    rgba(229, 9, 20,.45);
+
+}
+
+/* =========================================================
+   MOVIE CARD ENTRY
+   ========================================================= */
+
+.movie-enter {
+
+  animation:
+    movieEnter
+    450ms
+    ease both;
+
+  animation-delay:
+    var(--delay,0ms);
+
+}
+
+@keyframes movieEnter {
+
+  from {
+
+    opacity:
+      0;
+
+    transform:
+      translateY(20px)
+      scale(.98);
+
+  }
+
+  to {
+
+    opacity:
+      1;
+
+    transform:
+      translateY(0)
+      scale(1);
+
+  }
+
+}
+
+/* =========================================================
+   HIDDEN
+   ========================================================= */
+
+.hidden {
+
+  display:
+    none !important;
+
+}
+
+/* =========================================================
+   EMPTY STATE
+   ========================================================= */
+
+.empty-state {
+
+  padding:
+    72px 24px;
+
+  margin-top:
+    28px;
+
+  border:
+    1px solid
+    rgba(229, 9, 20,.18);
+
+  border-radius:
+    20px;
+
+  background:
+    radial-gradient(
+      ellipse at 50% 0%,
+      rgba(229, 9, 20,.08) 0%,
+      rgba(140, 10, 20,.05) 40%,
+      transparent 70%
+    );
+
+  color:
+    var(--text-muted);
+
+  text-align:
+    center;
+
+}
+
+.empty-state > div:first-child {
+
+  margin-bottom:
+    16px;
+
+  animation:
+    pulse-icon 3.2s ease-in-out infinite;
+
+}
+
+@keyframes pulse-icon {
+
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+
+}
+
+.empty-state strong {
+
+  display:
+    block;
+
+  margin-bottom:
+    8px;
+
+  color:
+    white;
+
+  font-size:
+    1.15rem;
+
+  font-weight:
+    700;
+
+}
+
+/* =========================================================
+   PLANS
+   ========================================================= */
+
+.plans-section {
+
+  position:
+    relative;
+
+  padding:
+    90px 5%;
+
+  background:
+    #09060f;
+
+}
+
+.plans-list {
+
+  display:
+    grid;
+
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(0,1fr)
+    );
+
+  gap:
+    18px;
+
+}
+
+.plan-card {
+
+  position:
+    relative;
+
+  padding:
+    22px;
+
+  overflow:
+    hidden;
+
+  border:
+    1px solid
+    var(--border);
+
+  border-radius:
+    18px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(229, 9, 20,.08),
+      rgba(140, 10, 20,.04)
+    );
+
+  transition:
+    transform var(--transition),
+    border-color var(--transition),
+    box-shadow var(--transition);
+
+}
+
+.plan-card::before {
+
+  content:
+    "";
+
+  position:
+    absolute;
+
+  width:
+    150px;
+
+  height:
+    150px;
+
+  right:
+    -70px;
+
+  top:
+    -70px;
+
+  border-radius:
+    50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(229, 9, 20,.18),
+      transparent 70%
+    );
+
+}
+
+.plan-card:hover {
+
+  transform:
+    translateY(-5px);
+
+  border-color:
+    rgba(229, 9, 20,.4);
+
+  box-shadow:
+    0 20px 50px
+    rgba(0,0,0,.35);
+
+}
+
+.plan-card h3 {
+
+  position:
+    relative;
+
+  margin:
+    12px 0 7px;
+
+  color:
+    white;
+
+  font-size:
+    1.1rem;
+
+  font-weight:
+    900;
+
+}
+
+.plan-card p {
+
+  margin:
+    5px 0;
+
+  color:
+    var(--text-muted);
+
+  font-size:
+    .76rem;
+
+}
+
+.plan-card .status {
+
+  display:
+    inline-flex;
+
+  padding:
+    5px 9px;
+
+  border-radius:
+    999px;
+
+  background:
+    rgba(229, 9, 20,.1);
+
+  color:
+    var(--pink-light);
+
+  font-size:
+    .63rem;
+
+  font-weight:
+    900;
+
+  letter-spacing:
+    .08em;
+
+}
+
+.delete-plan {
+
+  margin-top:
+    15px;
+
+  padding:
+    8px 12px;
+
+  border:
+    1px solid
+    rgba(255,93,115,.25);
+
+  border-radius:
+    9px;
+
+  background:
+    rgba(255,93,115,.06);
+
+  color:
+    #ff8090;
+
+  cursor:
+    pointer;
+
+  font-size:
+    .7rem;
+
+  font-weight:
+    850;
+
+  transition:
+    all var(--transition);
+
+}
+
+.delete-plan:hover {
+
+  background:
+    rgba(255,93,115,.15);
+
+  border-color:
+    rgba(255,93,115,.5);
+
+}
+
+/* =========================================================
+   REGISTER / FORM
+   ========================================================= */
+
+.signup-section {
+
+  position:
+    relative;
+
+  padding:
+    90px 5%;
+
+  background:
+    var(--bg);
+
+}
+
+.signup-form {
+
+  width:
+    min(650px,100%);
+
+  margin:
+    30px auto 0;
+
+  padding:
+    28px;
+
+  border:
+    1px solid
+    var(--border);
+
+  border-radius:
+    20px;
+
+  background:
+    rgba(255,255,255,.025);
+
+  box-shadow:
+    var(--shadow);
+
+}
+
+.signup-form label {
+
+  display:
+    block;
+
+  margin:
+    0 0 7px;
+
+  color:
+    #d7cfdd;
+
+  font-size:
+    .75rem;
+
+  font-weight:
+    850;
+
+}
+
+.signup-form input {
+
+  width:
+    100%;
+
+  min-height:
+    48px;
+
+  margin:
+    0 0 18px;
+
+  padding:
+    0 14px;
+
+  border:
+    1px solid
+    rgba(255,255,255,.14);
+
+  border-radius:
+    12px;
+
+  outline:
+    none;
+
+  background:
+    rgba(255,255,255,.04);
+
+  color:
+    white;
+
+  transition:
+    border-color var(--transition),
+    box-shadow var(--transition),
+    background var(--transition);
+
+}
+
+.signup-form input:hover {
+
+  border-color:
+    rgba(255,255,255,.22);
+
+  background:
+    rgba(255,255,255,.06);
+
+}
+
+.signup-form input:focus {
+
+  border-color:
+    var(--pink);
+
+  background:
+    rgba(229, 9, 20,.04);
+
+  box-shadow:
+    0 0 0 3px
+    rgba(229, 9, 20,.15);
+
+}
+
+.signup-form input::placeholder {
+
+  color:
+    rgba(255,255,255,.28);
+
+}
+
+.form-error {
+
+  margin:
+    -10px 0 14px;
+
+  color:
+    #ff7d8c;
+
+  font-size:
+    .7rem;
+
+}
+
+/* =========================================================
+   FAQ
+   ========================================================= */
+
+.faq-section {
+
+  padding:
+    90px 5%;
+
+  background:
+    #09060f;
+
+}
+
+.faq-item {
+
+  margin-bottom:
+    10px;
+
+  overflow:
+    hidden;
+
+  border:
+    1px solid
+    var(--border);
+
+  border-radius:
+    14px;
+
+  background:
+    rgba(255,255,255,.025);
+
+}
+
+.faq-item summary {
+
+  position:
+    relative;
+
+  padding:
+    20px 22px;
+  padding-right:
+    52px;
+
+  color:
+    white;
+
+  cursor:
+    pointer;
+
+  font-size:
+    .88rem;
+
+  font-weight:
+    700;
+
+  list-style:
+    none;
+
+  transition:
+    background var(--transition);
+
+}
+
+.faq-item summary:hover {
+  background: rgba(255,255,255,.04);
+}
+
+.faq-item[open] {
+  border-color: rgba(229, 9, 20,.3);
+  background: rgba(229, 9, 20,.04);
+}
+
+.faq-item summary::-webkit-details-marker {
+
+  display:
+    none;
+
+}
+
+.faq-item summary::after {
+
+  content:
+    "+";
+
+  position:
+    absolute;
+
+  right:
+    20px;
+
+  color:
+    var(--pink-light);
+
+  font-size:
+    1.1rem;
+
+  transition:
+    transform var(--transition);
+
+}
+
+.faq-item[open] summary::after {
+
+  transform:
+    rotate(45deg);
+
+}
+
+.faq-item p {
+
+  margin:
+    0;
+
+  padding:
+    0 20px 20px;
+
+  color:
+    var(--text-muted);
+
+  font-size:
+    .78rem;
+
+  line-height:
+    1.8;
+
+}
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.site-footer {
+
+  padding:
+    48px 5% 32px;
+
+  border-top:
+    1px solid
+    transparent;
+
+  background:
+    linear-gradient(
+      to right,
+      rgba(229, 9, 20,.55),
+      rgba(140, 10, 20,.55)
+    )
+    border-box,
+    #05030a;
+
+  background:
+    #05030a;
+
+  border-top:
+    1px solid;
+
+  border-image:
+    linear-gradient(
+      to right,
+      rgba(229, 9, 20,.4),
+      rgba(140, 10, 20,.4)
+    ) 1;
+
+  color:
+    #7e7786;
+
+  font-size:
+    .72rem;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    space-between;
+
+  gap:
+    20px;
+
+  flex-wrap:
+    wrap;
+
+}
+
+.site-footer .footer-brand {
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    10px;
+
+}
+
+.site-footer .footer-brand strong {
+
+  font-size:
+    1rem;
+
+  font-weight:
+    700;
+
+  color:
+    white;
+
+  letter-spacing:
+    -.02em;
+
+}
+
+.site-footer .footer-brand p {
+
+  margin-top:
+    2px;
+
+  font-size:
+    .7rem;
+
+  color:
+    #5e5668;
+
+}
+
+.site-footer .footer-links {
+
+  display:
+    flex;
+
+  gap:
+    20px;
+
+  align-items:
+    center;
+
+}
+
+.site-footer .footer-copy {
+
+  color:
+    #4a4255;
+
+  font-size:
+    .68rem;
+
+}
+
+.site-footer a {
+
+  color:
+    #aaa1b1;
+
+  text-decoration:
+    none;
+
+  transition:
+    color var(--transition);
+
+}
+
+.site-footer a:hover {
+
+  color:
+    var(--pink-light);
+
+}
+
+/* =========================================================
+   TOAST
+   ========================================================= */
+
+.cinehub-toast {
+
+  position:
+    fixed;
+
+  right:
+    20px;
+
+  bottom:
+    20px;
+
+  z-index:
+    99999;
+
+  max-width:
+    min(360px, calc(100vw - 40px));
+
+  padding:
+    14px 18px;
+
+  border:
+    1px solid
+    rgba(229, 9, 20,.4);
+
+  border-radius:
+    13px;
+
+  background:
+    rgba(20,13,28,.96);
+
+  color:
+    white;
+
+  font-size:
+    .78rem;
+
+  font-weight:
+    850;
+
+  box-shadow:
+    0 20px 60px
+    rgba(0,0,0,.5);
+
+  backdrop-filter:
+    blur(15px);
+
+  animation:
+    toastIn .3s ease both;
+
+}
+
+.cinehub-toast.show {
+
+  animation:
+    toastIn .3s ease both;
+
+}
+
+@keyframes toastIn {
+
+  from {
+
+    opacity:
+      0;
+
+    transform:
+      translateY(15px)
+      scale(.96);
+
+  }
+
+  to {
+
+    opacity:
+      1;
+
+    transform:
+      translateY(0)
+      scale(1);
+
+  }
+
+}
+
+/* =========================================================
+   FOCUS ACCESSIBILITY
+   ========================================================= */
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+summary:focus-visible {
+
+  outline:
+    2px solid
+    var(--pink);
+
+  outline-offset:
+    3px;
+
+}
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (
+  prefers-reduced-motion: reduce
+) {
+
+  *,
+  *::before,
+  *::after {
+
+    scroll-behavior:
+      auto !important;
+
+    animation-duration:
+      .01ms !important;
+
+    animation-iteration-count:
+      1 !important;
+
+    transition-duration:
+      .01ms !important;
+
+  }
+
+}
+
+/* =========================================================
+   MOVIE POSTER WRAPPER  (class emitted by main.js)
+   ========================================================= */
+
+.movie-poster-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.movie-poster-wrapper::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(0,0,0,.04),
+    transparent 45%,
+    rgba(0,0,0,.6)
+  );
+  opacity: .6;
+  pointer-events: none;
+  transition: opacity .3s ease;
+}
+
+/* =========================================================
+   MOVIE STATUS BADGE  (class emitted by main.js)
+   ========================================================= */
+
+.movie-status {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+  padding: 3px 8px;
+  border-radius: 5px;
+  background: rgba(7,5,13,.88);
+  border: 1px solid rgba(255,255,255,.12);
+  color: var(--pink-light);
+  font-size: .52rem;
+  font-weight: 950;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   MOVIE INFO  (class emitted by main.js — maps to content area)
+   ========================================================= */
+
+.movie-info {
+  padding: 12px 14px 14px;
+}
+
+.movie-info h3 {
+  margin: 0 0 4px;
+  color: white;
+  font-size: .9rem;
+  font-weight: 900;
+  line-height: 1.25;
+  /* clamp to 2 lines */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+/* =========================================================
+   MOVIE META  (year · genre — class emitted by main.js)
+   ========================================================= */
+
+.movie-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0 0 3px;
+  color: var(--text-muted);
+  font-size: .68rem;
+}
+
+/* =========================================================
+   MOVIE DESCRIPTION  (class emitted by main.js)
+   ========================================================= */
+
+.movie-description {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  margin: 5px 0 0;
+  color: #5e5666;
+  font-size: .65rem;
+  line-height: 1.65;
+}
+
+/* =========================================================
+   SECTION INNER  (centering wrapper used in index.html)
+   ========================================================= */
+
+.section-inner {
+  width: min(1200px, 100%);
+  margin: 0 auto;
+}
+
+/* =========================================================
+   SECTION H2  (plans / signup / faq headings)
+   ========================================================= */
+
+.plans-section h2,
+.signup-section h2,
+.signup h2,
+.faq-section h2,
+.faq h2 {
+  margin: 0;
+  color: white;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 950;
+  letter-spacing: -.055em;
+}
+
+.plans-section > .section-inner > p,
+.signup-section > .section-inner > p,
+.signup > .section-inner > p,
+.faq-section > .section-inner > p,
+.faq > .section-inner > p {
+  margin-top: 10px;
+  color: var(--text-muted);
+  font-size: .85rem;
+  line-height: 1.7;
+}
+
+/* =========================================================
+   SIGNUP  (class alias — index.html uses .signup not .signup-section)
+   ========================================================= */
+
+.signup {
+  position: relative;
+  padding: 90px 5%;
+  background: var(--bg);
+}
+
+/* =========================================================
+   FAQ  (class alias — index.html uses .faq not .faq-section)
+   ========================================================= */
+
+.faq {
+  padding: 90px 5%;
+  background: #09060f;
+}
+
+/* =========================================================
+   FORM FIELDS  (.field / .field-error used in index.html signup form)
+   ========================================================= */
+
+.field {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.field label {
+  color: #d7cfdd;
+  font-size: .75rem;
+  font-weight: 850;
+}
+
+.field input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid #30263a;
+  border-radius: 10px;
+  outline: none;
+  background: #0f0a14;
+  color: white;
+  transition:
+    border-color var(--transition),
+    box-shadow var(--transition);
+}
+
+.field input:focus {
+  border-color: var(--purple);
+  box-shadow: 0 0 0 4px rgba(140, 10, 20,.1);
+}
+
+.field input::placeholder {
+  color: #625a69;
+}
+
+.field-error {
+  margin: 0;
+  color: #ff7d8c;
+  font-size: .7rem;
+}
+
+/* =========================================================
+   RESPONSIVE - TABLET
+   ========================================================= */
+
+@media (
+  max-width: 1100px
+) {
+
+  #movie-grid {
+
+    grid-template-columns:
+      repeat(4,minmax(0,1fr));
+
+  }
+
+  .plans-list {
+
+    grid-template-columns:
+      repeat(2,minmax(0,1fr));
+
+  }
+
+}
+
+/* =========================================================
+   RESPONSIVE - TABLET PEQUEÑO
+   ========================================================= */
+
+@media (
+  max-width: 850px
+) {
+
+  .site-header {
+
+    flex-wrap:
+      wrap;
+
+    justify-content:
+      center;
+
+    padding:
+      12px 4%;
+
+  }
+
+  .nav-list {
+
+    order:
+      3;
+
+    width:
+      100%;
+
+    justify-content:
+      center;
+
+    overflow-x:
+      auto;
+
+    padding-bottom:
+      3px;
+
+  }
+
+  .section-heading {
+
+    align-items:
+      flex-start;
+
+    flex-direction:
+      column;
+
+  }
+
+  .section-heading > p {
+
+    text-align:
+      left;
+
+  }
+
+  .catalog-toolbar {
+
+    align-items:
+      stretch;
+
+    flex-direction:
+      column;
+
+  }
+
+  #sort-movies {
+
+    width:
+      100%;
+
+  }
+
+  #movie-grid {
+
+    grid-template-columns:
+      repeat(3,minmax(0,1fr));
+
+  }
+
+}
+
+/* =========================================================
+   RESPONSIVE - MÓVIL
+   ========================================================= */
+
+@media (
+  max-width: 600px
+) {
+
+  .site-header {
+
+    position:
+      relative;
+
+  }
+
+  .logo {
+
+    width:
+      100%;
+
+    justify-content:
+      center;
+
+  }
+
+  #theme-toggle {
+
+    width:
+      100%;
+
+  }
+
+  .nav-list {
+
+    justify-content:
+      flex-start;
+
+  }
+
+  .search-row {
+
+    flex-direction:
+      column;
+
+  }
+
+  .search-row input {
+
+    height:
+      52px;
+
+  }
+
+  .search-row .btn {
+
+    min-height:
+      50px;
+
+  }
+
+  .catalog-section,
+  .plans-section,
+  .signup-section,
+  .faq-section {
+
+    padding:
+      60px 5%;
+
+  }
+
+  #movie-grid {
+
+    grid-template-columns:
+      repeat(2,minmax(0,1fr));
+
+    gap:
+      12px;
+
+  }
+
+  .movie-card {
+
+    border-radius:
+      13px;
+
+  }
+
+  .movie-card h3 {
+
+    font-size:
+      .8rem;
+
+  }
+
+  .movie-card p {
+
+    font-size:
+      .65rem;
+
+  }
+
+  .movie-rating {
+
+    font-size:
+      .7rem;
+
+  }
+
+  .favorite-btn {
+
+    width:
+      34px;
+
+    height:
+      34px;
+
+    font-size:
+      1rem;
+
+  }
+
+  .plans-list {
+
+    grid-template-columns:
+      1fr;
+
+  }
+
+  .signup-form {
+
+    padding:
+      20px;
+
+  }
+
+  .cinehub-toast {
+
+    left:
+      20px;
+
+    right:
+      20px;
+
+    bottom:
+      15px;
+
+    max-width:
+      none;
+
+  }
+
+}
+
+/* =========================================================
+   SCROLL REVEAL
+   ========================================================= */
+
+.reveal {
+
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity .55s cubic-bezier(.22,1,.36,1),
+    transform .55s cubic-bezier(.22,1,.36,1);
+
+}
+
+.reveal.visible {
+
+  opacity: 1;
+  transform: translateY(0);
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* =========================================================
+   STATUS BADGE COLORES
+   ========================================================= */
+
+.movie-status[data-status="PRÓXIMAMENTE"] {
+  background: rgba(140, 10, 20,.85);
+  color: #ffe1e3;
+}
+
+.movie-status[data-status="ÉPICA"] {
+  background: rgba(220,38,38,.85);
+  color: #ffe4e4;
+}
+
+.movie-status[data-status="CLÁSICO"] {
+  background: rgba(180,130,0,.85);
+  color: #fff3c4;
+}
+
+.movie-status[data-status="OBRA MAESTRA"] {
+  background: rgba(229, 9, 20,.9);
+  color: white;
+}
+
+.movie-status[data-status="POPULAR"] {
+  background: rgba(16,185,129,.85);
+  color: #d1fae5;
+}
+
+.movie-status[data-status="DESTACADA"] {
+  background: rgba(37,99,235,.85);
+  color: #dbeafe;
+}
+
+.movie-status[data-status="TERROR"] {
+  background: rgba(17,24,39,.9);
+  color: #ff6b6b;
+  border: 1px solid rgba(255,107,107,.3);
+}
+
+.movie-status[data-status="COMEDIA"] {
+  background: rgba(245,158,11,.85);
+  color: #1a1000;
+}
+
+/* =========================================================
+   MOVIE CARD FOCUS
+   ========================================================= */
+
+.movie-card:focus-within {
+  outline: 2px solid var(--pink);
+  outline-offset: 3px;
+}
+
+.movie-card-button:focus-visible,
+.favorite-btn:focus-visible {
+  outline: 2px solid var(--pink);
+  outline-offset: 3px;
+}
+
+/* =========================================================
+   NAV ACTIVE LINK
+   ========================================================= */
+
+.nav-list a.active {
+
+  color: white;
+  background: rgba(255,255,255,.07);
+
+}
+
+.nav-list a.active::after {
+
+  transform: scaleX(1);
+
+}
+
+/* =========================================================
+   HERO H1 TEXT-WRAP
+   ========================================================= */
+
+h1, h2, h3 {
+  text-wrap: balance;
+}
+
+/* =========================================================
+   RESPONSIVE - MÓVIL MUY PEQUEÑO
+   ========================================================= */
+
+@media (
+  max-width: 380px
+) {
+
+  #movie-grid {
+
+    grid-template-columns:
+      1fr;
+
+  }
+
+  .filter-group {
+
+    display:
+      grid;
+
+    grid-template-columns:
+      repeat(2,1fr);
+
+  }
+
+  .filter-btn {
+
+    width:
+      100%;
+
+  }
+
+}

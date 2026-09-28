@@ -1,0 +1,1227 @@
+/* Detalle de película (antes <style> de pelicula.html).
+   Encapsulado con :where([data-page="…"]): solo aplica en su página y no altera
+   la especificidad de las reglas legacy. */
+
+@keyframes movieGlow {
+
+  0% {
+
+    transform:
+      translate3d(0,0,0)
+      scale(1);
+
+  }
+
+  100% {
+
+    transform:
+      translate3d(-80px,50px,0)
+      scale(1.15);
+
+  }
+
+}
+
+@keyframes movieGlowTwo {
+
+  0% {
+
+    transform:
+      translate3d(0,0,0)
+      scale(1);
+
+  }
+
+  100% {
+
+    transform:
+      translate3d(70px,-40px,0)
+      scale(1.2);
+
+  }
+
+}
+
+@keyframes particleFloat {
+
+  0% {
+
+    transform:
+      translate3d(0,30px,0)
+      scale(.5);
+
+    opacity: 0;
+
+  }
+
+  15% {
+
+    opacity: .5;
+
+  }
+
+  75% {
+
+    opacity: .25;
+
+  }
+
+  100% {
+
+    transform:
+      translate3d(var(--move-x),-120vh,0)
+      scale(1.2);
+
+    opacity: 0;
+
+  }
+
+}
+
+@keyframes movieLoader {
+
+  to {
+    transform:
+      rotate(360deg);
+  }
+
+}
+
+:where([data-page="movie"]) {
+  /* Reinicio de márgenes equivalente al preflight de Tailwind (CDN) que usaba
+     esta página. Especificidad 0: cualquier regla legacy lo sobrescribe. */
+  :where(p, h1, h2, h3, h4, ul, ol, figure, blockquote, dl, dd) {
+    margin: 0;
+  }
+
+  /* =====================================================
+     PELICULA — EXPERIENCIA CINEMATOGRÁFICA
+     ===================================================== */
+
+  .movie-page {
+
+    --movie-accent: #e50914;
+    --movie-accent-2: #8c0a14;
+
+    position: relative;
+
+    overflow: hidden;
+
+    background: #050308;
+
+  }
+
+  /* =====================================================
+     FONDO DINÁMICO
+     ===================================================== */
+
+  .movie-background {
+
+    position: absolute;
+
+    inset: 0;
+
+    z-index: 0;
+
+    overflow: hidden;
+
+    pointer-events: none;
+
+  }
+
+  .movie-backdrop {
+
+    position: absolute;
+
+    inset: -5%;
+
+    width: 110%;
+
+    height: 110%;
+
+    object-fit: cover;
+
+    object-position: center;
+
+    opacity: .48;
+
+    filter:
+      saturate(1.25)
+      contrast(1.05)
+      brightness(.55);
+
+    transform:
+      scale(1.05);
+
+    transition:
+      opacity 1s ease,
+      filter 1s ease,
+      transform 12s ease;
+
+  }
+
+  .movie-page.loaded
+  .movie-backdrop {
+
+    transform:
+      scale(1.12);
+
+  }
+
+  /* =====================================================
+     CAPAS DEL FONDO
+     ===================================================== */
+
+  .movie-background::before {
+
+    content: "";
+
+    position: absolute;
+
+    inset: 0;
+
+    z-index: 2;
+
+    background:
+      linear-gradient(
+        90deg,
+        rgba(5,3,8,.98) 0%,
+        rgba(5,3,8,.90) 25%,
+        rgba(5,3,8,.55) 55%,
+        rgba(5,3,8,.72) 100%
+      );
+
+  }
+
+  .movie-background::after {
+
+    content: "";
+
+    position: absolute;
+
+    inset: 0;
+
+    z-index: 3;
+
+    background:
+      linear-gradient(
+        180deg,
+        rgba(5,3,8,.55) 0%,
+        transparent 35%,
+        rgba(5,3,8,.98) 100%
+      );
+
+  }
+
+  /* =====================================================
+     BRILLO DINÁMICO
+     ===================================================== */
+
+  .movie-glow {
+
+    position: absolute;
+
+    z-index: 1;
+
+    width: 650px;
+
+    height: 650px;
+
+    right: -180px;
+
+    top: -160px;
+
+    border-radius: 50%;
+
+    background:
+      radial-gradient(
+        circle,
+        var(--movie-accent),
+        transparent 68%
+      );
+
+    opacity: .16;
+
+    filter: blur(70px);
+
+    animation:
+      movieGlow 8s ease-in-out infinite alternate;
+
+  }
+
+  .movie-glow-two {
+
+    position: absolute;
+
+    z-index: 1;
+
+    width: 500px;
+
+    height: 500px;
+
+    left: -220px;
+
+    bottom: -200px;
+
+    border-radius: 50%;
+
+    background:
+      radial-gradient(
+        circle,
+        var(--movie-accent-2),
+        transparent 68%
+      );
+
+    opacity: .13;
+
+    filter: blur(80px);
+
+    animation:
+      movieGlowTwo 10s ease-in-out infinite alternate;
+
+  }
+
+  /* =====================================================
+     PARTICULAS
+     ===================================================== */
+
+  .movie-particles {
+
+    position: absolute;
+
+    inset: 0;
+
+    z-index: 4;
+
+    overflow: hidden;
+
+    pointer-events: none;
+
+  }
+
+  .movie-particle {
+
+    position: absolute;
+
+    width: 3px;
+
+    height: 3px;
+
+    border-radius: 50%;
+
+    background: white;
+
+    opacity: .35;
+
+    box-shadow:
+      0 0 12px
+      var(--movie-accent);
+
+    animation:
+      particleFloat
+      var(--duration)
+      linear
+      infinite;
+
+    animation-delay:
+      var(--delay);
+
+  }
+
+  /* =====================================================
+     CONTENIDO
+     ===================================================== */
+
+  .movie-detail {
+
+    position: relative;
+
+    z-index: 10;
+
+    min-height: calc(100vh - 76px);
+
+    display: flex;
+
+    align-items: center;
+
+    padding:
+      80px 5% 110px;
+
+  }
+
+  .movie-detail-inner {
+
+    width: min(
+      1250px,
+      100%
+    );
+
+    margin: 0 auto;
+
+    display: grid;
+
+    grid-template-columns:
+      330px minmax(0,1fr);
+
+    gap: 55px;
+
+    align-items: center;
+
+  }
+
+  /* =====================================================
+     POSTER
+     ===================================================== */
+
+  .movie-poster-wrapper {
+
+    position: relative;
+
+    perspective: 1000px;
+
+  }
+
+  .movie-poster-glow {
+
+    position: absolute;
+
+    inset: -20px;
+
+    border-radius: 25px;
+
+    background:
+      var(--movie-accent);
+
+    opacity: .22;
+
+    filter: blur(35px);
+
+    transform:
+      scale(.9);
+
+    transition:
+      background 1s ease;
+
+  }
+
+  .movie-poster {
+
+    position: relative;
+
+    z-index: 2;
+
+    display: block;
+
+    width: 100%;
+
+    aspect-ratio: 2 / 3;
+
+    object-fit: cover;
+
+    border-radius: 20px;
+
+    border:
+      1px solid
+      rgba(255,255,255,.15);
+
+    box-shadow:
+      0 40px 90px
+      rgba(0,0,0,.65);
+
+    transform:
+      rotateY(-4deg)
+      rotateX(2deg);
+
+    transition:
+      transform .5s ease,
+      box-shadow .5s ease;
+
+  }
+
+  .movie-poster-wrapper:hover
+  .movie-poster {
+
+    transform:
+      rotateY(0deg)
+      rotateX(0deg)
+      translateY(-7px)
+      scale(1.02);
+
+    box-shadow:
+      0 50px 110px
+      rgba(0,0,0,.75);
+
+  }
+
+  /* =====================================================
+     BADGE
+     ===================================================== */
+
+  .movie-status {
+
+    position: absolute;
+
+    z-index: 5;
+
+    top: 14px;
+
+    left: 14px;
+
+    padding:
+      6px 10px;
+
+    border-radius:
+      999px;
+
+    background:
+      rgba(0,0,0,.72);
+
+    border:
+      1px solid
+      rgba(255,255,255,.12);
+
+    color: white;
+
+    font-size:
+      .65rem;
+
+    font-weight:
+      900;
+
+    backdrop-filter:
+      blur(10px);
+
+  }
+
+  /* =====================================================
+     INFORMACION
+     ===================================================== */
+
+  .movie-info {
+
+    max-width:
+      800px;
+
+  }
+
+  .movie-kicker {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    margin-bottom:
+      14px;
+
+    color:
+      var(--movie-accent);
+
+    font-size:
+      .7rem;
+
+    font-weight:
+      950;
+
+    letter-spacing:
+      .2em;
+
+    text-transform:
+      uppercase;
+
+    transition:
+      color 1s ease;
+
+  }
+
+  .movie-kicker::before {
+
+    content: "";
+
+    width: 28px;
+
+    height: 2px;
+
+    border-radius: 999px;
+
+    background:
+      var(--movie-accent);
+
+  }
+
+  .movie-title {
+
+    margin: 0;
+
+    color: white;
+
+    font-size:
+      clamp(
+        3rem,
+        6vw,
+        6.2rem
+      );
+
+    font-weight:
+      950;
+
+    line-height:
+      .88;
+
+    letter-spacing:
+      -.065em;
+
+    text-wrap:
+      balance;
+
+  }
+
+  /* =====================================================
+     META
+     ===================================================== */
+
+  .movie-meta {
+
+    display:
+      flex;
+
+    flex-wrap:
+      wrap;
+
+    align-items:
+      center;
+
+    gap:
+      10px;
+
+    margin-top:
+      24px;
+
+  }
+
+  .movie-meta-item {
+
+    display:
+      inline-flex;
+
+    align-items:
+      center;
+
+    gap:
+      6px;
+
+    padding:
+      7px 10px;
+
+    border:
+      1px solid
+      rgba(255,255,255,.09);
+
+    border-radius:
+      8px;
+
+    background:
+      rgba(255,255,255,.045);
+
+    color:
+      #d5ceda;
+
+    font-size:
+      .72rem;
+
+    font-weight:
+      800;
+
+    backdrop-filter:
+      blur(10px);
+
+  }
+
+  .movie-rating {
+
+    color:
+      #ffd166;
+
+    font-weight:
+      950;
+
+  }
+
+  /* =====================================================
+     DESCRIPCION
+     ===================================================== */
+
+  .movie-description {
+
+    max-width:
+      720px;
+
+    margin-top:
+      25px;
+
+    color:
+      #c2bac9;
+
+    font-size:
+      .95rem;
+
+    line-height:
+      1.9;
+
+  }
+
+  /* =====================================================
+     TAGS
+     ===================================================== */
+
+  .movie-tags {
+
+    display:
+      flex;
+
+    flex-wrap:
+      wrap;
+
+    gap:
+      7px;
+
+    margin-top:
+      22px;
+
+  }
+
+  .movie-tag {
+
+    padding:
+      6px 10px;
+
+    border:
+      1px solid
+      rgba(255,255,255,.1);
+
+    border-radius:
+      999px;
+
+    background:
+      rgba(255,255,255,.035);
+
+    color:
+      #aaa1b0;
+
+    font-size:
+      .66rem;
+
+    font-weight:
+      800;
+
+  }
+
+  /* =====================================================
+     ACCIONES
+     ===================================================== */
+
+  .movie-actions {
+
+    display:
+      flex;
+
+    flex-wrap:
+      wrap;
+
+    gap:
+      10px;
+
+    margin-top:
+      30px;
+
+  }
+
+  .movie-action {
+
+    min-height:
+      48px;
+
+    padding:
+      12px 20px;
+
+    border:
+      1px solid
+      rgba(255,255,255,.1);
+
+    border-radius:
+      11px;
+
+    background:
+      rgba(255,255,255,.045);
+
+    color:
+      white;
+
+    text-decoration:
+      none;
+
+    font-size:
+      .76rem;
+
+    font-weight:
+      900;
+
+    cursor:
+      pointer;
+
+    transition:
+      all .25s ease;
+
+  }
+
+  .movie-action:hover {
+
+    transform:
+      translateY(-3px);
+
+    border-color:
+      var(--movie-accent);
+
+    background:
+      rgba(255,255,255,.08);
+
+  }
+
+  .movie-action-primary {
+
+    border:
+      0;
+
+    background:
+      var(--movie-accent);
+
+    color:
+      #08050b; /* dark text: ~6:1 contrast on #e50914 — WCAG AA */
+
+    box-shadow:
+      0 15px 40px
+      rgba(0,0,0,.5);
+
+  }
+
+  .movie-action-primary:hover {
+
+    background:
+      white;
+
+    color:
+      #08050b;
+
+  }
+
+  /* =====================================================
+     FAVORITO
+     ===================================================== */
+
+  .movie-favorite.active {
+
+    border-color:
+      var(--movie-accent);
+
+    background:
+      var(--movie-accent);
+
+    color:
+      white;
+
+  }
+
+  /* =====================================================
+     INFORMACION INFERIOR
+     ===================================================== */
+
+  .movie-extra {
+
+    display:
+      grid;
+
+    grid-template-columns:
+      repeat(3, minmax(0,1fr));
+
+    gap:
+      10px;
+
+    max-width:
+      720px;
+
+    margin-top:
+      35px;
+
+  }
+
+  .movie-extra-card {
+
+    padding:
+      13px;
+
+    border:
+      1px solid
+      rgba(255,255,255,.07);
+
+    border-radius:
+      11px;
+
+    background:
+      rgba(255,255,255,.025);
+
+  }
+
+  .movie-extra-label {
+
+    display:
+      block;
+
+    margin-bottom:
+      4px;
+
+    color:
+      #706879;
+
+    font-size:
+      .62rem;
+
+    font-weight:
+      800;
+
+    text-transform:
+      uppercase;
+
+    letter-spacing:
+      .08em;
+
+  }
+
+  /* =====================================================
+     LOADING
+     ===================================================== */
+
+  .movie-loading {
+
+    position:
+      fixed;
+
+    inset:
+      0;
+
+    z-index:
+      9999;
+
+    display:
+      grid;
+
+    place-items:
+      center;
+
+    background:
+      #050308;
+
+    transition:
+      opacity .6s ease,
+      visibility .6s ease;
+
+  }
+
+  .movie-loading.hidden {
+
+    opacity:
+      0;
+
+    visibility:
+      hidden;
+
+    pointer-events:
+      none;
+
+  }
+
+  .movie-loader {
+
+    width:
+      45px;
+
+    height:
+      45px;
+
+    border:
+      3px solid
+      rgba(255,255,255,.12);
+
+    border-top-color:
+      var(--movie-accent);
+
+    border-radius:
+      50%;
+
+    animation:
+      movieLoader .8s linear infinite;
+
+  }
+
+  /* =====================================================
+     ERROR
+     ===================================================== */
+
+  .movie-error {
+
+    position:
+      relative;
+
+    z-index:
+      20;
+
+    min-height:
+      70vh;
+
+    display:
+      grid;
+
+    place-items:
+      center;
+
+    padding:
+      40px;
+
+    text-align:
+      center;
+
+  }
+
+  .movie-error-box {
+
+    max-width:
+      600px;
+
+    padding:
+      40px;
+
+    border:
+      1px solid
+      rgba(255,255,255,.1);
+
+    border-radius:
+      20px;
+
+    background:
+      rgba(255,255,255,.035);
+
+  }
+
+  .movie-error-box h1 {
+
+    margin:
+      0 0 10px;
+
+    color:
+      white;
+
+    font-size:
+      2rem;
+
+    font-weight:
+      950;
+
+  }
+
+  .movie-error-box p {
+
+    color:
+      #92899a;
+
+  }
+
+  /* =====================================================
+     RESPONSIVE
+     ===================================================== */
+
+  @media (max-width: 900px) {
+
+    .movie-detail {
+
+      padding:
+        60px 5% 90px;
+
+    }
+
+    .movie-detail-inner {
+
+      grid-template-columns:
+        250px minmax(0,1fr);
+
+      gap:
+        35px;
+
+    }
+
+    .movie-title {
+
+      font-size:
+        clamp(
+          2.6rem,
+          7vw,
+          4.5rem
+        );
+
+    }
+
+  }
+
+  @media (max-width: 700px) {
+
+    .movie-detail {
+
+      padding:
+        45px 5% 80px;
+
+    }
+
+    .movie-detail-inner {
+
+      grid-template-columns:
+        1fr;
+
+      gap:
+        35px;
+
+    }
+
+    .movie-poster-wrapper {
+
+      width:
+        min(
+          260px,
+          75vw
+        );
+
+      margin:
+        0 auto;
+
+    }
+
+    .movie-info {
+
+      text-align:
+        center;
+
+    }
+
+    .movie-kicker {
+
+      justify-content:
+        center;
+
+    }
+
+    .movie-title {
+
+      font-size:
+        clamp(
+          2.8rem,
+          14vw,
+          4.5rem
+        );
+
+    }
+
+    .movie-meta,
+    .movie-tags,
+    .movie-actions {
+
+      justify-content:
+        center;
+
+    }
+
+    .movie-description {
+
+      margin-left:
+        auto;
+
+      margin-right:
+        auto;
+
+    }
+
+    .movie-extra {
+
+      grid-template-columns:
+        1fr;
+
+      text-align:
+        left;
+
+    }
+
+    .movie-action {
+
+      flex:
+        1 1 160px;
+
+    }
+
+  }
+
+  @media (max-width: 450px) {
+
+    .movie-title {
+
+      font-size:
+        2.8rem;
+
+    }
+
+    .movie-description {
+
+      font-size:
+        .82rem;
+
+    }
+
+    .movie-meta-item {
+
+      font-size:
+        .65rem;
+
+    }
+
+    .movie-action {
+
+      width:
+        100%;
+
+    }
+
+  }
+
+  /* =====================================================
+     REDUCIR ANIMACIONES
+     ===================================================== */
+
+  @media (
+    prefers-reduced-motion: reduce
+  ) {
+
+    .movie-particle,
+    .movie-glow,
+    .movie-glow-two,
+    .movie-loader {
+
+      animation:
+        none !important;
+
+    }
+
+    .movie-backdrop {
+
+      transform:
+        scale(1.05) !important;
+
+    }
+
+  }
+}

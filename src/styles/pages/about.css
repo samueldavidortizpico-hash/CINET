@@ -1,0 +1,95 @@
+/* Acerca de (antes about.html con Tailwind por CDN).
+   Equivalente en CSS de las utilidades que usaba la página; ya no se
+   necesita Tailwind como dependencia. */
+
+:where([data-page="about"]) {
+  /* Reinicio de márgenes del preflight de Tailwind (especificidad 0). */
+  :where(p, h1, h2, h3, h4, ul, ol, figure, blockquote, dl, dd) {
+    margin: 0;
+  }
+
+  .about-page {
+    background: #f3f4f6;
+    color: #111827;
+    transition: color 0.3s, background-color 0.3s;
+  }
+
+  .about-block { padding: 4rem 1.5rem; }
+  .about-block--alt { background: #fff; }
+
+  .about-container { max-width: 72rem; margin: 0 auto; }
+  .about-container--narrow { max-width: 64rem; }
+
+  .about-kicker {
+    margin-bottom: 0.75rem;
+    color: #db2777;
+    font-weight: 600;
+    letter-spacing: 0.025em;
+    text-transform: uppercase;
+  }
+
+  .about-title { font-size: 2.25rem; line-height: 2.5rem; font-weight: 800; }
+
+  .about-lead {
+    max-width: 48rem;
+    margin-top: 1.5rem;
+    color: #4b5563;
+    font-size: 1.125rem;
+    line-height: 2rem;
+  }
+
+  .about-heading { margin-bottom: 2.5rem; font-size: 1.875rem; line-height: 2.25rem; font-weight: 700; }
+
+  .about-steps { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+
+  .about-step-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    margin-bottom: 1rem;
+    border-radius: 9999px;
+    background: #db2777;
+    color: #fff;
+    font-weight: 700;
+  }
+
+  /* Con el preflight de Tailwind los h3 heredaban tamaño y peso. */
+  .team-card h3 { font-size: inherit; font-weight: inherit; }
+
+  .about-role { margin-bottom: 0.75rem; color: #db2777; font-weight: 600; }
+
+  .about-attribution {
+    padding-top: 2.5rem;
+    padding-bottom: 2.5rem;
+    border-top: 1px solid #e5e7eb;
+  }
+
+  .about-subheading { margin-bottom: 1rem; font-size: 1.25rem; line-height: 1.75rem; font-weight: 700; }
+
+  .about-note { color: #4b5563; font-size: 0.875rem; line-height: 1.25rem; }
+  .about-note p:first-child { margin-bottom: 0.25rem; }
+  .about-note a { color: #db2777; font-weight: 600; text-decoration: underline; }
+  .about-disclaimer { font-size: 0.75rem; line-height: 1rem; opacity: 0.7; }
+
+  @media (min-width: 768px) {
+    .about-block { padding-left: 2.5rem; padding-right: 2.5rem; }
+    .about-title { font-size: 3rem; line-height: 1; }
+    .about-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  @media (min-width: 1024px) {
+    .about-block { padding-left: 4rem; padding-right: 4rem; }
+    .about-steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  }
+}
+
+/* Modo oscuro (antes variantes dark: de Tailwind). */
+:where(html.dark [data-page="about"]) {
+  .about-page { background: #030712; color: #fff; }
+  .about-block--alt { background: #111827; }
+  .about-lead { color: #d1d5db; }
+  .about-attribution { border-top-color: #1f2937; }
+  .about-note { color: #9ca3af; }
+}

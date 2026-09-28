@@ -1,0 +1,370 @@
+/* =========================================================
+   CineHub — Watch Platforms Modal
+   Selector de plataformas de streaming
+   ========================================================= */
+
+/* ── Botón "Ver película" ────────────────────────────── */
+
+.watch-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 12px 22px;
+  border: none;
+  border-radius: 11px;
+  background: linear-gradient(135deg, #2563eb 0%, #b0101d 100%);
+  color: #fff;
+  font-size: .82rem;
+  font-weight: 900;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease,
+    filter .18s ease;
+  box-shadow: 0 4px 16px rgba(0,0,0,.5);
+}
+
+.watch-btn:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 8px 24px rgba(0,0,0,.65);
+  filter: brightness(1.12);
+}
+
+.watch-btn:active {
+  transform: translateY(0) scale(.97);
+  box-shadow: 0 2px 8px rgba(0,0,0,.4);
+}
+
+.watch-btn:focus-visible {
+  outline: 3px solid #b0101d;
+  outline-offset: 3px;
+}
+
+/* ── Overlay ─────────────────────────────────────────── */
+
+.watch-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0,0,0,.9);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity .28s ease,
+    visibility .28s ease;
+}
+
+.watch-overlay.is-open {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ── Dialog ──────────────────────────────────────────── */
+
+.watch-dialog {
+  position: relative;
+  width: 100%;
+  max-width: 680px;
+  max-height: 92vh;
+  overflow-y: auto;
+  background: #0d0b14;
+  border-radius: 20px;
+  box-shadow:
+    0 40px 100px rgba(0,0,0,.95),
+    0 0 0 1px rgba(255,255,255,.07);
+  transform: scale(.93) translateY(20px);
+  transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,.12) transparent;
+}
+
+.watch-dialog::-webkit-scrollbar        { width: 5px; }
+.watch-dialog::-webkit-scrollbar-track  { background: transparent; }
+.watch-dialog::-webkit-scrollbar-thumb  {
+  background: rgba(255,255,255,.12);
+  border-radius: 999px;
+}
+
+.watch-overlay.is-open .watch-dialog {
+  transform: scale(1) translateY(0);
+}
+
+/* ── Header ──────────────────────────────────────────── */
+
+.watch-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 24px 18px;
+  background: #0d0b14;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+
+.watch-headline {
+  margin: 0 0 5px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: rgba(255,255,255,.92);
+  line-height: 1.35;
+}
+
+.watch-subline {
+  margin: 0;
+  font-size: .76rem;
+  color: rgba(255,255,255,.38);
+  font-weight: 500;
+}
+
+.watch-close {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,.07);
+  border: none;
+  border-radius: 50%;
+  color: rgba(255,255,255,.7);
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background .16s, color .16s, transform .16s;
+}
+
+.watch-close:hover {
+  background: rgba(255,255,255,.15);
+  color: #fff;
+  transform: rotate(90deg);
+}
+
+.watch-close:focus-visible {
+  outline: 2px solid #b0101d;
+  outline-offset: 2px;
+}
+
+/* ── Body ────────────────────────────────────────────── */
+
+.watch-body {
+  padding: 22px 24px 24px;
+}
+
+/* ── Platform grid ───────────────────────────────────── */
+
+.watch-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+/* ── Platform card ───────────────────────────────────── */
+
+.watch-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 20px 8px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.07);
+  background: rgba(255,255,255,.03);
+  cursor: default;
+  text-align: center;
+  --brand: #fff;
+  transition:
+    transform .2s ease,
+    border-color .2s ease,
+    background .2s ease,
+    opacity .2s ease;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Coming-soon */
+.watch-card[data-status="coming-soon"] {
+  opacity: .68;
+}
+
+.watch-card[data-status="coming-soon"]:hover {
+  opacity: .84;
+  transform: translateY(-2px);
+  border-color: rgba(255,255,255,.11);
+  background: rgba(255,255,255,.045);
+}
+
+/* Available */
+.watch-card[data-status="available"] {
+  cursor: pointer;
+  opacity: 1;
+}
+
+.watch-card[data-status="available"]:hover {
+  transform: translateY(-5px);
+  border-color: var(--brand);
+  background: rgba(255,255,255,.06);
+  box-shadow:
+    0 14px 36px rgba(0,0,0,.55),
+    0 0 0 1px var(--brand);
+}
+
+.watch-card[data-status="available"]:active {
+  transform: translateY(-2px) scale(.97);
+}
+
+/* Unavailable */
+.watch-card[data-status="unavailable"] {
+  opacity: .35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Focus ring */
+.watch-card:focus-visible {
+  outline: 3px solid rgba(229, 9, 20,.7);
+  outline-offset: 2px;
+}
+
+/* Click feedback pulse */
+.watch-card.is-feedback {
+  transform: scale(.94) !important;
+  border-color: rgba(255,255,255,.2) !important;
+  background: rgba(255,255,255,.07) !important;
+  transition: transform .1s ease, border-color .1s ease, background .1s ease !important;
+}
+
+/* ── Logo area ───────────────────────────────────────── */
+
+.watch-card-logo {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.watch-card-logo svg {
+  height: 100%;
+  width: auto;
+  max-width: 88px;
+  display: block;
+}
+
+/* ── Platform name ───────────────────────────────────── */
+
+.watch-card-name {
+  font-size: .7rem;
+  font-weight: 800;
+  color: rgba(255,255,255,.72);
+  letter-spacing: .01em;
+  line-height: 1;
+}
+
+/* ── Status badge ────────────────────────────────────── */
+
+.watch-card-badge {
+  font-size: .56rem;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  border-radius: 999px;
+  line-height: 1;
+}
+
+.watch-card-badge[data-status="coming-soon"] {
+  background: rgba(255,255,255,.05);
+  color: rgba(255,255,255,.28);
+  border: 1px solid rgba(255,255,255,.06);
+}
+
+.watch-card-badge[data-status="available"] {
+  background: rgba(66,230,149,.1);
+  color: #42e695;
+  border: 1px solid rgba(66,230,149,.18);
+}
+
+.watch-card-badge[data-status="unavailable"] {
+  background: rgba(255,93,115,.07);
+  color: rgba(255,93,115,.55);
+  border: 1px solid rgba(255,93,115,.1);
+}
+
+/* ── Footer note ─────────────────────────────────────── */
+
+.watch-footer {
+  margin-top: 18px;
+  padding: 13px 16px;
+  border-radius: 10px;
+  background: rgba(255,255,255,.02);
+  border: 1px solid rgba(255,255,255,.05);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.watch-footer-icon {
+  flex-shrink: 0;
+  font-size: .9rem;
+  line-height: 1.6;
+  opacity: .45;
+}
+
+.watch-footer-text {
+  margin: 0;
+  font-size: .7rem;
+  color: rgba(255,255,255,.3);
+  line-height: 1.65;
+}
+
+/* ── Responsive ──────────────────────────────────────── */
+
+@media (max-width: 560px) {
+  .watch-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .watch-card {
+    padding: 18px 8px 12px;
+  }
+
+  .watch-header {
+    padding: 18px 18px 14px;
+  }
+
+  .watch-body {
+    padding: 18px 18px 20px;
+  }
+
+  .watch-headline {
+    font-size: .95rem;
+  }
+}
+
+/* ── Reduced motion ──────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .watch-overlay,
+  .watch-dialog,
+  .watch-card,
+  .watch-card.is-feedback,
+  .watch-close,
+  .watch-btn {
+    transition: none !important;
+    animation: none !important;
+  }
+}
