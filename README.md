@@ -237,8 +237,9 @@ no hay integración API con ellas. La autenticación es **local y demostrativa**
 - **Refresh en rutas profundas:** el build copia `index.html` como `404.html`. GitHub Pages sirve ese
   archivo para `/movie/dune` y React Router resuelve la ruta.
 - **Deploy:** el sitio se sirve desde la rama `gh-pages` (*Settings → Pages → Deploy from a branch → gh-pages*),
-  que contiene solo el contenido de `dist/`. Para publicar una nueva versión (sin `.env`, así el bundle no lleva token
-  de TMDB y usa el catálogo local):
+  que contiene solo el contenido de `dist/`. El build publicado se hace **con** `.env` (token de lectura de TMDB)
+  para que el sitio sea igual al local; el token queda visible en el bundle (decisión aceptada: es de solo lectura
+  y se puede regenerar en themoviedb.org). Para publicar una nueva versión:
 
   ```bash
   npm run build
