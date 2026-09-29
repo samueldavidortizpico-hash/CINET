@@ -10,7 +10,7 @@ import { listEs } from "../../services/recommender.js";
 import { isTmdbEnabled, searchPeople } from "../../services/tmdbClient.js";
 
 const MAX_ACTORS = 5;
-const NEXT_STATE = { none: "like", like: "must", must: "reject", reject: "none" };
+const GENRE_INTENTS = [{ value: "like", label: "♥ Me gusta" }, { value: "must", label: "★ Imprescindible" }, { value: "reject", label: "✕ Evitar" }];
 const STATE_TEXT = { none: "sin marcar", like: "me gusta", must: "imprescindible", reject: "no quiero" };
 const STATE_MARK = { none: "+", like: "♥", must: "★", reject: "✕" };
 
@@ -88,6 +88,7 @@ function ActorPicker({ actors, onChange }) {
 
 /** Pasos 2 y 3: las preferencias de cada persona. */
 export default function DuoPersonStep({ index, person, type, nextName, onChange, onBack, onNext }) {
+  const [genreIntent, setGenreIntent] = useState("like");
   const name = personName(person, index);
   const set = (patch) => onChange({ ...person, ...patch });
   const toggleTone = (key) => set({ tone: person.tone.includes(key) ? person.tone.filter((item) => item !== key) : [...person.tone, key] });
@@ -107,7 +108,8 @@ export default function DuoPersonStep({ index, person, type, nextName, onChange,
   };
 
   return (
-    <form className="duo-step" aria-labelledby={`duo-person-${index}-title`} onSubmit={submit}>
+    <form className={`duo-step duo-person-form duo-person-${index}`} aria-labelledby={`duo-person-${index}-title`} onSubmit={submit}>
+      <p className="duo-overline">UN ESPACIO PARA TU UNIVERSO</p>
       <h2 id={`duo-person-${index}-title`}>
         Turno de <span className="duo-accent">{name}</span>
       </h2>
@@ -126,9 +128,13 @@ export default function DuoPersonStep({ index, person, type, nextName, onChange,
       </label>
 
       <Question
-        title="Géneros"
-        hint="Toca un género para cambiarlo: ♥ me gusta → ★ imprescindible → ✕ no quiero → sin marcar. Lo imprescindible y lo rechazado se cumplen siempre."
+        title="¿Qué historias van contigo?"
+        hint="Elige cómo quieres marcar los géneros y después selecciónalos. Vuelve a tocar uno con el mismo estado para quitarlo."
       >
+        <div className="duo-genre-intent" role="group" aria-label="Cómo marcar los géneros">
+          <ChoiceChips name={`genre-intent-${index}`} options={GENRE_INTENTS} value={genreIntent} onChange={setGenreIntent} />
+          <p>{genreIntent === "like" ? "Suma los géneros que disfrutas." : genreIntent === "must" ? "Cada recomendación deberá incluir estos géneros." : "Estos géneros quedarán fuera de las recomendaciones."}</p>
+        </div>
         <div className="duo-genres">
           {genres.map(({ key, label }) => {
             const state = genreState(person, key);
@@ -138,13 +144,14 @@ export default function DuoPersonStep({ index, person, type, nextName, onChange,
                 type="button"
                 className="duo-genre"
                 data-state={state}
-                aria-label={`${label}: ${STATE_TEXT[state]}. Cambiar a ${STATE_TEXT[NEXT_STATE[state]]}`}
-                onClick={() => onChange(withGenreState(person, key, NEXT_STATE[state]))}
+                aria-pressed={state !== "none"}
+                aria-label={`${label}: ${STATE_TEXT[state]}. ${state === genreIntent ? "Quitar selección" : `Marcar como ${STATE_TEXT[genreIntent]}`}`}
+                onClick={() => onChange(withGenreState(person, key, state === genreIntent ? "none" : genreIntent))}
               >
                 <span className="duo-genre-mark" aria-hidden="true">
                   {STATE_MARK[state]}
                 </span>
-                {label}
+                <span>{label}<small>{state === "none" ? "Sin preferencia" : STATE_TEXT[state]}</small></span>
               </button>
             );
           })}
@@ -155,7 +162,7 @@ export default function DuoPersonStep({ index, person, type, nextName, onChange,
         {hidden.length > 0 && <p className="duo-fineprint">En series, TMDB no usa {listEs(hidden)} como géneros.</p>}
       </Question>
 
-      <Question title="¿Qué tono te apetece?" hint="Opcional. Cuenta por género o por palabras clave del título.">
+      <Question title="¿Cómo quieres sentirte?" hint="Pueden ser varias opciones. También puedes dejarlo abierto.">
         <div className="duo-chips">
           {TONES.map(({ key, label, icon }) => (
             <Chip key={key} checked={person.tone.includes(key)} onChange={() => toggleTone(key)}>

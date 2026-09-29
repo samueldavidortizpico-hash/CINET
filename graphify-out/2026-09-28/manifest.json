@@ -1,0 +1,1508 @@
+{
+  ".vscode/settings.json": {
+    "mtime": 1787935160.0,
+    "seen": 1790642064.902394,
+    "ast_hash": "3b177285d7afbec55a5e79ab769a225c",
+    "semantic_hash": ""
+  },
+  "eslint.config.js": {
+    "mtime": 1790356111.0,
+    "seen": 1790642064.9024024,
+    "ast_hash": "b9d1ac3c88357ca8ce2cc57f05490d5b",
+    "semantic_hash": ""
+  },
+  "package.json": {
+    "mtime": 1790458417.0,
+    "seen": 1790642064.902406,
+    "ast_hash": "8da6bab5296479e7a0745de47e3ec6d3",
+    "semantic_hash": ""
+  },
+  "scripts/tmdb-live.mjs": {
+    "mtime": 1790532294.0,
+    "seen": 1790644701.0499954,
+    "ast_hash": "6fda10e67f7946e41dfd487cfabca49d",
+    "semantic_hash": ""
+  },
+  "src/App.jsx": {
+    "mtime": 1790355976.0,
+    "seen": 1790642064.9024105,
+    "ast_hash": "57a695bffdfb171a941bd635d99a7d7f",
+    "semantic_hash": ""
+  },
+  "src/app/router.jsx": {
+    "mtime": 1790563686.0,
+    "seen": 1790642064.902412,
+    "ast_hash": "3a1b6726469e156de10797dfc5e1ad33",
+    "semantic_hash": ""
+  },
+  "src/components/ProtectedRoute.jsx": {
+    "mtime": 1790355373.0,
+    "seen": 1790642064.9024143,
+    "ast_hash": "0093f9ac193aadf7c976b6d519517464",
+    "semantic_hash": ""
+  },
+  "src/components/auth/AuthForm.jsx": {
+    "mtime": 1790355848.0,
+    "seen": 1790642064.902416,
+    "ast_hash": "6d84d9cdc4bb4e4e36b2d8c9e67fcd2e",
+    "semantic_hash": ""
+  },
+  "src/components/auth/ProfileCard.jsx": {
+    "mtime": 1790355848.0,
+    "seen": 1790642064.9024174,
+    "ast_hash": "303a627f4da0aacfc5b74cba9e3d807a",
+    "semantic_hash": ""
+  },
+  "src/components/common/BrandLogo.jsx": {
+    "mtime": 1790642543.2088802,
+    "seen": 1790642849.2466824,
+    "ast_hash": "6dcd78e5e77ee4dcdf72a0a20c8321db",
+    "semantic_hash": ""
+  },
+  "src/components/common/Button.jsx": {
+    "mtime": 1790355373.0,
+    "seen": 1790642064.9024205,
+    "ast_hash": "75338d91e2ee5e55bd5d893214705402",
+    "semantic_hash": ""
+  },
+  "src/components/common/DiceButton.jsx": {
+    "mtime": 1790532549.0,
+    "seen": 1790642064.9024224,
+    "ast_hash": "dcf0ecb40ba041b47605fdb15bfd4fa2",
+    "semantic_hash": ""
+  },
+  "src/components/common/EmptyState.jsx": {
+    "mtime": 1790355373.0,
+    "seen": 1790642064.9024243,
+    "ast_hash": "872850ce2db8e543610036c675eb52a0",
+    "semantic_hash": ""
+  },
+  "src/components/common/Icon.jsx": {
+    "mtime": 1790643356.0626328,
+    "seen": 1790644701.0500476,
+    "ast_hash": "ce237fca25e22fa3a67706d1e4e87c81",
+    "semantic_hash": ""
+  },
+  "src/components/common/Loading.jsx": {
+    "mtime": 1790355373.0,
+    "seen": 1790642064.9024274,
+    "ast_hash": "5674ecf1c940df5bc9d6fc5265940564",
+    "semantic_hash": ""
+  },
+  "src/components/common/Modal.jsx": {
+    "mtime": 1790355373.0,
+    "seen": 1790642064.9024289,
+    "ast_hash": "b5ca13e02707ad99aaee03bb81fc8ea7",
+    "semantic_hash": ""
+  },
+  "src/components/common/PosterImage.jsx": {
+    "mtime": 1790355634.0,
+    "seen": 1790642064.9024303,
+    "ast_hash": "ce70dcefddc6ae1a0cb66dc65678f50d",
+    "semantic_hash": ""
+  },
+  "src/components/common/SkeletonRow.jsx": {
+    "mtime": 1790460707.0,
+    "seen": 1790642064.9024317,
+    "ast_hash": "17e6ab6c9a9345b1a93daf169e82d423",
+    "semantic_hash": ""
+  },
+  "src/components/common/TmdbStatus.jsx": {
+    "mtime": 1790563662.0,
+    "seen": 1790642064.902433,
+    "ast_hash": "1f556c78cd21925c685e62df1d8c124f",
+    "semantic_hash": ""
+  },
+  "src/components/common/Toast.jsx": {
+    "mtime": 1790355373.0,
+    "seen": 1790642064.9024343,
+    "ast_hash": "c1d0780391f96cc89ce06614e700c1a8",
+    "semantic_hash": ""
+  },
+  "src/components/duo/DuoCommonStep.jsx": {
+    "mtime": 1790532726.0,
+    "seen": 1790642064.902436,
+    "ast_hash": "b02c8c41c287b0c2442ab756216dcf28",
+    "semantic_hash": ""
+  },
+  "src/components/duo/DuoEmptyState.jsx": {
+    "mtime": 1790563708.0,
+    "seen": 1790642064.9024377,
+    "ast_hash": "e300da7232b381221998b4dbcd6e6bed",
+    "semantic_hash": ""
+  },
+  "src/components/duo/DuoFields.jsx": {
+    "mtime": 1790532549.0,
+    "seen": 1790642064.9024403,
+    "ast_hash": "aae6e587509b001ba88587514aee4e01",
+    "semantic_hash": ""
+  },
+  "src/components/duo/DuoFinal.jsx": {
+    "mtime": 1790533013.0,
+    "seen": 1790642064.9024417,
+    "ast_hash": "12b639dd9423b719b74d8d7cd867c132",
+    "semantic_hash": ""
+  },
+  "src/components/duo/DuoHistoryDialog.jsx": {
+    "mtime": 1790533013.0,
+    "seen": 1790642064.9024432,
+    "ast_hash": "9a585c571cbc631126956e633d6c5f71",
+    "semantic_hash": ""
+  },
+  "src/components/duo/DuoIntro.jsx": {
+    "mtime": 1790645535.8739297,
+    "seen": 1790645547.433399,
+    "ast_hash": "147bf1802192a67b5e38aabe10aab2f0",
+    "semantic_hash": ""
+  },
+  "src/components/duo/DuoMarathon.jsx": {
+    "mtime": 1790563708.0,
+    "seen": 1790642064.9024465,
+    "ast_hash": "81fcca26d7d03047a693c487ccdafc45",
+    "semantic_hash": ""
+  },
+  "src/components/duo/DuoModeStep.jsx": {
+    "mtime": 1790643361.4679227,
+    "seen": 1790644701.0501108,
+    "ast_hash": "b1c0700d048a4ea5552bd58299a9bc5e",
+    "semantic_hash": ""
+  },
+  "src/components/duo/DuoPersonStep.jsx": {
+    "mtime": 1790643363.2384245,
+    "seen": 1790644701.0501153,
+    "ast_hash": "d83a88613359565b88825ae7f576c00a",
+    "semantic_hash": ""
+  },
+  "src/components/duo/DuoProgress.jsx": {
+    "mtime": 1790643357.826371,
+    "seen": 1790644701.050119,
+    "ast_hash": "83640a0f03c06cf5b612d0d606d300f0",
+    "semantic_hash": ""
+  },
+  "src/components/duo/DuoRecommendationCard.jsx": {
+    "mtime": 1790643366.5834694,
+    "seen": 1790644701.0501227,
+    "ast_hash": "7f86a6e0e9f5ce9d02fe5653320697e7",
+    "semantic_hash": ""
+  },
+  "src/components/duo/DuoResults.jsx": {
+    "mtime": 1790563708.0,
+    "seen": 1790642064.9024549,
+    "ast_hash": "30caef92b8c87d0dc93fde56ca5bf06a",
+    "semantic_hash": ""
+  },
+  "src/components/duo/DuoSeenStep.jsx": {
+    "mtime": 1790532703.0,
+    "seen": 1790642064.9024563,
+    "ast_hash": "2cd4d23e80cb7e92d87f1fb89ca0be62",
+    "semantic_hash": ""
+  },
+  "src/components/duo/DuoSummary.jsx": {
+    "mtime": 1790643364.886043,
+    "seen": 1790644701.0501394,
+    "ast_hash": "1363437dc0b81907344b3c7b5cdf1494",
+    "semantic_hash": ""
+  },
+  "src/components/functions/BookingSummary.jsx": {
+    "mtime": 1790460952.0,
+    "seen": 1790642064.9024594,
+    "ast_hash": "1011c4a75e8ed8166b19c1c565890c93",
+    "semantic_hash": ""
+  },
+  "src/components/functions/HomePlanOptions.jsx": {
+    "mtime": 1790460917.0,
+    "seen": 1790642064.9024608,
+    "ast_hash": "9617ddccace3d810b137dc56ed0c8bf4",
+    "semantic_hash": ""
+  },
+  "src/components/functions/SelectedMovie.jsx": {
+    "mtime": 1790355753.0,
+    "seen": 1790642064.9024625,
+    "ast_hash": "e2948cfe6c4263ab4b600c8ef1c47451",
+    "semantic_hash": ""
+  },
+  "src/components/functions/ShowtimeOptions.jsx": {
+    "mtime": 1790355753.0,
+    "seen": 1790642064.902464,
+    "ast_hash": "8112ede97ab054312bae536d6160e539",
+    "semantic_hash": ""
+  },
+  "src/components/functions/ShowtimeStep.jsx": {
+    "mtime": 1790355753.0,
+    "seen": 1790642064.9024656,
+    "ast_hash": "92a0699c19898b4bc9e4a255bfcbf7cc",
+    "semantic_hash": ""
+  },
+  "src/components/home/CollectionSection.jsx": {
+    "mtime": 1790645412.3988483,
+    "seen": 1790645547.4334335,
+    "ast_hash": "e803b0a6fd35abde60cf2e9adad938d4",
+    "semantic_hash": ""
+  },
+  "src/components/home/FaqSection.jsx": {
+    "mtime": 1790355830.0,
+    "seen": 1790642064.9024692,
+    "ast_hash": "2769ea0642faa5ee041d40f562a5cfc9",
+    "semantic_hash": ""
+  },
+  "src/components/home/HeroCarousel.jsx": {
+    "mtime": 1790644690.6103377,
+    "seen": 1790644701.0501773,
+    "ast_hash": "2e2ab4f42ab3c6ac91d873c47dedd111",
+    "semantic_hash": ""
+  },
+  "src/components/home/HomeExperiences.jsx": {
+    "mtime": 1790645412.3988483,
+    "seen": 1790645547.4334395,
+    "ast_hash": "675e7e605e347c826b68016cb769a7aa",
+    "semantic_hash": ""
+  },
+  "src/components/home/PlansPreview.jsx": {
+    "mtime": 1790642017.3077826,
+    "seen": 1790642064.9024754,
+    "ast_hash": "4f37d3afce6f16b1d7168b82be94c620",
+    "semantic_hash": ""
+  },
+  "src/components/layout/Footer.jsx": {
+    "mtime": 1790641678.7103238,
+    "seen": 1790642064.9024768,
+    "ast_hash": "64d66a783df1cfe7c4475971f5052f33",
+    "semantic_hash": ""
+  },
+  "src/components/layout/Header.jsx": {
+    "mtime": 1790641677.08703,
+    "seen": 1790642064.9024787,
+    "ast_hash": "c2cc5c44cfe18b218f8280dba88ce42e",
+    "semantic_hash": ""
+  },
+  "src/components/layout/Layout.jsx": {
+    "mtime": 1790563662.0,
+    "seen": 1790642064.90248,
+    "ast_hash": "1c984d9ed1ce032d8c5f95f3e2413b68",
+    "semantic_hash": ""
+  },
+  "src/components/layout/Navbar.jsx": {
+    "mtime": 1790645128.099438,
+    "seen": 1790645547.4334495,
+    "ast_hash": "23c5f18e0114388b2f3befb8d14d49c6",
+    "semantic_hash": ""
+  },
+  "src/components/movie-detail/MovieActions.jsx": {
+    "mtime": 1790563708.0,
+    "seen": 1790642064.9024827,
+    "ast_hash": "1b53e201c68833bf01331b03a158388f",
+    "semantic_hash": ""
+  },
+  "src/components/movie-detail/MovieBackdrop.jsx": {
+    "mtime": 1790355682.0,
+    "seen": 1790642064.9024842,
+    "ast_hash": "c28fb4ecf01888a471a657636710dbd0",
+    "semantic_hash": ""
+  },
+  "src/components/movie-detail/MovieDetailPoster.jsx": {
+    "mtime": 1790355682.0,
+    "seen": 1790642064.9024856,
+    "ast_hash": "cc8165fd0fb35d6466930b515d8f0a54",
+    "semantic_hash": ""
+  },
+  "src/components/movie-detail/MovieExtras.jsx": {
+    "mtime": 1790460858.0,
+    "seen": 1790642064.902487,
+    "ast_hash": "1a3b466ffb1dc38a6c026cde672f3b55",
+    "semantic_hash": ""
+  },
+  "src/components/movie-detail/MovieInfo.jsx": {
+    "mtime": 1790542450.0,
+    "seen": 1790642064.9024885,
+    "ast_hash": "1f9ef6891dbdf381d943c259ff7d5394",
+    "semantic_hash": ""
+  },
+  "src/components/movie-detail/PlatformLogo.jsx": {
+    "mtime": 1790355732.0,
+    "seen": 1790642064.9024901,
+    "ast_hash": "6a382532a8d5132e5ec2d47938f8dbfa",
+    "semantic_hash": ""
+  },
+  "src/components/movie-detail/TrailerModal.jsx": {
+    "mtime": 1790355699.0,
+    "seen": 1790642064.9024918,
+    "ast_hash": "9be741be8c3cfa96737a986cf81d28c1",
+    "semantic_hash": ""
+  },
+  "src/components/movie-detail/WatchModal.jsx": {
+    "mtime": 1790458291.0,
+    "seen": 1790642064.9024937,
+    "ast_hash": "66c79dafd596b4d691e65c835f3af2c7",
+    "semantic_hash": ""
+  },
+  "src/components/movies/AdvancedFilters.jsx": {
+    "mtime": 1790460798.0,
+    "seen": 1790642064.9024951,
+    "ast_hash": "4173ec835767f17c6cf2ffd800b1a746",
+    "semantic_hash": ""
+  },
+  "src/components/movies/MovieCard.jsx": {
+    "mtime": 1790542428.0,
+    "seen": 1790642064.9024968,
+    "ast_hash": "4a87078435e362fe4b48389702f4a46c",
+    "semantic_hash": ""
+  },
+  "src/components/movies/MovieFilters.jsx": {
+    "mtime": 1790355663.0,
+    "seen": 1790642064.9024985,
+    "ast_hash": "574655178483e0da10e535c7bff7053d",
+    "semantic_hash": ""
+  },
+  "src/components/movies/MovieGrid.jsx": {
+    "mtime": 1790533242.0,
+    "seen": 1790642064.9025004,
+    "ast_hash": "b4b3b33d803261fc6f04239277c44831",
+    "semantic_hash": ""
+  },
+  "src/components/movies/MoviePoster.jsx": {
+    "mtime": 1790542409.0,
+    "seen": 1790642064.9025018,
+    "ast_hash": "de46cfc4ae93eb2d6df0246c5de5f3da",
+    "semantic_hash": ""
+  },
+  "src/components/movies/MovieSearch.jsx": {
+    "mtime": 1790460781.0,
+    "seen": 1790642064.9025037,
+    "ast_hash": "3136f93e7fb28aa83b728c1724b7c8ca",
+    "semantic_hash": ""
+  },
+  "src/components/plans/PlanCard.jsx": {
+    "mtime": 1790563708.0,
+    "seen": 1790642064.902505,
+    "ast_hash": "1511d8f816c700bb87b662c0f2c9647d",
+    "semantic_hash": ""
+  },
+  "src/components/plans/PlanForm.jsx": {
+    "mtime": 1790355791.0,
+    "seen": 1790642064.9025066,
+    "ast_hash": "295cec34c8114b7a6e423365e4cad91a",
+    "semantic_hash": ""
+  },
+  "src/components/plans/PlanHero.jsx": {
+    "mtime": 1790533117.0,
+    "seen": 1790642064.902508,
+    "ast_hash": "32fa8c616d17e2cc1825f5a959a9a60e",
+    "semantic_hash": ""
+  },
+  "src/components/plans/PlanStats.jsx": {
+    "mtime": 1790355773.0,
+    "seen": 1790642064.9025095,
+    "ast_hash": "428e37f0f70a5a7330ae2fe38c4c2bc4",
+    "semantic_hash": ""
+  },
+  "src/components/plans/PlanSummary.jsx": {
+    "mtime": 1790533117.0,
+    "seen": 1790642064.902511,
+    "ast_hash": "13c7f53cf0d3d1da843ef084df77f66c",
+    "semantic_hash": ""
+  },
+  "src/components/plans/RsvpPanel.jsx": {
+    "mtime": 1790563708.0,
+    "seen": 1790642064.9025128,
+    "ast_hash": "f8b633e601b6630f6e6c6b291bc612a4",
+    "semantic_hash": ""
+  },
+  "src/components/profile/CinephileProfile.jsx": {
+    "mtime": 1790533104.0,
+    "seen": 1790642064.9025145,
+    "ast_hash": "6da9002d58f131f53f7bd752f5d3291d",
+    "semantic_hash": ""
+  },
+  "src/context/AuthContext.jsx": {
+    "mtime": 1790355340.0,
+    "seen": 1790642064.9025161,
+    "ast_hash": "91766c01f3b82962edf2e4125cea39d9",
+    "semantic_hash": ""
+  },
+  "src/context/MovieContext.jsx": {
+    "mtime": 1790456938.0,
+    "seen": 1790642064.9025178,
+    "ast_hash": "587d8bfd75e2c989725eb6ac62d08dba",
+    "semantic_hash": ""
+  },
+  "src/context/PlanContext.jsx": {
+    "mtime": 1790355340.0,
+    "seen": 1790642064.9025192,
+    "ast_hash": "f2995c026f4db0298184681590e9a545",
+    "semantic_hash": ""
+  },
+  "src/context/ToastContext.jsx": {
+    "mtime": 1790355340.0,
+    "seen": 1790642064.902521,
+    "ast_hash": "4b110567dae952334d7eb6a9e8dbca84",
+    "semantic_hash": ""
+  },
+  "src/data/about.js": {
+    "mtime": 1790563708.0,
+    "seen": 1790642064.9025223,
+    "ast_hash": "7eaf3fdd7d8864e6a2238db778afe09d",
+    "semantic_hash": ""
+  },
+  "src/data/duo.js": {
+    "mtime": 1790531649.0,
+    "seen": 1790642064.902524,
+    "ast_hash": "4de0734d265d80643115ee03b5b928d2",
+    "semantic_hash": ""
+  },
+  "src/data/faq.js": {
+    "mtime": 1790563709.0,
+    "seen": 1790642064.9025252,
+    "ast_hash": "b9704a468f5a346d01e35977908fe4db",
+    "semantic_hash": ""
+  },
+  "src/data/movies.js": {
+    "mtime": 1790538582.0,
+    "seen": 1790642064.9025266,
+    "ast_hash": "e67749439fd4355eb241b4e1d10c1764",
+    "semantic_hash": ""
+  },
+  "src/data/platforms.js": {
+    "mtime": 1790460872.0,
+    "seen": 1790642064.9025283,
+    "ast_hash": "cd50e104b9e00c2bb5f9667af7f62820",
+    "semantic_hash": ""
+  },
+  "src/data/showtimes.js": {
+    "mtime": 1790541791.0,
+    "seen": 1790642064.9025297,
+    "ast_hash": "26dcadf3a98edea7984b0cb17dee3ef2",
+    "semantic_hash": ""
+  },
+  "src/data/tmdb.js": {
+    "mtime": 1790456209.0,
+    "seen": 1790642064.9025314,
+    "ast_hash": "b9dd107aa8e1fa54c29498f0c3ac1842",
+    "semantic_hash": ""
+  },
+  "src/data/tmdbIds.json": {
+    "mtime": 1790643075.2287211,
+    "seen": 1790644701.0503554,
+    "ast_hash": "cae98dc50c617f0b286107be8556552a",
+    "semantic_hash": ""
+  },
+  "src/data/trailerKeys.json": {
+    "mtime": 1790355149.0,
+    "seen": 1790642064.9025342,
+    "ast_hash": "85fb7b4b91d21d897e603d3b9d4072af",
+    "semantic_hash": ""
+  },
+  "src/hooks/useAsync.js": {
+    "mtime": 1790456494.0,
+    "seen": 1790642064.9025357,
+    "ast_hash": "7c6b9bbd3e3a3b8f1a26c5079a691236",
+    "semantic_hash": ""
+  },
+  "src/hooks/useAuth.js": {
+    "mtime": 1790355320.0,
+    "seen": 1790642064.902537,
+    "ast_hash": "25062bae463bfa709eb28d8e9565890b",
+    "semantic_hash": ""
+  },
+  "src/hooks/useDocumentTitle.js": {
+    "mtime": 1790563709.0,
+    "seen": 1790642064.9025388,
+    "ast_hash": "8b52a054138a3b755a62088d69a1d671",
+    "semantic_hash": ""
+  },
+  "src/hooks/useDuoHistory.js": {
+    "mtime": 1790532463.0,
+    "seen": 1790642064.9025402,
+    "ast_hash": "f39c0c8ef67ec3720861edd8d074099d",
+    "semantic_hash": ""
+  },
+  "src/hooks/useDuoSession.js": {
+    "mtime": 1790532442.0,
+    "seen": 1790642064.9025435,
+    "ast_hash": "ffec437db7112637c3cb01631a04c47f",
+    "semantic_hash": ""
+  },
+  "src/hooks/useFavorites.js": {
+    "mtime": 1790356111.0,
+    "seen": 1790642064.9025452,
+    "ast_hash": "c763a66ca60454f81f2694e2313e2a90",
+    "semantic_hash": ""
+  },
+  "src/hooks/useLocalStorage.js": {
+    "mtime": 1790355320.0,
+    "seen": 1790642064.9025466,
+    "ast_hash": "2b7e2a512917e90a031448a63031d2ca",
+    "semantic_hash": ""
+  },
+  "src/hooks/useMovie.js": {
+    "mtime": 1790355321.0,
+    "seen": 1790642064.9025483,
+    "ast_hash": "88315f555ac694ecf380ed388129037c",
+    "semantic_hash": ""
+  },
+  "src/hooks/useMovies.js": {
+    "mtime": 1790355320.0,
+    "seen": 1790642064.90255,
+    "ast_hash": "6e5b4eb89a308a3ae2c2edc2f6e13d7b",
+    "semantic_hash": ""
+  },
+  "src/hooks/useNetworkStatus.js": {
+    "mtime": 1790563662.0,
+    "seen": 1790642064.9025517,
+    "ast_hash": "9337ec31054493f13ff1070ee52c8c28",
+    "semantic_hash": ""
+  },
+  "src/hooks/usePlans.js": {
+    "mtime": 1790355320.0,
+    "seen": 1790642064.9025533,
+    "ast_hash": "6a5b30bda99690b914c21c12ee0d06fe",
+    "semantic_hash": ""
+  },
+  "src/hooks/usePrefersReducedMotion.js": {
+    "mtime": 1790532463.0,
+    "seen": 1790642064.9025545,
+    "ast_hash": "979b1f2442517db33995788c2d7da275",
+    "semantic_hash": ""
+  },
+  "src/hooks/useReveal.js": {
+    "mtime": 1790355321.0,
+    "seen": 1790642064.9025564,
+    "ast_hash": "ae2bf07d0310023547da10476cfb1681",
+    "semantic_hash": ""
+  },
+  "src/hooks/useShare.js": {
+    "mtime": 1790355634.0,
+    "seen": 1790642064.9025576,
+    "ast_hash": "59c312af8c310659905d4fce67f6055d",
+    "semantic_hash": ""
+  },
+  "src/hooks/useTheme.js": {
+    "mtime": 1790355321.0,
+    "seen": 1790642064.902559,
+    "ast_hash": "528d32c506e609c92a7b5db496498b1b",
+    "semantic_hash": ""
+  },
+  "src/hooks/useTitleSearch.js": {
+    "mtime": 1790460665.0,
+    "seen": 1790642064.9025605,
+    "ast_hash": "c61ece351ea7f7a00df9d3494409b843",
+    "semantic_hash": ""
+  },
+  "src/hooks/useToast.js": {
+    "mtime": 1790355321.0,
+    "seen": 1790642064.9025621,
+    "ast_hash": "c289a98bf8cbab3f0392a8aab901e2bb",
+    "semantic_hash": ""
+  },
+  "src/main.jsx": {
+    "mtime": 1790355976.0,
+    "seen": 1790642064.9025633,
+    "ast_hash": "7b6d5861c8c1e3479102dc5f27b40923",
+    "semantic_hash": ""
+  },
+  "src/pages/AboutPage.jsx": {
+    "mtime": 1790563709.0,
+    "seen": 1790642064.9025648,
+    "ast_hash": "4c8039200435feebe7a25fdfc56e3650",
+    "semantic_hash": ""
+  },
+  "src/pages/CinemaPage.jsx": {
+    "mtime": 1790563677.0,
+    "seen": 1790642064.9025664,
+    "ast_hash": "e8dfe7dffe646d87748522977526e07d",
+    "semantic_hash": ""
+  },
+  "src/pages/CinemaTicketsPage.jsx": {
+    "mtime": 1790563709.0,
+    "seen": 1790642064.9025676,
+    "ast_hash": "beb3a907d50f6b39de56661c5ad30bee",
+    "semantic_hash": ""
+  },
+  "src/pages/CreatePlanPage.jsx": {
+    "mtime": 1790533117.0,
+    "seen": 1790642064.9025693,
+    "ast_hash": "ced6e564ff58a6068c8845959651ec83",
+    "semantic_hash": ""
+  },
+  "src/pages/DashboardPage.jsx": {
+    "mtime": 1790537452.0,
+    "seen": 1790642064.9025707,
+    "ast_hash": "638280402274a163ab292cc1cd8af69f",
+    "semantic_hash": ""
+  },
+  "src/pages/DuoPage.jsx": {
+    "mtime": 1790644690.6123424,
+    "seen": 1790644701.050422,
+    "ast_hash": "1c92d852cbda436455c89ad0c1c9cc39",
+    "semantic_hash": ""
+  },
+  "src/pages/FunctionsPage.jsx": {
+    "mtime": 1790460983.0,
+    "seen": 1790642064.9025738,
+    "ast_hash": "27f20b785b3f891aebca1a56380cd009",
+    "semantic_hash": ""
+  },
+  "src/pages/HomePage.jsx": {
+    "mtime": 1790641683.1447563,
+    "seen": 1790642064.9025753,
+    "ast_hash": "a1be89c563f1d9478a87b0225a1918b0",
+    "semantic_hash": ""
+  },
+  "src/pages/MovieDetailPage.jsx": {
+    "mtime": 1790563709.0,
+    "seen": 1790642064.902577,
+    "ast_hash": "10c43999e8bd52ced7ae87689adda6e0",
+    "semantic_hash": ""
+  },
+  "src/pages/MoviesPage.jsx": {
+    "mtime": 1790563709.0,
+    "seen": 1790642064.9025784,
+    "ast_hash": "b76054ea47cd0e65292789d995a466b7",
+    "semantic_hash": ""
+  },
+  "src/pages/MyPlansPage.jsx": {
+    "mtime": 1790355918.0,
+    "seen": 1790642064.90258,
+    "ast_hash": "1b492910c196349783742ccede349c03",
+    "semantic_hash": ""
+  },
+  "src/pages/NotFoundPage.jsx": {
+    "mtime": 1790563709.0,
+    "seen": 1790642064.9025815,
+    "ast_hash": "bc8ca2061deb8f11fcc6e009bc1ad245",
+    "semantic_hash": ""
+  },
+  "src/pages/PlanPage.jsx": {
+    "mtime": 1790355918.0,
+    "seen": 1790642064.9025831,
+    "ast_hash": "31b573a58f886bc52f4296e1d057d35f",
+    "semantic_hash": ""
+  },
+  "src/pages/ProfilePage.jsx": {
+    "mtime": 1790461239.0,
+    "seen": 1790642064.9025846,
+    "ast_hash": "bd9a5b91473e13560d15df06ab8a790d",
+    "semantic_hash": ""
+  },
+  "src/services/authService.js": {
+    "mtime": 1790537319.0,
+    "seen": 1790642064.9025862,
+    "ast_hash": "a916ae463880e509fa565eb64b4f0857",
+    "semantic_hash": ""
+  },
+  "src/services/duoService.js": {
+    "mtime": 1790563709.0,
+    "seen": 1790642064.9025877,
+    "ast_hash": "72fb3e23c700bd5e8aa3857b59837ccc",
+    "semantic_hash": ""
+  },
+  "src/services/heroPreferences.js": {
+    "mtime": 1790537321.0,
+    "seen": 1790642064.902589,
+    "ast_hash": "42ab5868b4cedee0cc65d19eda596cc8",
+    "semantic_hash": ""
+  },
+  "src/services/historyService.js": {
+    "mtime": 1790531683.0,
+    "seen": 1790642064.9025908,
+    "ast_hash": "d73e9ffd6aa291c51f7ecf484a0ca2c4",
+    "semantic_hash": ""
+  },
+  "src/services/movieService.js": {
+    "mtime": 1790539663.0,
+    "seen": 1790642064.9025924,
+    "ast_hash": "0696a0ec013d4060667a569d0c255f52",
+    "semantic_hash": ""
+  },
+  "src/services/planService.js": {
+    "mtime": 1790533117.0,
+    "seen": 1790642064.902594,
+    "ast_hash": "a71d556078b7a2d8e39e4fb5e2d6eca7",
+    "semantic_hash": ""
+  },
+  "src/services/recommender.js": {
+    "mtime": 1790534485.0,
+    "seen": 1790642064.9025955,
+    "ast_hash": "0a046ad742d8eab1f8a7426a2a7ad1d0",
+    "semantic_hash": ""
+  },
+  "src/services/recommender.test.js": {
+    "mtime": 1790541890.0,
+    "seen": 1790642064.9025972,
+    "ast_hash": "013d3a6d28fe0c24e3d0c9eb9135f9d4",
+    "semantic_hash": ""
+  },
+  "src/services/services.test.js": {
+    "mtime": 1790460903.0,
+    "seen": 1790642064.9025984,
+    "ast_hash": "d4e7622a6acef53296593d8c5179b85d",
+    "semantic_hash": ""
+  },
+  "src/services/tmdbClient.js": {
+    "mtime": 1790563635.0,
+    "seen": 1790642064.9025996,
+    "ast_hash": "416fa5343c9a1ac20f5f9e99610ec13f",
+    "semantic_hash": ""
+  },
+  "src/services/tmdbClient.test.js": {
+    "mtime": 1790643076.7263958,
+    "seen": 1790644701.0504668,
+    "ast_hash": "9b854365bb9cbedf9532e8ad5803a7ab",
+    "semantic_hash": ""
+  },
+  "src/utils/palette.js": {
+    "mtime": 1790460248.0,
+    "seen": 1790642064.902603,
+    "ast_hash": "188be0ac86c560e66805db532081a798",
+    "semantic_hash": ""
+  },
+  "src/utils/poster.js": {
+    "mtime": 1790460248.0,
+    "seen": 1790642064.9026043,
+    "ast_hash": "ad293b2c43ac4dcbb340f475cbf7b243",
+    "semantic_hash": ""
+  },
+  "src/utils/share.js": {
+    "mtime": 1790355171.0,
+    "seen": 1790642064.9026058,
+    "ast_hash": "eade7209d34f8799eb7b67d0158c2be7",
+    "semantic_hash": ""
+  },
+  "src/utils/storage.js": {
+    "mtime": 1790531596.0,
+    "seen": 1790642064.9026074,
+    "ast_hash": "a8bc9af13d97ac2a436afdad7e7dcbad",
+    "semantic_hash": ""
+  },
+  "src/utils/validation.js": {
+    "mtime": 1790534502.0,
+    "seen": 1790642064.9026089,
+    "ast_hash": "26b498f664522d4fab5815f952234465",
+    "semantic_hash": ""
+  },
+  "vite.config.js": {
+    "mtime": 1790564481.8057938,
+    "seen": 1790642064.9026105,
+    "ast_hash": "e60619e7c842f58fffa66b148f52b9dc",
+    "semantic_hash": ""
+  },
+  ".vscode/images/SOURCES.md": {
+    "mtime": 1787318976.0,
+    "seen": 1790642064.902612,
+    "ast_hash": "bd9adedc0ebf9611a0912c480b254c70",
+    "semantic_hash": ""
+  },
+  "AI-LOG.md": {
+    "mtime": 1790563989.0,
+    "seen": 1790642064.9026134,
+    "ast_hash": "8c5f22e9d68de2136b248cb1f4e646bb",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1790565076.550177,
+    "seen": 1790642064.9026153,
+    "ast_hash": "5e1366f6708f89f5c7e564dd9f91a56b",
+    "semantic_hash": ""
+  },
+  "index.html": {
+    "mtime": 1790641687.6446023,
+    "seen": 1790642064.9026167,
+    "ast_hash": "56fcf9e060656408d699eea82b77d47c",
+    "semantic_hash": ""
+  },
+  "public/images/SOURCES.md": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.9026186,
+    "ast_hash": "bd9adedc0ebf9611a0912c480b254c70",
+    "semantic_hash": ""
+  },
+  ".vscode/images/alien.jpg": {
+    "mtime": 1787443156.0,
+    "seen": 1790642064.9026198,
+    "ast_hash": "b8cad6fcbd6c206c5e1aec11079d9ace",
+    "semantic_hash": ""
+  },
+  ".vscode/images/aquaman.jpg": {
+    "mtime": 1787443046.0,
+    "seen": 1790642064.9026215,
+    "ast_hash": "020d164dfde1adc25d907c8215f1afc6",
+    "semantic_hash": ""
+  },
+  ".vscode/images/arrival.jpg": {
+    "mtime": 1787443135.0,
+    "seen": 1790642064.902623,
+    "ast_hash": "da74652af39c15219c820556c14e0e30",
+    "semantic_hash": ""
+  },
+  ".vscode/images/avatar-way-of-water.jpg": {
+    "mtime": 1788917841.0,
+    "seen": 1790642064.9026246,
+    "ast_hash": "7034408bd6e9c8c919a211bdfc112329",
+    "semantic_hash": ""
+  },
+  ".vscode/images/avatar.jpg": {
+    "mtime": 1787320824.0,
+    "seen": 1790642064.902626,
+    "ast_hash": "fefeda5a61c9e69210bf5028c901a55a",
+    "semantic_hash": ""
+  },
+  ".vscode/images/avengers-doomsday.jpg": {
+    "mtime": 1787320774.0,
+    "seen": 1790642064.9026275,
+    "ast_hash": "f68b4716b37963f7cbf71c4056a18edc",
+    "semantic_hash": ""
+  },
+  ".vscode/images/avengers-endgame.jpg": {
+    "mtime": 1787442246.0,
+    "seen": 1790642064.9026294,
+    "ast_hash": "2fe05022f877e3727b52bc702fc3fb79",
+    "semantic_hash": ""
+  },
+  ".vscode/images/avengers-infinity-war.jpg": {
+    "mtime": 1787442262.0,
+    "seen": 1790642064.9026308,
+    "ast_hash": "43549843e00d69b8950059cd772ef64f",
+    "semantic_hash": ""
+  },
+  ".vscode/images/batman-begins.jpg": {
+    "mtime": 1787442844.0,
+    "seen": 1790642064.9026325,
+    "ast_hash": "93ef8d5bc9549204719928bbea4cf329",
+    "semantic_hash": ""
+  },
+  ".vscode/images/batman-v-superman.jpg": {
+    "mtime": 1787442968.0,
+    "seen": 1790642064.9026337,
+    "ast_hash": "c724553536473f134b35f6e2ef9f2019",
+    "semantic_hash": ""
+  },
+  ".vscode/images/batman.jpg": {
+    "mtime": 1787320797.0,
+    "seen": 1790642064.9026353,
+    "ast_hash": "08ff70410ea6648d72e3223a016acd10",
+    "semantic_hash": ""
+  },
+  ".vscode/images/black-panther.jpg": {
+    "mtime": 1787442626.0,
+    "seen": 1790642064.9026365,
+    "ast_hash": "4e60a53a69e29a654d951737b6b138bf",
+    "semantic_hash": ""
+  },
+  ".vscode/images/black-widow.jpg": {
+    "mtime": 1787442723.0,
+    "seen": 1790642064.9026382,
+    "ast_hash": "b16d8182215cdf160cbbb89f78f6dd19",
+    "semantic_hash": ""
+  },
+  ".vscode/images/blade-runner-2049.jpg": {
+    "mtime": 1787443101.0,
+    "seen": 1790642064.9026396,
+    "ast_hash": "675ee103ea8e907faef15a089306483f",
+    "semantic_hash": ""
+  },
+  ".vscode/images/captain-america-civil-war.jpg": {
+    "mtime": 1787442404.0,
+    "seen": 1790642064.902641,
+    "ast_hash": "722fa9f6d7338d4719a4a12ed0f01028",
+    "semantic_hash": ""
+  },
+  ".vscode/images/captain-america-first-avenger.jpg": {
+    "mtime": 1787442361.0,
+    "seen": 1790642064.9026427,
+    "ast_hash": "41f3121a9582c4973e16c4be382268e2",
+    "semantic_hash": ""
+  },
+  ".vscode/images/captain-america-winter-soldier.jpg": {
+    "mtime": 1787442383.0,
+    "seen": 1790642064.9026442,
+    "ast_hash": "1878d0f900f3d8df40bde612eca2d7d6",
+    "semantic_hash": ""
+  },
+  ".vscode/images/captain-marvel.jpg": {
+    "mtime": 1787442707.0,
+    "seen": 1790642064.9026456,
+    "ast_hash": "2d5221215539912372515315125b5200",
+    "semantic_hash": ""
+  },
+  ".vscode/images/cinehub-background.jpg": {
+    "mtime": 1787318976.0,
+    "seen": 1790642064.902647,
+    "ast_hash": "e7dadc797203540245abdf66f2a6c050",
+    "semantic_hash": ""
+  },
+  ".vscode/images/coco.jpg": {
+    "mtime": 1788917969.0,
+    "seen": 1790642064.902649,
+    "ast_hash": "a6ba0f1021c1a672e321e18c60193d29",
+    "semantic_hash": ""
+  },
+  ".vscode/images/dark-knight-rises.jpg": {
+    "mtime": 1787442875.0,
+    "seen": 1790642064.9026506,
+    "ast_hash": "7f0d2e2255571d7090feea9697261790",
+    "semantic_hash": ""
+  },
+  ".vscode/images/doctor-strange-multiverse.jpg": {
+    "mtime": 1787442686.0,
+    "seen": 1790642064.9026518,
+    "ast_hash": "d883b0417e4905725b0c8456d5f01421",
+    "semantic_hash": ""
+  },
+  ".vscode/images/doctor-strange.jpg": {
+    "mtime": 1787442649.0,
+    "seen": 1790642064.9026535,
+    "ast_hash": "fe51589367308130f4566ae05612caa1",
+    "semantic_hash": ""
+  },
+  ".vscode/images/dune-part-two.jpg": {
+    "mtime": 1787443085.0,
+    "seen": 1790642064.902655,
+    "ast_hash": "d7163eb3c32f1bbc7ed393299409224b",
+    "semantic_hash": ""
+  },
+  ".vscode/images/dune.jpg": {
+    "mtime": 1787320746.0,
+    "seen": 1790642064.9026563,
+    "ast_hash": "d1f5e20208c8aa4157399c5a58d2606b",
+    "semantic_hash": ""
+  },
+  ".vscode/images/eternals.jpg": {
+    "mtime": 1787442771.0,
+    "seen": 1790642064.9026577,
+    "ast_hash": "de0bae74b76f24d7a82aa4fd7b278b53",
+    "semantic_hash": ""
+  },
+  ".vscode/images/fight-club.jpg": {
+    "mtime": 1788918120.0,
+    "seen": 1790642064.9026592,
+    "ast_hash": "a5dec3e4c8b1a75dd6819056cbb6e3bf",
+    "semantic_hash": ""
+  },
+  ".vscode/images/finding-nemo.jpg": {
+    "mtime": 1788917989.0,
+    "seen": 1790642064.9026606,
+    "ast_hash": "e22f5029b5a4d500fac5522cb3f3a437",
+    "semantic_hash": ""
+  },
+  ".vscode/images/forrest-gump.jpg": {
+    "mtime": 1788918106.0,
+    "seen": 1790642064.9026618,
+    "ast_hash": "2fbec9ba82994b82c504880b3777516f",
+    "semantic_hash": ""
+  },
+  ".vscode/images/goodfellas.jpg": {
+    "mtime": 1788918165.0,
+    "seen": 1790642064.9026635,
+    "ast_hash": "4fbfbe81317218b6b932bc6790008188",
+    "semantic_hash": ""
+  },
+  ".vscode/images/guardians-of-the-galaxy-vol-2.jpg": {
+    "mtime": 1787442515.0,
+    "seen": 1790642064.902665,
+    "ast_hash": "abe4755e1b427dcc14a2df36abe9a0aa",
+    "semantic_hash": ""
+  },
+  ".vscode/images/guardians-of-the-galaxy-vol-3.jpg": {
+    "mtime": 1787442534.0,
+    "seen": 1790642064.9026666,
+    "ast_hash": "c870f01a9d918593b4164021bad13713",
+    "semantic_hash": ""
+  },
+  ".vscode/images/guardians-of-the-galaxy.jpg": {
+    "mtime": 1787442492.0,
+    "seen": 1790642064.902668,
+    "ast_hash": "6f38d077f384fa158aa75b072f4903a3",
+    "semantic_hash": ""
+  },
+  ".vscode/images/inception.jpg": {
+    "mtime": 1787320881.0,
+    "seen": 1790642064.9026697,
+    "ast_hash": "44895a3ff1753b6890f672e299180f51",
+    "semantic_hash": ""
+  },
+  ".vscode/images/interstellar.jpg": {
+    "mtime": 1787320908.0,
+    "seen": 1790642064.902671,
+    "ast_hash": "a33835a29f762653a1ed79dc51e3d4e0",
+    "semantic_hash": ""
+  },
+  ".vscode/images/iron-man-2.jpg": {
+    "mtime": 1787442302.0,
+    "seen": 1790642064.902675,
+    "ast_hash": "d945f7fa5e74ef33e398d4455d2f2f40",
+    "semantic_hash": ""
+  },
+  ".vscode/images/iron-man-3.jpg": {
+    "mtime": 1787442337.0,
+    "seen": 1790642064.9026766,
+    "ast_hash": "55c15ffa39cff0e02e969d333a773071",
+    "semantic_hash": ""
+  },
+  ".vscode/images/iron-man.jpg": {
+    "mtime": 1787442286.0,
+    "seen": 1790642064.902678,
+    "ast_hash": "a162d52061dc5a80121c676b0129fc01",
+    "semantic_hash": ""
+  },
+  ".vscode/images/john-wick-chapter-4.jpg": {
+    "mtime": 1788917885.0,
+    "seen": 1790642064.90268,
+    "ast_hash": "6d2d18897870eccccdb00586d50f7573",
+    "semantic_hash": ""
+  },
+  ".vscode/images/john-wick.jpg": {
+    "mtime": 1788917864.0,
+    "seen": 1790642064.902681,
+    "ast_hash": "2e2340c462647ec1b06aa1dc25c74012",
+    "semantic_hash": ""
+  },
+  ".vscode/images/joker-folie-a-deux.jpg": {
+    "mtime": 1787442922.0,
+    "seen": 1790642064.9026825,
+    "ast_hash": "0fa159ab813dee77ca5b4c1f323f1f91",
+    "semantic_hash": ""
+  },
+  ".vscode/images/joker.jpg": {
+    "mtime": 1787320719.0,
+    "seen": 1790642064.902684,
+    "ast_hash": "9c0646ebedc0cf54a497a58b8904a026",
+    "semantic_hash": ""
+  },
+  ".vscode/images/man-of-steel.jpg": {
+    "mtime": 1787442943.0,
+    "seen": 1790642064.9026856,
+    "ast_hash": "3eb54c35ed1502bb69134480c5dc30e1",
+    "semantic_hash": ""
+  },
+  ".vscode/images/michael.jpg": {
+    "mtime": 1787318976.0,
+    "seen": 1790642064.9026873,
+    "ast_hash": "e8fc8b7db4b2313fe4b344715ac63739",
+    "semantic_hash": ""
+  },
+  ".vscode/images/mission-impossible-fallout.jpg": {
+    "mtime": 1788917932.0,
+    "seen": 1790642064.902689,
+    "ast_hash": "ce0353529a8e0d3b559a8b2589e6320b",
+    "semantic_hash": ""
+  },
+  ".vscode/images/odisea.jpg": {
+    "mtime": 1787318976.0,
+    "seen": 1790642064.9026906,
+    "ast_hash": "db9d0532f7a297d5f2cf4abff655c75d",
+    "semantic_hash": ""
+  },
+  ".vscode/images/oppenheimer.jpg": {
+    "mtime": 1787320942.0,
+    "seen": 1790642064.902692,
+    "ast_hash": "143ae1012892cbad4186f317aca46fcb",
+    "semantic_hash": ""
+  },
+  ".vscode/images/pulp-fiction.jpg": {
+    "mtime": 1788918091.0,
+    "seen": 1790642064.9026937,
+    "ast_hash": "cc07d0bc17e5ce7f99e3e17ff2b50412",
+    "semantic_hash": ""
+  },
+  ".vscode/images/schindlers-list.jpg": {
+    "mtime": 1788918185.0,
+    "seen": 1790642064.902695,
+    "ast_hash": "538438c73fd9aa52af73db8f1d288c3c",
+    "semantic_hash": ""
+  },
+  ".vscode/images/shang-chi.jpg": {
+    "mtime": 1787442739.0,
+    "seen": 1790642064.9026964,
+    "ast_hash": "7c40b42a77b20945494696585abd2f86",
+    "semantic_hash": ""
+  },
+  ".vscode/images/spider-man-far-from-home.jpg": {
+    "mtime": 1787442571.0,
+    "seen": 1790642064.9026978,
+    "ast_hash": "12238cf712d7c02b83a3ca1f3ec4dc33",
+    "semantic_hash": ""
+  },
+  ".vscode/images/spider-man-homecoming.jpg": {
+    "mtime": 1787442551.0,
+    "seen": 1790642064.9026992,
+    "ast_hash": "7aa1040e31ef9e9ac48e876d5f59d95d",
+    "semantic_hash": ""
+  },
+  ".vscode/images/spider-man-no-way-home.jpg": {
+    "mtime": 1787442596.0,
+    "seen": 1790642064.902701,
+    "ast_hash": "f6f758722cf83d75d19ec607ea1ae24d",
+    "semantic_hash": ""
+  },
+  ".vscode/images/spiderman.jpg": {
+    "mtime": 1787320680.0,
+    "seen": 1790642064.902702,
+    "ast_hash": "91b48241f03d627d93eefb41a0710d80",
+    "semantic_hash": ""
+  },
+  ".vscode/images/tenet.jpg": {
+    "mtime": 1787443121.0,
+    "seen": 1790642064.9027038,
+    "ast_hash": "51655b45b24acb599f6e3e8f59e0bbf4",
+    "semantic_hash": ""
+  },
+  ".vscode/images/the-batman.jpg": {
+    "mtime": 1787442791.0,
+    "seen": 1790642064.9027052,
+    "ast_hash": "4ae2800bc060965d5ca89ac5309337d8",
+    "semantic_hash": ""
+  },
+  ".vscode/images/the-dark-knight-rises.jpg": {
+    "mtime": 1788918043.0,
+    "seen": 1790642064.9027066,
+    "ast_hash": "dd3afc18b6e5cc480518d2194825d72f",
+    "semantic_hash": ""
+  },
+  ".vscode/images/the-dark-knight.jpg": {
+    "mtime": 1787442813.0,
+    "seen": 1790642064.9027085,
+    "ast_hash": "c03049888481c74877cb230b010508a9",
+    "semantic_hash": ""
+  },
+  ".vscode/images/the-godfather-part-ii.jpg": {
+    "mtime": 1788918075.0,
+    "seen": 1790642064.90271,
+    "ast_hash": "ee0e62b287877bee38a5ebae08d79232",
+    "semantic_hash": ""
+  },
+  ".vscode/images/the-godfather.jpg": {
+    "mtime": 1788918059.0,
+    "seen": 1790642064.9027116,
+    "ast_hash": "07670789a91f2c47dc526eebf543a82c",
+    "semantic_hash": ""
+  },
+  ".vscode/images/the-matrix.jpg": {
+    "mtime": 1787443068.0,
+    "seen": 1790642064.902713,
+    "ast_hash": "837d1525e4ae784fd1b273c4f329b1dd",
+    "semantic_hash": ""
+  },
+  ".vscode/images/the-shawshank-redemption.jpg": {
+    "mtime": 1788918015.0,
+    "seen": 1790642064.9027147,
+    "ast_hash": "177fdda02bc6c749643ccdf61b5bc7a2",
+    "semantic_hash": ""
+  },
+  ".vscode/images/the-silence-of-the-lambs.jpg": {
+    "mtime": 1788918200.0,
+    "seen": 1790642064.9027162,
+    "ast_hash": "220c3bf99dfe114e67c0e2623fa0560f",
+    "semantic_hash": ""
+  },
+  ".vscode/images/thor-dark-world.jpg": {
+    "mtime": 1787442449.0,
+    "seen": 1790642064.9027176,
+    "ast_hash": "d75d207493e17511b83221d28c9acbe2",
+    "semantic_hash": ""
+  },
+  ".vscode/images/thor-ragnarok.jpg": {
+    "mtime": 1787442468.0,
+    "seen": 1790642064.902719,
+    "ast_hash": "dab5d00cd5ada0bd6cb5d81e7ac3bc2d",
+    "semantic_hash": ""
+  },
+  ".vscode/images/thor.jpg": {
+    "mtime": 1787442420.0,
+    "seen": 1790642064.9027205,
+    "ast_hash": "fca66bfeb32419090628a5810af23d6b",
+    "semantic_hash": ""
+  },
+  ".vscode/images/top-gun-maverick.jpg": {
+    "mtime": 1788917906.0,
+    "seen": 1790642064.9027221,
+    "ast_hash": "d358fee8cb5fde081a7b1d10cc4385e7",
+    "semantic_hash": ""
+  },
+  ".vscode/images/top-gun.jpg": {
+    "mtime": 1787320845.0,
+    "seen": 1790642064.9027236,
+    "ast_hash": "b6417abef424eec40c16414291e12935",
+    "semantic_hash": ""
+  },
+  ".vscode/images/toy-story.jpg": {
+    "mtime": 1788917954.0,
+    "seen": 1790642064.9027252,
+    "ast_hash": "281385e86f1e186f93d2852dee97b3f5",
+    "semantic_hash": ""
+  },
+  ".vscode/images/wonder-woman.jpg": {
+    "mtime": 1787442999.0,
+    "seen": 1790642064.9027267,
+    "ast_hash": "bd489576f4a43053055c712a825f5720",
+    "semantic_hash": ""
+  },
+  "images/cinet-logo.png": {
+    "mtime": 1790563234.0,
+    "seen": 1790642064.9027286,
+    "ast_hash": "b31f5470cde9a8f8441559f88b31ea10",
+    "semantic_hash": ""
+  },
+  "public/favicon.svg": {
+    "mtime": 1790641685.9363382,
+    "seen": 1790642064.90273,
+    "ast_hash": "4b5f8ee49fc60a60e434b847fa4b7959",
+    "semantic_hash": ""
+  },
+  "public/images/a-quiet-place.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.9027317,
+    "ast_hash": "3a80089db273f3d837777de9b8dd2fb8",
+    "semantic_hash": ""
+  },
+  "public/images/avatar-way-of-water.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.9027336,
+    "ast_hash": "7034408bd6e9c8c919a211bdfc112329",
+    "semantic_hash": ""
+  },
+  "public/images/avatar.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.902735,
+    "ast_hash": "fefeda5a61c9e69210bf5028c901a55a",
+    "semantic_hash": ""
+  },
+  "public/images/avengers-doomsday.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.9027367,
+    "ast_hash": "f68b4716b37963f7cbf71c4056a18edc",
+    "semantic_hash": ""
+  },
+  "public/images/avengers-endgame.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.902738,
+    "ast_hash": "2fe05022f877e3727b52bc702fc3fb79",
+    "semantic_hash": ""
+  },
+  "public/images/avengers-infinity-war.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.9027402,
+    "ast_hash": "43549843e00d69b8950059cd772ef64f",
+    "semantic_hash": ""
+  },
+  "public/images/black-panther.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.9027417,
+    "ast_hash": "4e60a53a69e29a654d951737b6b138bf",
+    "semantic_hash": ""
+  },
+  "public/images/captain-america-winter-soldier.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.902743,
+    "ast_hash": "1878d0f900f3d8df40bde612eca2d7d6",
+    "semantic_hash": ""
+  },
+  "public/images/coco.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.9027443,
+    "ast_hash": "a6ba0f1021c1a672e321e18c60193d29",
+    "semantic_hash": ""
+  },
+  "public/images/doctor-strange.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.902746,
+    "ast_hash": "fe51589367308130f4566ae05612caa1",
+    "semantic_hash": ""
+  },
+  "public/images/dune-part-two.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.9027472,
+    "ast_hash": "d7163eb3c32f1bbc7ed393299409224b",
+    "semantic_hash": ""
+  },
+  "public/images/dune.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.9027486,
+    "ast_hash": "d1f5e20208c8aa4157399c5a58d2606b",
+    "semantic_hash": ""
+  },
+  "public/images/fight-club.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.9027503,
+    "ast_hash": "a5dec3e4c8b1a75dd6819056cbb6e3bf",
+    "semantic_hash": ""
+  },
+  "public/images/forrest-gump.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.9027517,
+    "ast_hash": "2fbec9ba82994b82c504880b3777516f",
+    "semantic_hash": ""
+  },
+  "public/images/free-guy.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.9027534,
+    "ast_hash": "dd1ffa059526d75ac98cd1d968409614",
+    "semantic_hash": ""
+  },
+  "public/images/guardians-of-the-galaxy.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.902755,
+    "ast_hash": "6f38d077f384fa158aa75b072f4903a3",
+    "semantic_hash": ""
+  },
+  "public/images/harry-potter-philosophers-stone.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.9027567,
+    "ast_hash": "e6c5c0401f5c382dfda04957f9225146",
+    "semantic_hash": ""
+  },
+  "public/images/inception.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.902758,
+    "ast_hash": "44895a3ff1753b6890f672e299180f51",
+    "semantic_hash": ""
+  },
+  "public/images/interstellar.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.9027598,
+    "ast_hash": "a33835a29f762653a1ed79dc51e3d4e0",
+    "semantic_hash": ""
+  },
+  "public/images/iron-man.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.9027612,
+    "ast_hash": "a162d52061dc5a80121c676b0129fc01",
+    "semantic_hash": ""
+  },
+  "public/images/it.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.9027624,
+    "ast_hash": "c68a624b6f7284371ff1a86b634bb114",
+    "semantic_hash": ""
+  },
+  "public/images/john-wick-chapter-4.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.902764,
+    "ast_hash": "6d2d18897870eccccdb00586d50f7573",
+    "semantic_hash": ""
+  },
+  "public/images/john-wick.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.9027658,
+    "ast_hash": "2e2340c462647ec1b06aa1dc25c74012",
+    "semantic_hash": ""
+  },
+  "public/images/joker.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.9027674,
+    "ast_hash": "9c0646ebedc0cf54a497a58b8904a026",
+    "semantic_hash": ""
+  },
+  "public/images/lord-of-the-rings-fellowship.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.9027689,
+    "ast_hash": "01ade7ca930d13bf22eae40f197b5ba4",
+    "semantic_hash": ""
+  },
+  "public/images/man-of-steel.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.9027708,
+    "ast_hash": "3eb54c35ed1502bb69134480c5dc30e1",
+    "semantic_hash": ""
+  },
+  "public/images/mission-impossible-fallout.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.9027722,
+    "ast_hash": "ce0353529a8e0d3b559a8b2589e6320b",
+    "semantic_hash": ""
+  },
+  "public/images/pulp-fiction.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.9027736,
+    "ast_hash": "cc07d0bc17e5ce7f99e3e17ff2b50412",
+    "semantic_hash": ""
+  },
+  "public/images/shawshank-redemption.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.9027753,
+    "ast_hash": "e330b4de8e770b69a9111fdcfe89ad18",
+    "semantic_hash": ""
+  },
+  "public/images/spider-man-homecoming.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.9027767,
+    "ast_hash": "7aa1040e31ef9e9ac48e876d5f59d95d",
+    "semantic_hash": ""
+  },
+  "public/images/spider-man-into-the-spider-verse.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.9027786,
+    "ast_hash": "41fe75ce544b55743694b614d2e3eef0",
+    "semantic_hash": ""
+  },
+  "public/images/spider-man-no-way-home.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.9027805,
+    "ast_hash": "f6f758722cf83d75d19ec607ea1ae24d",
+    "semantic_hash": ""
+  },
+  "public/images/the-batman.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.902782,
+    "ast_hash": "4ae2800bc060965d5ca89ac5309337d8",
+    "semantic_hash": ""
+  },
+  "public/images/the-dark-knight.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.9027832,
+    "ast_hash": "c03049888481c74877cb230b010508a9",
+    "semantic_hash": ""
+  },
+  "public/images/the-godfather.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.9027848,
+    "ast_hash": "07670789a91f2c47dc526eebf543a82c",
+    "semantic_hash": ""
+  },
+  "public/images/the-hangove.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.9027863,
+    "ast_hash": "70c6b194cb02aacf523b83d905292ec6",
+    "semantic_hash": ""
+  },
+  "public/images/the-matrix.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.902788,
+    "ast_hash": "837d1525e4ae784fd1b273c4f329b1dd",
+    "semantic_hash": ""
+  },
+  "public/images/thor-ragnarok.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.9027894,
+    "ast_hash": "dab5d00cd5ada0bd6cb5d81e7ac3bc2d",
+    "semantic_hash": ""
+  },
+  "public/images/top-gun-maverick.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.9027913,
+    "ast_hash": "d358fee8cb5fde081a7b1d10cc4385e7",
+    "semantic_hash": ""
+  },
+  "public/images/toy-story.jpg": {
+    "mtime": 1790354482.0,
+    "seen": 1790642064.9027927,
+    "ast_hash": "281385e86f1e186f93d2852dee97b3f5",
+    "semantic_hash": ""
+  },
+  "src/assets/cinet-header-bg.png": {
+    "mtime": 1790566387.8573208,
+    "seen": 1790642064.9027941,
+    "ast_hash": "6e1db5303566271ed5df1b55cf7244cc",
+    "semantic_hash": ""
+  },
+  "src/hooks/useSceneMotion.js": {
+    "mtime": 1790644396.0413308,
+    "seen": 1790644701.0503924,
+    "ast_hash": "1d8811f857b97fb6ecdf2864f4950d16",
+    "semantic_hash": ""
+  },
+  "src/hooks/useSceneVisibility.js": {
+    "mtime": 1790644396.043332,
+    "seen": 1790644701.0503945,
+    "ast_hash": "1ac5d600507a78e45c73a0d270230d44",
+    "semantic_hash": ""
+  }
+}

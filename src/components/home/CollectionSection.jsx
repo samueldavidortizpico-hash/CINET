@@ -23,7 +23,7 @@ export default function CollectionSection({ collection, kicker, title, descripti
     rowRef.current?.scrollBy({ left: direction * rowRef.current.clientWidth * 0.85, behavior: "smooth" });
 
   return (
-    <section ref={ref} id={id} className={`collection-section ${revealClass}`} aria-labelledby={`${collection}-title`}>
+    <section ref={ref} id={id} data-collection={collection} className={`collection-section ${revealClass}`} aria-labelledby={`${collection}-title`}>
       <div className="collection-head">
         <div>
           <p className="eyebrow">{kicker}</p>

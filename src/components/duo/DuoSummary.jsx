@@ -3,6 +3,7 @@ import { PLATFORMS } from "../../data/platforms.js";
 import { GENRES, regionName } from "../../data/tmdb.js";
 import { EXCLUDING } from "../../services/historyService.js";
 import { formatMinutes } from "../../services/recommender.js";
+import Icon from "../common/Icon.jsx";
 
 const label = (list, key, field = "key") => list.find((item) => item[field] === key)?.label ?? key;
 const genre = (key) => label(GENRES, key);
@@ -62,7 +63,9 @@ export default function DuoSummary({ session, profile, history, onEdit, onOpenHi
 
   return (
     <aside className="duo-summary" aria-labelledby="duo-summary-title">
-      <h2 id="duo-summary-title">Su sesión</h2>
+      <div className="duo-pass-heading"><Icon name="ticket" /><span>FUNCIÓN PARA DOS</span></div>
+      <h2 id="duo-summary-title">Su pase de cine</h2>
+      <p className="duo-fineprint">El plan toma forma con cada elección.</p>
 
       <Section title="Modo" onEdit={() => onEdit("mode")} editLabel="Editar modo y plataformas">
         <p>
@@ -91,7 +94,7 @@ export default function DuoSummary({ session, profile, history, onEdit, onOpenHi
         </Section>
       ))}
 
-      <Section title="Excluidos" onEdit={() => onEdit("seen")} editLabel="Editar títulos ya vistos">
+      <Section title="Lo que dejamos fuera" onEdit={() => onEdit("seen")} editLabel="Editar títulos ya vistos">
         <p className="duo-fineprint">
           {excluded ? `${excluded} título${excluded === 1 ? "" : "s"} que no volveremos a recomendar.` : "Todavía ninguno."}
         </p>

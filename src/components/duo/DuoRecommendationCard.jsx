@@ -47,7 +47,7 @@ function Votes({ title, names, votes, onVote }) {
               title={vote.label}
               onClick={() => onVote(person, vote.key)}
             >
-              {vote.icon}
+              <span aria-hidden="true">{vote.icon}</span><span>{vote.label}</span>
             </button>
           ))}
         </div>
@@ -69,6 +69,7 @@ export default function DuoRecommendationCard({ item, featured = false, names, v
 
   return (
     <article className={`duo-card${featured ? " duo-card-featured" : ""}`} aria-labelledby={headingId}>
+      {featured && title.backdrop && <img className="duo-recommendation-backdrop" src={title.backdrop} alt="" aria-hidden="true" loading="lazy" />}
       <Link to={detailPath} className="duo-card-poster" tabIndex={-1} aria-hidden="true">
         <PosterImage src={title.poster} alt="" fallback={<img src={fallbackPoster(title)} alt="" />} />
       </Link>

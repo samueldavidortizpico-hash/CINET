@@ -1,4 +1,5 @@
 import Button from "../common/Button.jsx";
+import Icon from "../common/Icon.jsx";
 import PlatformLogo from "../movie-detail/PlatformLogo.jsx";
 import { ChoiceChips, Question } from "./DuoFields.jsx";
 import { MARATHON_SCOPES, MARATHON_STYLES, MODES, SESSION_LENGTHS } from "../../data/duo.js";
@@ -29,18 +30,18 @@ export default function DuoModeStep({ session, onChange, onNext }) {
 
   return (
     <section className="duo-step" aria-labelledby="duo-mode-title">
-      <h2 id="duo-mode-title">¿Qué van a ver?</h2>
-      <p className="duo-lead">Nunca mezclamos películas y series: cada modo recomienda solo lo que eligen.</p>
+      <p className="duo-overline">PRIMERO, EL PLAN</p>
+      <h2 id="duo-mode-title">¿Cómo se ve su noche ideal?</h2>
+      <p className="duo-lead">Elijan un formato. Después llega el turno de los gustos de cada uno.</p>
 
       <fieldset className="duo-fieldset">
         <legend className="visually-hidden">Modo de Duo</legend>
         <div className="duo-modes">
           {MODES.map((mode) => (
-            <label key={mode.key} className="duo-mode-card">
+            <label key={mode.key} className={`duo-mode-card duo-format-${mode.key}`}>
               <input type="radio" name="duo-mode" checked={session.mode === mode.key} onChange={() => onChange({ mode: mode.key })} />
-              <span className="duo-mode-icon" aria-hidden="true">
-                {mode.icon}
-              </span>
+              <span className="duo-mode-art" aria-hidden="true"><span /><span /><Icon name={mode.key === "movie" ? "film" : mode.key === "tv" ? "screen" : "layers"} /></span>
+              <span className="duo-mode-selected" aria-hidden="true"><Icon name="check" /></span>
               <strong>{mode.label}</strong>
               <small>{mode.text}</small>
             </label>
@@ -149,7 +150,7 @@ export default function DuoModeStep({ session, onChange, onNext }) {
 
       <div className="duo-actions">
         <Button variant="primary" className="duo-cta" onClick={onNext}>
-          Continuar →
+          Ahora, nuestros gustos <Icon name="arrow" />
         </Button>
       </div>
     </section>

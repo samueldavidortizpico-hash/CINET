@@ -24,3 +24,6 @@
 
 /* Capa de diseño: tokens, tipografía y componentes compartidos (gana por orden). */
 @import "./design.css";
+@import "./pages/landing.css";
+@import "./pages/duo-immersive.css";
+@import "./pages/duo-intro.css";

@@ -11,6 +11,7 @@ import DuoProgress from "../components/duo/DuoProgress.jsx";
 import DuoResults from "../components/duo/DuoResults.jsx";
 import DuoSeenStep from "../components/duo/DuoSeenStep.jsx";
 import DuoSummary from "../components/duo/DuoSummary.jsx";
+import Icon from "../components/common/Icon.jsx";
 import { DEFAULT_DUO_SESSION, DUO_PREFERENCES_KEY, personName, STEPS } from "../data/duo.js";
 import { useAsync } from "../hooks/useAsync.js";
 import { useDocumentTitle } from "../hooks/useDocumentTitle.js";
@@ -149,7 +150,13 @@ export default function DuoPage() {
     return (
       <div className="duo-page duo-step-intro">
         <div className="duo-container">
-          <DuoIntro hasSession={hasSession} onStart={startNew} onResume={() => go(session.step)} />
+          <DuoIntro
+            hasSession={hasSession}
+            onStart={() => {
+              if (!hasSession || window.confirm("¿Empezar una sesión nueva? Se borran las respuestas de esta sesión (el historial se conserva).")) startNew();
+            }}
+            onResume={() => go(session.step)}
+          />
         </div>
       </div>
     );
@@ -166,15 +173,19 @@ export default function DuoPage() {
     <div className={`duo-page duo-step-${step}`}>
       <div className="duo-container">
         <header className="duo-header">
-          <span className="duo-badge">CINET Duo</span>
-          <h1>
-            {names[0]} <span aria-hidden="true">💞</span>
-            <span className="visually-hidden"> y </span> {names[1]}
-          </h1>
+          <div className="duo-session-heading">
+            <div><span className="duo-badge"><Icon name="sparkles" /> CINET <b>DUO</b></span><h1>Su próxima historia empieza aquí.</h1></div>
+            <div className="duo-participants" aria-label={`Sesión de ${names[0]} y ${names[1]}`}>
+              {names.map((name, index) => <span key={index} className={`duo-participant duo-participant-${index}`}><i aria-hidden="true">{name.slice(0, 1).toUpperCase()}</i><span>{name}</span></span>)}
+            </div>
+          </div>
           <DuoProgress current={current} reached={session.reached} names={names} onGo={go} />
-          <button type="button" className="duo-link duo-restart" onClick={() => window.confirm("¿Empezar una sesión nueva? Se borran las respuestas de esta sesión (el historial se conserva).") && startNew()}>
-            Empezar de nuevo
-          </button>
+          <div className="duo-session-tools">
+            <button type="button" className="duo-link" onClick={() => { setIntro(true); window.scrollTo({ top: 0 }); }}><Icon name="screen" /> Ver presentación de Duo</button>
+            <button type="button" className="duo-link duo-restart" onClick={() => window.confirm("¿Empezar una sesión nueva? Se borran las respuestas de esta sesión (el historial se conserva).") && startNew()}>
+              Empezar de nuevo
+            </button>
+          </div>
         </header>
 
         {!storageOk && (
@@ -190,7 +201,7 @@ export default function DuoPage() {
         )}
 
         <div className="duo-layout">
-          <div className="duo-main">
+          <div className="duo-main" key={step}>
             {step === "mode" && <DuoModeStep session={session} onChange={changePrefs} onNext={() => go("person-0")} />}
             {personIndex !== null && (
               <DuoPersonStep

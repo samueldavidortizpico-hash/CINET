@@ -4,7 +4,7 @@ import { useAuth } from "../../hooks/useAuth.js";
 const LINKS = [
   { to: "/home", label: "Inicio" },
   { to: "/movies", label: "Películas" },
-  { to: "/cine", label: "Cine" },
+  { to: "/cine", label: "Cine", className: "nav-cine" },
   { to: "/duo", label: "Duo", className: "nav-duo" },
   { to: "/my-plans", label: "Mis planes" },
   { to: "/dashboard", label: "Dashboard" },

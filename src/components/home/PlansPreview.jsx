@@ -29,7 +29,7 @@ export default function PlansPreview() {
             </div>
           </>
         ) : (
-          <EmptyState id="empty-plans" icon="🎟️" title="Todavía no tienes planes">
+          <EmptyState id="empty-plans" icon="🎟️" title="Todavía no tienes planes" action={<div className="section-cta"><Button variant="primary" to="/movies">Encontrar una película →</Button></div>}>
             Selecciona una película para comenzar a crear tu próximo plan.
           </EmptyState>
         )}

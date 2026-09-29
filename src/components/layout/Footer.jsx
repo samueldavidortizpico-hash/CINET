@@ -1,11 +1,13 @@
 import { Link } from "react-router-dom";
 import TmdbStatus from "../common/TmdbStatus.jsx";
+import BrandLogo from "../common/BrandLogo.jsx";
 
 export default function Footer() {
   return (
     <footer className="site-footer">
       <div className="footer-brand">
-        <strong>CINET</strong>
+        <Link className="logo logo-brand" to="/home" aria-label="CINET — Inicio"><BrandLogo /></Link>
+        <p>Buenas historias. Mejores planes.</p>
         <p>Universidad de La Sabana</p>
       </div>
 

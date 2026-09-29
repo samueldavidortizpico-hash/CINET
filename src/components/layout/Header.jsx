@@ -1,17 +1,16 @@
 import { Link } from "react-router-dom";
 import Navbar from "./Navbar.jsx";
 import { useTheme } from "../../hooks/useTheme.js";
-import cinetLogo from "../../../images/cinet-logo.png"; // Vite lo copia a dist con el base de GitHub Pages
-import headerBackground from "../../assets/cinet-header-bg.png";
+import BrandLogo from "../common/BrandLogo.jsx";
+import Icon from "../common/Icon.jsx";
 
 export default function Header() {
   const { isDark, toggleTheme } = useTheme();
 
   return (
-    <header className="site-header" style={{ "--header-bg": `url(${headerBackground})` }}>
+    <header className="site-header">
       <Link className="logo logo-brand" to="/home" aria-label="CINET — Inicio">
-        <img className="logo-img" src={cinetLogo} alt="CINET" width="2172" height="724" />
-        <span className="logo-caption">Tu próxima función</span>
+        <BrandLogo />
       </Link>
 
       <Navbar />
@@ -20,11 +19,12 @@ export default function Header() {
         id="theme-toggle"
         className="theme-button"
         type="button"
-        aria-label="Cambiar tema"
+        aria-label={isDark ? "Activar modo claro" : "Activar modo oscuro"}
+        title={isDark ? "Activar modo claro" : "Activar modo oscuro"}
         aria-pressed={isDark}
         onClick={toggleTheme}
       >
-        {isDark ? "☀️ Modo claro" : "🌙 Modo oscuro"}
+        <Icon name={isDark ? "sun" : "moon"} />
       </button>
     </header>
   );
