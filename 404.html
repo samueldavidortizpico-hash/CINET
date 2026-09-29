@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="es" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="CINET - Descubre películas, guarda tus favoritas y organiza tus planes de cine." />
+    <meta name="theme-color" content="#07050d" />
+    <link rel="icon" type="image/svg+xml" href="/CINET/favicon.svg" />
+    <title>CINET — Tu próxima película</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet" />
+    <script>
+      // Aplica el tema guardado antes del primer pintado (evita el destello claro/oscuro).
+      try {
+        if ((localStorage.getItem("cinehub-theme") || "").includes("light")) {
+          document.documentElement.classList.remove("dark");
+        }
+      } catch {}
+    </script>
+    <script type="module" crossorigin src="/CINET/assets/index-AJ1A4nfk.js"></script>
+    <link rel="stylesheet" crossorigin href="/CINET/assets/index-GERl14oa.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
