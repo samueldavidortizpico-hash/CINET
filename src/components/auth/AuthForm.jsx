@@ -10,9 +10,9 @@ const FIELDS = {
 };
 
 /** Registro o inicio de sesión. Valida en vivo después del primer envío. */
-export default function AuthForm({ mode, onSuccess }) {
+export default function AuthForm({ mode, initialEmail = "", onSuccess }) {
   const { login, register } = useAuth();
-  const [values, setValues] = useState({ name: "", email: "", password: "" });
+  const [values, setValues] = useState({ name: "", email: initialEmail, password: "" });
   const [submitted, setSubmitted] = useState(false);
   const [serverError, setServerError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -31,8 +31,7 @@ export default function AuthForm({ mode, onSuccess }) {
     setBusy(true);
     setServerError("");
     try {
-      const user = await (isRegister ? register(values) : login(values));
-      onSuccess(user);
+      onSuccess(await (isRegister ? register(values) : login(values)));
     } catch (error) {
       setServerError(error.message);
       setBusy(false);
@@ -66,7 +65,7 @@ export default function AuthForm({ mode, onSuccess }) {
       {serverError && <p className="form-error" role="alert">{serverError}</p>}
 
       <Button type="submit" disabled={busy}>
-        {isRegister ? "Crear cuenta" : "Iniciar sesión"}
+        {busy ? (isRegister ? "Creando cuenta…" : "Entrando…") : isRegister ? "Crear cuenta" : "Iniciar sesión"}
       </Button>
     </form>
   );

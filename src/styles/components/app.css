@@ -323,3 +323,60 @@ html:not(.dark) #theme-toggle {
 .tmdb-status-network { padding: 1px 8px; border-radius: 999px; font-size: 0.75rem; font-weight: 700; background: rgba(66, 230, 149, 0.15); }
 .tmdb-status-network[data-online="false"] { background: rgba(255, 93, 115, 0.2); }
 .offline-banner { margin: 0; padding: 10px 16px; text-align: center; font-weight: 600; background: var(--danger); color: #fff; }
+
+/* Perfil editable (/profile) */
+.profile-avatar { overflow: hidden; flex-shrink: 0; }
+.profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.profile-header > div { min-width: 0; flex: 1; }
+.profile-header p { overflow-wrap: anywhere; }
+.profile-role { padding: 7px 12px; border-radius: 999px; background: rgba(229, 9, 20, .14); color: var(--pink-light); font-size: .75rem; font-weight: 800; white-space: nowrap; }
+.profile-bio { margin: 0; color: var(--text-soft); white-space: pre-line; }
+.profile-bio:empty { display: none; }
+.profile-form { display: grid; gap: 14px; }
+.profile-form .field input { margin: 0; }
+.profile-form textarea { width: 100%; min-height: 110px; padding: 12px 15px; border: 1px solid #30263a; border-radius: 10px; outline: none; background: #110c17; color: white; resize: vertical; }
+.profile-form textarea:focus { border-color: var(--pink); box-shadow: 0 0 0 4px rgba(229, 9, 20, .08); }
+.profile-hint { margin: 0; color: var(--text-muted); font-size: .7rem; }
+.profile-form .btn { justify-self: start; }
+
+/* Selector de foto: conserva los botones y el diseño del perfil existente. */
+.avatar-upload { display: grid; gap: 10px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.avatar-upload-label { margin: 0; color: var(--text); font-size: .85rem; font-weight: 700; }
+.avatar-upload-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.avatar-preview { display: flex; align-items: center; gap: 14px; margin: 4px 0; }
+.avatar-preview img { flex: 0 0 80px; width: 80px; height: 80px; border-radius: 50%; object-fit: cover; background: var(--surface); }
+.avatar-preview figcaption { min-width: 0; overflow-wrap: anywhere; color: var(--text-muted); font-size: .78rem; }
+.avatar-upload [role="status"]:empty { display: none; }
+
+/* Menú de usuario (avatar circular a la derecha del header) */
+.header-actions { display: flex; align-items: center; gap: 10px; }
+.user-menu { position: relative; }
+.user-menu-trigger { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 1px solid var(--border); border-radius: 50%; background: var(--surface); cursor: pointer; transition: border-color var(--transition), box-shadow var(--transition); }
+.user-menu-trigger:hover, .user-menu-trigger[aria-expanded="true"] { border-color: var(--pink); box-shadow: 0 0 0 3px rgba(229, 9, 20, .18); }
+.user-menu-trigger:focus-visible { outline: 2px solid var(--pink-light); outline-offset: 3px; }
+.user-menu-avatar { width: 38px; height: 38px; font-size: 1rem; }
+.user-menu-panel { position: absolute; top: calc(100% + 10px); right: 0; z-index: 20; width: min(290px, calc(100vw - 32px)); padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); box-shadow: 0 18px 50px rgba(0, 0, 0, .45); animation: user-menu-in 160ms var(--ease); }
+.user-menu-panel[hidden] { display: none; }
+.user-menu-identity { display: flex; align-items: center; gap: 12px; padding: 10px 10px 14px; border-bottom: 1px solid var(--border); }
+.user-menu-identity > div { min-width: 0; }
+.user-menu-identity .profile-avatar { width: 44px; height: 44px; font-size: 1.1rem; }
+.user-menu-name, .user-menu-handle { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.user-menu-name { color: var(--text); font-weight: 800; }
+.user-menu-handle { color: var(--text-muted); font-size: .78rem; }
+.user-menu-panel ul { display: grid; gap: 2px; margin: 8px 0 0; padding: 0; list-style: none; }
+.user-menu-panel li > :is(a, button) { display: flex; align-items: center; width: 100%; min-height: 42px; padding: 0 12px; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--text-soft); font: inherit; font-size: .88rem; font-weight: 600; text-align: left; text-decoration: none; cursor: pointer; }
+.user-menu-panel li > :is(a, button):is(:hover, :focus-visible) { background: var(--surface-2); color: var(--text); }
+.user-menu-panel li > :is(a, button):focus-visible { outline: 2px solid var(--pink-light); outline-offset: -2px; }
+.user-menu-panel a[aria-current="page"] { color: var(--text); background: var(--surface-2); }
+.user-menu-panel .user-menu-staff { color: var(--pink-light); }
+.user-menu-panel li:last-child { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); }
+.user-menu-panel .user-menu-logout:is(:hover, :focus-visible) { color: var(--pink-light); }
+@keyframes user-menu-in { from { opacity: 0; transform: translateY(-6px); } }
+@media (prefers-reduced-motion: reduce) { .user-menu-panel { animation: none; } }
+
+/* /admin */
+.admin-tools { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none; }
+.admin-tool { display: grid; gap: 10px; align-content: start; padding: 22px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); }
+.admin-tool h3 { margin: 0; color: var(--text); }
+.admin-tool p { margin: 0; color: var(--text-soft); }
+.admin-tool .btn { justify-self: start; }

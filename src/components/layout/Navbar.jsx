@@ -23,9 +23,12 @@ export default function Navbar() {
             </NavLink>
           </li>
         ))}
-        <li>
-          <NavLink to="/profile">{user ? `👤 ${user.name.split(" ")[0]}` : "Registro"}</NavLink>
-        </li>
+        {/* Con sesión, el perfil vive en el menú del avatar (UserMenu). */}
+        {!user && (
+          <li>
+            <NavLink to="/profile">Registro</NavLink>
+          </li>
+        )}
         <li>
           <NavLink to="/about">Acerca de</NavLink>
         </li>

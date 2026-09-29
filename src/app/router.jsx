@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import Layout from "../components/layout/Layout.jsx";
 import ProtectedRoute from "../components/ProtectedRoute.jsx";
 import AboutPage from "../pages/AboutPage.jsx";
+import AdminPage from "../pages/AdminPage.jsx";
 import CreatePlanPage from "../pages/CreatePlanPage.jsx";
 import CinemaPage from "../pages/CinemaPage.jsx";
 import CinemaTicketsPage from "../pages/CinemaTicketsPage.jsx";
@@ -37,12 +38,18 @@ export const router = createBrowserRouter(
         { path: "plan/:id", element: <PlanPage />, ...page("plan") },
         { path: "my-plans", element: <MyPlansPage />, ...page("my-plans") },
         { path: "profile", element: <ProfilePage />, ...page("profile") },
-        // Alias: /profile ya es login + registro + perfil; /plans es /my-plans.
-        { path: "login", element: <Navigate to="/profile" replace /> },
+        // key: al pasar de /login a /register el formulario empieza limpio.
+        { path: "login", element: <ProfilePage key="login" mode="login" />, ...page("profile") },
+        { path: "register", element: <ProfilePage key="register" mode="register" />, ...page("profile") },
+        // Alias: /plans es /my-plans.
         { path: "plans", element: <Navigate to="/my-plans" replace /> },
         {
           element: <ProtectedRoute />,
           children: [{ path: "dashboard", element: <DashboardPage />, ...page("dashboard") }],
+        },
+        {
+          element: <ProtectedRoute roles={["admin"]} />,
+          children: [{ path: "admin", element: <AdminPage />, ...page("dashboard") }],
         },
         { path: "about", element: <AboutPage />, ...page("about") },
         { path: "*", element: <NotFoundPage />, ...page("not-found") },

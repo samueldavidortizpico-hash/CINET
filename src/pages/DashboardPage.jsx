@@ -11,7 +11,6 @@ import { useFavorites } from "../hooks/useFavorites.js";
 import { usePlans } from "../hooks/usePlans.js";
 import { getMovies, getMoviesByIds } from "../services/movieService.js";
 import { HERO_PREFERENCES_KEY } from "../services/heroPreferences.js";
-import { OWNER_EMAIL } from "../services/authService.js";
 import { useState } from "react";
 
 /** Ruta protegida: solo accesible con sesión iniciada (ver ProtectedRoute). */
@@ -47,7 +46,7 @@ export default function DashboardPage() {
 
       <PlanStats plans={ownPlans} />
 
-      {user.email === OWNER_EMAIL && (
+      {user.role === "admin" && (
         <section className="hero-editor" aria-labelledby="hero-editor-title">
           <div className="hero-editor-heading">
             <div><p className="eyebrow">EDITORIAL CINEHUB</p><h3 id="hero-editor-title">Controla el carrusel principal</h3><p>Elige qué película aparece primero en Inicio. Tus cambios quedan guardados en este navegador.</p></div>

@@ -1,8 +1,8 @@
-import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import AuthForm from "../components/auth/AuthForm.jsx";
 import ProfileCard from "../components/auth/ProfileCard.jsx";
 import CinephileProfile from "../components/profile/CinephileProfile.jsx";
+import Loading from "../components/common/Loading.jsx";
 import { useAuth } from "../hooks/useAuth.js";
 import { useDocumentTitle } from "../hooks/useDocumentTitle.js";
 import { useToast } from "../hooks/useToast.js";
@@ -12,19 +12,24 @@ const MODES = [
   ["login", "Iniciar sesión"],
 ];
 
-/** Registro / inicio de sesión, o el perfil si ya hay sesión. Destino de ProtectedRoute. */
-export default function ProfilePage() {
-  const { isAuthenticated } = useAuth();
+/** Registro (/register, /profile) o inicio de sesión (/login), o el perfil si ya hay sesión. */
+export default function ProfilePage({ mode = "register" }) {
+  const { isAuthenticated, loading } = useAuth();
   const { showToast } = useToast();
-  const [mode, setMode] = useState("register");
   const location = useLocation();
   const navigate = useNavigate();
   const redirectTo = location.state?.from;
-  useDocumentTitle(isAuthenticated ? "Mi perfil" : "Registro");
+  const confirmEmail = location.state?.confirmEmail;
+  useDocumentTitle(isAuthenticated ? "Mi perfil" : mode === "register" ? "Registro" : "Iniciar sesión");
 
-  const handleSuccess = (user) => {
+  const handleSuccess = (result) => {
+    if (mode === "register" && result.needsConfirmation) {
+      navigate("/login", { replace: true, state: { from: redirectTo, confirmEmail: result.user.email } });
+      return;
+    }
+    const user = mode === "register" ? result.user : result;
     showToast(mode === "register" ? "✅ Cuenta creada correctamente" : `👋 Hola de nuevo, ${user.name}`);
-    if (redirectTo) navigate(redirectTo, { replace: true });
+    navigate(redirectTo ?? "/profile", { replace: true });
   };
 
   const title = isAuthenticated ? "Mi perfil" : mode === "register" ? "Crea tu cuenta" : "Inicia sesión";
@@ -36,11 +41,18 @@ export default function ProfilePage() {
         <h2>{title}</h2>
         <p>Personaliza tu experiencia cinematográfica.</p>
 
-        {isAuthenticated ? (
+        {loading ? (
+          <Loading label="Comprobando sesión" />
+        ) : isAuthenticated ? (
           <ProfileCard />
         ) : (
           <>
-            {redirectTo && (
+            {confirmEmail && (
+              <p className="auth-notice" role="status">
+                📩 Te enviamos un correo a <strong>{confirmEmail}</strong>. Confirma tu cuenta con el enlace y luego inicia sesión.
+              </p>
+            )}
+            {redirectTo && !confirmEmail && (
               <p className="auth-notice" role="status">
                 🔒 Inicia sesión o crea una cuenta para entrar a tu dashboard.
               </p>
@@ -52,13 +64,13 @@ export default function ProfilePage() {
                   type="button"
                   className={`filter-btn${mode === value ? " active" : ""}`}
                   aria-pressed={mode === value}
-                  onClick={() => setMode(value)}
+                  onClick={() => navigate(`/${value}`, { state: { from: redirectTo } })}
                 >
                   {label}
                 </button>
               ))}
             </div>
-            <AuthForm key={mode} mode={mode} onSuccess={handleSuccess} />
+            <AuthForm key={mode} mode={mode} initialEmail={confirmEmail} onSuccess={handleSuccess} />
           </>
         )}
       </div>

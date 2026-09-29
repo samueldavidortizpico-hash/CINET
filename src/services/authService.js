@@ -1,59 +1,79 @@
 /* =========================================================
-   authService — autenticación local (sin backend todavía).
-   Los usuarios registrados viven en localStorage y la contraseña
-   nunca se guarda en texto plano.
+   authService — cuentas con Supabase Auth.
+   Supabase guarda y verifica las contraseñas; aquí nunca se
+   almacenan. El nombre viaja en user_metadata (sin tabla propia).
    ========================================================= */
 
-import { readStorage, writeStorage } from "../utils/storage.js";
+import { supabase } from "./supabaseClient.js";
 
-const USERS_KEY = "cinehub-users";
-export const OWNER_EMAIL = "samueldavidortizpico@gmail.com";
-const OWNER_PASSWORD_HASH = "1109da9cb19c5346ce500e8514484104b5ba5ce8dfb68106e93da47c2a1cdf22";
+const MESSAGES = {
+  invalid_credentials: "Correo o contraseña incorrectos.",
+  email_not_confirmed: "Confirma tu correo antes de iniciar sesión (revisa tu bandeja de entrada).",
+  user_already_exists: "Ya existe una cuenta con ese correo.",
+  weak_password: "La contraseña es demasiado débil.",
+  over_email_send_rate_limit: "Demasiados intentos. Espera unos minutos y vuelve a probar.",
+  over_request_rate_limit: "Demasiados intentos. Espera unos minutos y vuelve a probar.",
+};
 
-// ponytail: SHA-256 sin sal alcanza para una demo 100% cliente;
-// el backend (M3) debe usar bcrypt/argon2 y sesiones reales.
-async function hashPassword(password) {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(password));
-  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+function toError(error) {
+  return new Error(MESSAGES[error.code] ?? "No pudimos conectar con el servidor. Inténtalo de nuevo.");
 }
 
-const normalizeEmail = (email) => email.trim().toLowerCase();
-const toSession = ({ name, email }) => ({ name, email });
-
-function getUsers() {
-  const users = readStorage(USERS_KEY, []);
-  const list = Array.isArray(users) ? users : [];
-  if (!list.some((user) => user.email === OWNER_EMAIL)) {
-    const seeded = [...list, { name: "Samuel David Ortiz Pico", email: OWNER_EMAIL, passwordHash: OWNER_PASSWORD_HASH, createdAt: new Date().toISOString() }];
-    writeStorage(USERS_KEY, seeded);
-    return seeded;
-  }
-  return list;
+function client() {
+  if (!supabase) throw new Error("Las cuentas no están disponibles ahora mismo.");
+  return supabase;
 }
 
+/** Usuario de Supabase → forma que usa la app ({ id, name, email }). */
+export const toAppUser = (user) =>
+  user && { id: user.id, email: user.email, name: user.user_metadata?.name || user.email.split("@")[0] };
+
+/** Devuelve { user, needsConfirmation }. Sin sesión = Supabase pidió confirmar el correo. */
 export async function register({ name, email, password }) {
-  const users = getUsers();
-  const normalized = normalizeEmail(email);
-
-  if (users.some((user) => user.email === normalized)) {
-    throw new Error("Ya existe una cuenta con ese correo.");
-  }
-
-  const user = {
-    name: name.trim(),
-    email: normalized,
-    passwordHash: await hashPassword(password),
-    createdAt: new Date().toISOString(),
-  };
-  writeStorage(USERS_KEY, [...users, user]);
-  return toSession(user);
+  const { data, error } = await client().auth.signUp({
+    email: email.trim(),
+    password,
+    options: {
+      data: { name: name.trim() },
+      emailRedirectTo: `${window.location.origin}${import.meta.env.BASE_URL}profile`,
+    },
+  });
+  if (error) throw toError(error);
+  // Con confirmación activa, un correo ya registrado vuelve sin error pero sin identidades.
+  if (data.user?.identities?.length === 0) throw new Error(MESSAGES.user_already_exists);
+  return { user: toAppUser(data.user), needsConfirmation: !data.session };
 }
 
 export async function login({ email, password }) {
-  const user = getUsers().find((candidate) => candidate.email === normalizeEmail(email));
+  const { data, error } = await client().auth.signInWithPassword({ email: email.trim(), password });
+  if (error) throw toError(error);
+  return toAppUser(data.user);
+}
 
-  if (!user || user.passwordHash !== (await hashPassword(password))) {
-    throw new Error("Correo o contraseña incorrectos.");
-  }
-  return toSession(user);
+const PROFILE_COLUMNS = "id, username, display_name, avatar_url, bio, role";
+
+/** Perfil público (tabla profiles). El trigger de la base lo crea al registrarse. */
+export async function getProfile(id) {
+  const { data, error } = await client().from("profiles").select(PROFILE_COLUMNS).eq("id", id).maybeSingle();
+  if (error) throw toError(error);
+  return data;
+}
+
+/** Guarda solo los campos editables; role no se envía nunca (y la base lo rechazaría). */
+export async function updateProfile(id, { username, display_name, avatar_url, bio }) {
+  const { data, error } = await client()
+    .from("profiles")
+    .update({ username, display_name, avatar_url, bio })
+    .eq("id", id)
+    .select(PROFILE_COLUMNS)
+    .single();
+  if (error?.code === "23505") throw new Error("Ese username ya está en uso. Prueba con otro.");
+  if (error?.code === "23514") throw new Error("Algún campo no cumple el formato permitido.");
+  if (error) throw toError(error);
+  return data;
+}
+
+export async function logout() {
+  const { error } = await client().auth.signOut();
+  if (error) throw toError(error);
 }

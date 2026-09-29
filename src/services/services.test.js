@@ -3,7 +3,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { findMovie, getMovies, getShowtimes, queryMovies } from "./movieService.js";
 import { buildPlan, filterPlans, getPlanStats, getRsvpStatus, isUpcoming, recommendedStart, setRsvp, validatePlan } from "./planService.js";
-import { validateForm } from "../utils/validation.js";
+import { hasErrors, normalizeProfile, validateForm, validateProfile } from "../utils/validation.js";
 
 test("catálogo: buscar, filtrar y ordenar", async () => {
   const movies = await getMovies();
@@ -58,4 +58,15 @@ test("planes en casa: hora recomendada y campos del plan", () => {
   const plan = buildPlan(selection, { name: "Noche", organizer: "Ana", message: "" }, null, new Date(2026, 8, 26));
   assert.deepEqual([plan.mode, plan.ambience, plan.food, plan.duration], ["home", "Romántico", "Pizza", "2h"]);
   assert.equal(buildPlan({ ...selection, mode: undefined, ambience: undefined, food: undefined }, { name: "N", organizer: "A", message: "" }).mode, "cinema");
+});
+
+test("perfil: mismas reglas que los CHECK de public.profiles", () => {
+  assert.deepEqual(normalizeProfile({ username: "  ", display_name: " Ana ", avatar_url: "", bio: "" }), { username: null, display_name: "Ana", avatar_url: null, bio: null });
+  assert.equal(hasErrors(validateProfile({ username: "ana_01", display_name: "Ana", avatar_url: "https://img.test/a.png", bio: "Hola" })), false);
+  assert.equal(hasErrors(validateProfile({})), false, "todo vacío es válido");
+  for (const username of ["ab", "Ana", "ana-01", "ana 01", "a".repeat(31)]) assert.ok(validateProfile({ username }).username, username);
+  assert.ok(validateProfile({ avatar_url: "javascript:alert(1)" }).avatar_url);
+  assert.ok(validateProfile({ avatar_url: "http://img.test/a.png" }).avatar_url);
+  assert.ok(validateProfile({ display_name: "x".repeat(61) }).display_name);
+  assert.ok(validateProfile({ bio: "x".repeat(281) }).bio);
 });
