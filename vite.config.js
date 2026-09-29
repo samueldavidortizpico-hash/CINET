@@ -3,9 +3,6 @@ import { resolve } from "node:path";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-// GitHub Pages publica el sitio en https://<org>.github.io/<repositorio>/
-const REPO_NAME = "CINET";
-
 /*
  * GitHub Pages no conoce las rutas de React Router: al refrescar /movie/dune
  * responde con 404.html. Si 404.html es una copia de index.html, la SPA carga
@@ -23,7 +20,8 @@ function spaFallback() {
 }
 
 export default defineConfig({
-  base: `/${REPO_NAME}/`,
+  // Vercel sirve el sitio en la raíz; las rutas profundas las resuelve vercel.json.
+  base: "/",
   plugins: [react(), spaFallback()],
   // `npm run dev` / `npm run preview` abren el navegador directo en la URL correcta.
   server: { open: true },

@@ -128,7 +128,7 @@ y **custom hooks**, manteniendo la identidad visual y todas las funcionalidades 
 
 ```bash
 npm install
-npm run dev       # desarrollo → http://localhost:5173/CINET/
+npm run dev       # desarrollo → http://localhost:5173/
 npm run build     # build de producción en dist/ (incluye 404.html para GitHub Pages)
 npm run preview   # sirve el build localmente
 npm run lint      # ESLint (reglas de hooks de React)
@@ -231,22 +231,16 @@ TMDB aporta títulos, imágenes, metadatos y fechas (región CO). CINET **no con
 oficial de las cadenas. Cine Colombia, Cinemark, Cinépolis, Royal Films y Procinal solo se enlazan a su página oficial;
 no hay integración API con ellas. La autenticación es **local y demostrativa** (sin backend).
 
-### GitHub Pages
+### Vercel
 
-- `vite.config.js` define `base: "/CINET/"` y el router usa ese `basename`.
-- **Refresh en rutas profundas:** el build copia `index.html` como `404.html`. GitHub Pages sirve ese
-  archivo para `/movie/dune` y React Router resuelve la ruta.
-- **Deploy:** el sitio se sirve desde la rama `gh-pages` (*Settings → Pages → Deploy from a branch → gh-pages*),
-  que contiene solo el contenido de `dist/`. El build publicado se hace **con** `.env` (token de lectura de TMDB)
-  para que el sitio sea igual al local; el token queda visible en el bundle (decisión aceptada: es de solo lectura
-  y se puede regenerar en themoviedb.org). Para publicar una nueva versión:
-
-  ```bash
-  npm run build
-  cd dist && git init -b gh-pages && git add -A && git commit -m "deploy"     && git push -f https://github.com/samueldavidortizpico-hash/CINET.git gh-pages
-  ```
-
-**[Ver CINET en GitHub Pages](https://samueldavidortizpico-hash.github.io/CINET/)**
+- `vite.config.js` define `base: "/"` y el router usa ese `basename` (`import.meta.env.BASE_URL`).
+- **Refresh en rutas profundas:** `vercel.json` reescribe cualquier ruta que no sea un archivo a `index.html`,
+  así `/movie/dune` carga la SPA y React Router resuelve la ruta.
+- **Deploy:** Vercel detecta Vite (`npm run build`, salida `dist/`) y publica cada push a `main`.
+  Variables en *Project → Settings → Environment Variables*: `VITE_TMDB_READ_TOKEN` (obligatoria) y
+  `VITE_TMDB_API_URL` (opcional, por defecto `https://api.themoviedb.org/3`). Tras cambiarlas, hacer Redeploy:
+  Vite las incluye en el build y el token queda visible en el bundle.
+- La rama `gh-pages` (GitHub Pages en `/CINET/`) ya no se actualiza: con `base: "/"` ese build no funciona allí.
 
 ### CineHub Duo
 
