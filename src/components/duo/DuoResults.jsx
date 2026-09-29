@@ -10,10 +10,10 @@ import { useShare } from "../../hooks/useShare.js";
 import { useToast } from "../../hooks/useToast.js";
 import { bothLiked } from "../../services/duoService.js";
 import { addToHistory } from "../../services/historyService.js";
-import { fillBoard, findSimilar, genreName, listEs, rollDice } from "../../services/recommender.js";
+import { fillBoard, findSimilar, genreName, listEs, MIN_RESULTS, rollDice } from "../../services/recommender.js";
 import { appUrl } from "../../utils/share.js";
 
-const BOARD_SIZE = 7; // recomendación principal + 6 alternativas
+const BOARD_SIZE = MIN_RESULTS; // recomendación principal + 19 opciones
 const FEW = 4; // menos que esto: se explica y se ofrece ampliar
 
 /** Paso 6 (película o serie): recomendación principal, alternativas, dado y acciones por título. */
@@ -63,9 +63,11 @@ export default function DuoResults({
       showToast("No quedan otras opciones que cumplan sus filtros.");
       return;
     }
-    const pool = result.poolSize === 1 ? "1 opción que cumple" : `${result.poolSize} opciones que cumplen`;
+    const pool = result.alternative
+      ? `las ${result.poolSize} alternativas más cercanas a sus filtros (ya no quedaban títulos que los cumplan todos)`
+      : `las ${result.poolSize} opciones que mejor cumplen sus filtros`;
     const repeat = result.repeatsRecent ? " Ya no quedaban títulos que no les hubiéramos mostrado." : "";
-    replaceAt(index, result.item, `🎲 Elegida al azar entre ${pool} sus filtros; las que mejor encajan tienen más probabilidad.${repeat}`);
+    replaceAt(index, result.item, `🎲 Elegida al azar entre ${pool}; las que mejor encajan tienen más probabilidad.${repeat}`);
   };
 
   const similar = (index) => {
@@ -141,7 +143,10 @@ export default function DuoResults({
         <div>
           <h2 id="duo-results-title">Para ver juntos</h2>
           <p>
-            {ranked ? `${items.length} ${noun} cumplen todos sus filtros` : `Buscando ${noun}…`} · {regionName(profile.region)}
+            {ranked
+              ? `${ranked.strict} ${noun} cumplen todos sus filtros${items.length > ranked.strict ? ` · ${items.length - ranked.strict} alternativas cercanas` : ""}`
+              : `Buscando ${noun}…`}{" "}
+            · {regionName(profile.region)}
           </p>
           <TmdbStatus />
         </div>
@@ -204,7 +209,7 @@ export default function DuoResults({
         </>
       )}
 
-      {ranked && items.length > 0 && items.length < FEW && (
+      {ranked && items.length > 0 && ranked.strict < FEW && (
         <DuoEmptyState ranked={ranked} profile={profile} source={candidates?.source} few onRelax={relax} onEdit={onEdit} onOpenHistory={onOpenHistory} />
       )}
 

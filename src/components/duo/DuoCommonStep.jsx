@@ -98,7 +98,7 @@ export default function DuoCommonStep({ session, profile, history, ranked, onEdi
       <p className="duo-fineprint" aria-live="polite">
         {ranked
           ? ranked.items.length
-            ? `Hay ${ranked.items.length} ${noun} que cumplen todo.`
+            ? `Hay ${ranked.strict} ${noun} que cumplen todo${ranked.items.length > ranked.strict ? ` y ${ranked.items.length - ranked.strict} alternativas cercanas` : ""}.`
             : `Con estos filtros no encontramos ${noun}; en el siguiente paso les decimos qué ampliar.`
           : `Buscando ${noun}…`}
       </p>

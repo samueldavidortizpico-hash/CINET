@@ -7,15 +7,17 @@
    estado, plataformas), de varias fuentes para tener variedad: populares,
    joyas poco vistas, internacionales y con sus actores. Los mejores se
    completan con disponibilidad por región y detalle (duración exacta,
-   temporadas, estado, saga, keywords). Sin token o ante un error: el
-   catálogo local de movieService.
+   temporadas, estado, saga, keywords). Si con eso menos de MIN_RESULTS
+   cumplen todo, una segunda ronda más amplia (más páginas, imprescindibles
+   "cualquiera", +NEAR_MINUTES) trae material para las alternativas.
+   Sin token o ante un error: el catálogo local de movieService.
    ========================================================= */
 
-import { SERIES_STATUS } from "../data/duo.js";
+import { FORMAT_GENRES, SERIES_STATUS } from "../data/duo.js";
 import { PLATFORMS } from "../data/platforms.js";
 import { GENRES } from "../data/tmdb.js";
 import { fromTmdb, getMovies, toISODate } from "./movieService.js";
-import { rankTitles } from "./recommender.js";
+import { MIN_RESULTS, NEAR_MINUTES, rankTitles } from "./recommender.js";
 import {
   discoverMovies,
   discoverTv,
@@ -25,7 +27,7 @@ import {
   isTmdbEnabled,
 } from "./tmdbClient.js";
 
-const ENRICH = 24; // candidatos que consultan disponibilidad y detalle
+const ENRICH = 40; // candidatos que consultan disponibilidad y detalle (cubre el tablero de MIN_RESULTS)
 const MAX_CAST_SOURCES = 4;
 const MAX_PAIR_SOURCES = 4;
 const MAX_SAGAS = 3;
@@ -47,7 +49,9 @@ function discoverParams(profile) {
     with_watch_monetization_types: providerIds.length ? "flatrate|free|ads" : undefined,
     // "," = todos los imprescindibles; "|" = cualquiera de los que les gustan.
     with_genres: must.length ? must.join(",") : genreIds(profile.liked, type).join("|") || undefined,
-    without_genres: genreIds(profile.rejected, type).join("|") || undefined,
+    // Rechazados + animación/documental si nadie los eligió.
+    without_genres:
+      genreIds([...profile.rejected, ...FORMAT_GENRES.filter((key) => !profile.liked.includes(key))], type).join("|") || undefined,
     "with_runtime.gte": cap ? 1 : undefined, // descarta duraciones desconocidas (0)
     "with_runtime.lte": cap,
     with_status: type === "tv" ? SERIES_STATUS[profile.seriesStatus]?.code : undefined,
@@ -56,16 +60,41 @@ function discoverParams(profile) {
 }
 
 /**
- * Gustos distintos y sin imprescindibles: combinaciones "un género de cada persona"
- * (with_genres con ",", ambos a la vez), para que haya títulos que encajen con los dos.
+ * Combinaciones de géneros (with_genres con ",", todos a la vez) para que haya títulos que encajen con los dos:
+ * con imprescindibles, imprescindibles + un gusto de cada persona; con gustos distintos, un género de cada una.
  */
-function pairSources(profile) {
-  if (profile.must.length || profile.shared.length) return [];
-  const [a = [], b = []] = profile.people.map((person) => genreIds(person.genres.filter((key) => !profile.rejected.includes(key)), profile.type));
-  return a
-    .flatMap((first) => b.filter((second) => second !== first).map((second) => `${first},${second}`))
+function pairSources(profile, pages = [1]) {
+  const must = genreIds(profile.must, profile.type);
+  const [a = [], b = []] = profile.people.map((person) =>
+    genreIds(person.genres.filter((key) => !profile.rejected.includes(key) && !profile.must.includes(key)), profile.type).filter(
+      (id) => !must.includes(id)
+    )
+  );
+  const combos = must.length
+    ? [...a.slice(0, 2), ...b.slice(0, 2)].map((id) => [...must, id].join(","))
+    : profile.shared.length
+      ? []
+      : a.flatMap((first) => b.filter((second) => second !== first).map((second) => `${first},${second}`));
+  return [...new Set(combos)]
     .slice(0, MAX_PAIR_SOURCES)
-    .map((genres) => ({ origin: "pair", pages: [1], params: { sort_by: "popularity.desc", "vote_count.gte": 50, with_genres: genres } }));
+    .map((genres) => ({ origin: "pair", pages, params: { sort_by: "popularity.desc", "vote_count.gte": 50, with_genres: genres } }));
+}
+
+/** Segunda ronda: más páginas y lo mejor valorado, con los filtros ampliados de wideParams. */
+function wideSources(profile) {
+  return [
+    { origin: "popular", pages: [4, 5, 6], params: { sort_by: "popularity.desc", "vote_count.gte": 50 } },
+    { origin: "top", pages: [1, 2], params: { sort_by: "vote_average.desc", "vote_count.gte": 500 } },
+    { origin: "gem", pages: [2], params: { sort_by: "vote_average.desc", "vote_count.gte": 150, "vote_count.lte": 2500 } },
+    ...pairSources(profile, [2]),
+  ];
+}
+
+/** Imprescindibles "cualquiera" en vez de "todos" y NEAR_MINUTES más: material para alternativas. */
+function wideParams(profile, base) {
+  const must = genreIds(profile.must, profile.type);
+  const cap = base["with_runtime.lte"];
+  return { ...base, with_genres: must.length > 1 ? must.join("|") : base.with_genres, "with_runtime.lte": cap && cap + NEAR_MINUTES };
 }
 
 /** Fuentes de candidatos: variedad de popularidad, origen e intérpretes. */
@@ -141,27 +170,37 @@ async function sagaParts(enriched, all, region) {
   return [...parts.filter((title) => known.has(title.id)), ...(await enrich(fresh, region))];
 }
 
-async function discoverForDuo(profile, saga) {
+async function fetchSources(list, base, profile, required = false) {
   const discover = profile.type === "tv" ? discoverTv : discoverMovies;
-  const base = discoverParams(profile);
   const batches = await Promise.all(
-    sources(profile).flatMap(({ origin, pages, params, castMatch }) =>
+    list.flatMap(({ origin, pages, params, castMatch }) =>
       pages.map((page) =>
         discover({ ...base, ...params }, page).then(
           ({ results }) =>
             results.map((raw) => ({ ...fromTmdb(raw, profile.type), origin, runtimeCap: base["with_runtime.lte"], castMatch })),
           // Solo la primera página de populares es obligatoria; las demás pueden fallar sin romper Duo.
           (error) => {
-            if (origin === "popular" && page === 1) throw error;
+            if (required && origin === "popular" && page === 1) throw error;
             return [];
           }
         )
       )
     )
   );
-  const titles = uniqueById(batches.flat());
-  // Se enriquecen los que mejor encajan (sin historial ni plataformas: aún no se conocen).
-  const { items } = rankTitles(titles, { ...profile, providers: [] }, {});
+  return batches.flat();
+}
+
+async function discoverForDuo(profile, saga) {
+  const base = discoverParams(profile);
+  // Sin historial ni plataformas: aún no se conocen.
+  const rank = (list) => rankTitles(list, { ...profile, providers: [] }, {});
+  let titles = uniqueById(await fetchSources(sources(profile), base, profile, true));
+  if (rank(titles).strict < MIN_RESULTS) {
+    const wide = await fetchSources(wideSources(profile), wideParams(profile, base), profile);
+    titles = uniqueById([...wide, ...titles]); // con ids repetidos gana la primera ronda (su tope de duración es el pedido)
+  }
+  // Se enriquecen los que mejor encajan: primero los que cumplen todo.
+  const { items } = rank(titles);
   const top = new Set(items.slice(0, ENRICH).map(({ title }) => title.id));
   const enriched = await enrich(titles.filter((title) => top.has(title.id)), profile.region);
   const rest = titles.filter((title) => !top.has(title.id));

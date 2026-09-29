@@ -6,6 +6,7 @@ const REASONS = {
   history: (n) => `${n} ya los vieron o descartaron`,
   unreleased: (n) => `${n} aún no se estrenan`,
   rejected: (n) => `${n} tienen un género que rechazaron`,
+  format: (n) => `${n} son animación o documental y ninguno los eligió`,
   must: (n) => `${n} no tienen los géneros imprescindibles`,
   taste: (n) => `${n} no encajan con los gustos de ninguno`,
   oneSided: (n) => `${n} solo encajan con una persona`,

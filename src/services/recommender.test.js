@@ -14,6 +14,9 @@ import {
   fillBoard,
   findConflicts,
   findSimilar,
+  isStrict,
+  MIN_RESULTS,
+  NEAR_MINUTES,
   removeFromMarathon,
   rankTitles,
   replaceInMarathon,
@@ -42,21 +45,67 @@ test("mismo género: todos los resultados lo tienen y lo explican", () => {
   assert.equal(items[0].reasons[0], "Coincide con el género elegido por ambos: animación.");
 });
 
-test("géneros diferentes: solo títulos que encajan con los dos; ampliar es voluntario", () => {
+test("géneros diferentes: primero los que encajan con los dos; luego alternativas marcadas", () => {
   const both = rank(session({ genres: ["action"] }, { genres: ["science-fiction"] }));
-  assert.ok(both.items.length > 0);
-  assert.ok(both.items.every(({ title }) => title.genreKeys.includes("action") && title.genreKeys.includes("science-fiction")));
+  const strict = both.items.filter(isStrict);
+  assert.ok(strict.length > 0 && strict.length === both.strict);
+  assert.ok(strict.every(({ title }) => title.genreKeys.includes("action") && title.genreKeys.includes("science-fiction")));
+  assert.deepEqual(both.items.slice(0, strict.length), strict, "los que cumplen todo van primero");
   assert.equal(both.items[0].reasons[0], "Encaja con los dos: acción para Ana y ciencia ficción para Luis.");
 
   const apart = session({ genres: ["horror"] }, { genres: ["comedy"] });
-  const strict = rank(apart);
-  assert.equal(strict.items.length, 0, "ningún título del catálogo es terror y comedia a la vez");
-  assert.ok(strict.rejectedBy.oneSided > 0, "el motivo queda registrado para el mensaje");
+  const auto = rank(apart);
+  assert.equal(auto.strict, 0, "ningún título del catálogo es terror y comedia a la vez");
+  assert.ok(auto.rejectedBy.oneSided > 0, "el motivo queda registrado para el mensaje");
+  assert.ok(auto.items.length > 0, "se completa con alternativas en vez de quedar vacío");
+  assert.ok(auto.items.every((item) => item.relaxed.includes("oneSided")));
+  assert.match(auto.items[0].reasons[0], /^Es una alternativa: encaja con los gustos de (Ana|Luis), no con los de (Ana|Luis)\.$/);
 
   const widened = rank({ ...apart, relax: { oneSided: true } });
-  assert.ok(widened.items.length > 0);
-  assert.ok(widened.items.every((item) => item.relaxed.includes("oneSided")));
-  assert.match(widened.items[0].reasons[0], /^Es una alternativa: encaja con los gustos de (Ana|Luis), no con los de (Ana|Luis)\.$/);
+  const fits = widened.items.slice(0, widened.strict);
+  assert.ok(fits.length > 0 && fits.every((item) => item.relaxed.join() === "oneSided"), "ampliado a mano: cuentan como resultados y van primero");
+});
+
+test("animación y documental solo salen si alguien los elige; el tono no los cuela", () => {
+  const { items } = rank(session({ genres: ["comedy", "adventure"], tone: ["fun"] }, { genres: ["family"], tone: ["relaxed"] }));
+  assert.ok(items.length > 0);
+  assert.ok(items.every(({ title }) => !title.genreKeys.includes("animation") && !title.genreKeys.includes("documentary")));
+  const chosen = rank(session({ genres: ["animation"] }, { genres: ["comedy"] }));
+  assert.ok(chosen.items.some(({ title }) => title.genreKeys.includes("animation")));
+});
+
+test("muchos filtros: nunca vacío, mínimo MIN_RESULTS, alternativas con motivo y después", () => {
+  const genres = [["drama"], ["drama", "crime"], ["drama", "thriller"], ["crime", "thriller"], ["comedy"], ["romance", "drama"]];
+  const pool = Array.from({ length: 90 }, (_, index) => ({
+    id: `t${index}`,
+    type: "movie",
+    title: `T${index}`,
+    releaseDate: "2015-01-01",
+    genreKeys: genres[index % genres.length],
+    runtime: 90 + (index % 5) * 15, // 90…150
+    rating: 6 + (index % 4) * 0.5,
+    votes: 1000,
+  }));
+  const picky = session(
+    { mustGenres: ["drama", "crime", "thriller"], maxRuntime: 100 },
+    { genres: ["romance"], rejectedGenres: ["comedy"], maxRuntime: 100 }
+  );
+  const { items, strict } = rank(picky, {}, pool);
+  assert.equal(strict, 0, "ninguno cumple los tres imprescindibles");
+  assert.ok(items.length >= MIN_RESULTS, `mínimo ${MIN_RESULTS}, hay ${items.length}`);
+  assert.ok(items.every(({ title }) => !title.genreKeys.includes("comedy")), "un rechazado nunca se cuela");
+  assert.ok(items.every(({ title }) => ["drama", "crime", "thriller"].some((key) => title.genreKeys.includes(key))), "al menos un imprescindible");
+  assert.ok(items.every(({ title }) => title.runtime <= 100 + NEAR_MINUTES), "la duración no se dispara");
+  assert.ok(items.every((item) => item.reasons[0].startsWith("Es una alternativa")));
+  const misses = items.map((item) => item.relaxed.length);
+  assert.deepEqual(misses, [...misses].sort((a, b) => a - b), "las que fallan menos filtros, primero");
+});
+
+test("foco de género: una comedia pura gana a una aventura-comedia-familiar-fantasía", () => {
+  const profile = buildProfile(session({ genres: ["comedy"] }, { genres: ["comedy"] }));
+  const pure = scoreTitle({ id: "a", type: "movie", rating: 7, genreKeys: ["comedy"] }, profile);
+  const stuffed = scoreTitle({ id: "b", type: "movie", rating: 7, genreKeys: ["adventure", "comedy", "family", "fantasy"] }, profile);
+  assert.ok(pure.score > stuffed.score);
 });
 
 test("géneros incompatibles: conflicto explicado y cero resultados", () => {
@@ -110,8 +159,10 @@ test("modo serie: duración de episodio, temporadas y estado", () => {
     { mode: "tv" }
   );
   const { items, rejectedBy } = rank(s, {}, [...SERIES, ...catalog]);
-  assert.deepEqual(ids(items).sort(), ["tmdb-tv-1", "tmdb-tv-5"]);
+  assert.deepEqual(ids(items.filter(isStrict)).sort(), ["tmdb-tv-1", "tmdb-tv-5"]);
   assert.deepEqual(rejectedBy, { type: catalog.length, seasons: 1, status: 1, runtime: 1, unreleased: 1 });
+  assert.deepEqual(ids(items.filter((item) => !isStrict(item))).sort(), ["tmdb-tv-2", "tmdb-tv-3", "tmdb-tv-4"], "las casi válidas completan, marcadas");
+  assert.ok(items.find(({ title }) => title.id === "tmdb-tv-2").reasons.includes("Es una alternativa: tiene 6 temporadas, más de las que pidieron."));
   const first = items.find(({ title }) => title.id === "tmdb-tv-1");
   assert.ok(first.reasons.includes("Sus episodios duran unos 45 min, dentro del límite."));
   assert.ok(first.reasons.includes("Tiene 2 temporadas."));
@@ -119,14 +170,17 @@ test("modo serie: duración de episodio, temporadas y estado", () => {
   assert.equal(findConflicts(buildProfile({ ...s, people: [s.people[0], person({ seriesStatus: "ongoing" })] }))[0].blocking, true);
 });
 
-test("duración máxima muy corta: mensaje en vez de relleno; ampliar marca la alternativa", () => {
-  const short = session({ maxRuntime: 60 }, { maxRuntime: 100 });
+test("duración máxima muy corta: explicada; ampliar marca la alternativa", () => {
+  const short = session({ maxRuntime: 60, genres: ["animation"] }, { maxRuntime: 100 }); // las cortas del catálogo son animadas
   const strict = rank(short);
-  assert.equal(strict.items.length, 0);
+  assert.equal(strict.strict, 0);
   assert.ok(strict.rejectedBy.runtime > 0);
+  assert.ok(strict.items.every(({ title }) => title.runtime <= 60 + NEAR_MINUTES), "solo las que se pasan poco");
 
   const widened = rank({ ...short, relax: { runtime: 30 } });
-  assert.ok(widened.items.length > 0 && widened.items.every(({ title }) => title.runtime <= 90));
+  const fits = widened.items.slice(0, widened.strict);
+  assert.ok(fits.length > 0 && fits.every(({ title }) => title.runtime <= 90), "ampliado a mano: hasta 60 + 30");
+  assert.ok(widened.items.every(({ title }) => title.runtime <= 90 + NEAR_MINUTES), "las que completan se pasan poco");
   assert.equal(widened.items[0].reasons[0], "Es una alternativa porque ampliaste el rango de duración.");
 });
 
@@ -172,6 +226,10 @@ test("dado pulsado muchas veces: siempre válido, nunca repite lo visible ni lo 
   const fresh = rollDice(items, { shown: board, recent, random });
   assert.equal(fresh.repeatsRecent, false, "evita lo reciente mientras haya otra opción");
   assert.equal(rollDice(items.slice(0, 1), { shown: ids(items.slice(0, 1)) }), null, "sin candidatos: null");
+
+  const mix = [{ title: { id: "ok" }, score: 10, relaxed: [] }, { title: { id: "alt" }, score: 95, relaxed: ["runtime"] }];
+  for (let roll = 0; roll < 20; roll += 1) assert.equal(rollDice(mix, { random }).item.title.id, "ok", "cumplir todo gana a puntuar alto");
+  assert.equal(rollDice(mix, { shown: ["ok"] }).alternative, true, "sin estrictos: alternativa, y lo dice");
 });
 
 test("rechazos, 'no me interesa', recuperar y reiniciar historial", () => {

@@ -59,13 +59,16 @@ export const STEPS = [
   { key: "final", label: "Elección" },
 ];
 
+/** Géneros que son un formato: solo salen si alguien los elige (una comedia animada no es "una comedia" para quien no pidió animación). */
+export const FORMAT_GENRES = ["animation", "documentary"];
+
 // Estado de ánimo: coincide por género o por palabras en etiquetas/keywords del título.
 export const TONES = [
-  { key: "fun", label: "divertido", icon: "😂", genres: ["comedy", "animation", "family"], words: ["comedia", "humor", "parody"] },
+  { key: "fun", label: "divertido", icon: "😂", genres: ["comedy", "family"], words: ["comedia", "humor", "parody"] },
   { key: "intense", label: "intenso", icon: "🔥", genres: ["thriller", "horror", "crime"], words: ["revenge", "survival", "suspenso"] },
   { key: "romantic", label: "romántico", icon: "💘", genres: ["romance"], words: ["romance", "love", "amor"] },
   { key: "exciting", label: "emocionante", icon: "⚡", genres: ["action", "adventure", "science-fiction"], words: ["superhéroes", "superhero", "heist", "space", "espacio"] },
-  { key: "relaxed", label: "relajado", icon: "🛋️", genres: ["animation", "family", "documentary", "comedy"], words: ["friendship", "amistad", "nature"] },
+  { key: "relaxed", label: "relajado", icon: "🛋️", genres: ["family", "comedy"], words: ["friendship", "amistad", "nature"] },
 ];
 
 export const RUNTIME_OPTIONS = [

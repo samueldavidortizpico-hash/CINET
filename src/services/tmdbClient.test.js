@@ -5,7 +5,7 @@ import { DEFAULT_DUO_SESSION, DEFAULT_PERSON } from "../data/duo.js";
 import { getDuoCandidates } from "./duoService.js";
 import { addToHistory, EMPTY_HISTORY } from "./historyService.js";
 import { buildMarathon, buildProfile, rankTitles } from "./recommender.js";
-import { EMPTY_ADVANCED, getCollection, getMovieById, searchCatalog, toDiscoverParams } from "./movieService.js";
+import { EMPTY_ADVANCED, fromTmdb, getCollection, getHeroSlides, getMovieById, searchCatalog, toDiscoverParams } from "./movieService.js";
 import {
   checkTmdbConnection,
   configureTmdb,
@@ -38,6 +38,23 @@ const connect = (routes) => {
 };
 
 const page = (results, totalPages = 3, number = 1) => ({ page: number, results, total_pages: totalPages, total_results: results.length });
+
+test("Doomsday fijada en el carrusel pide su fondo y no se confunde con Thunderbolts", async () => {
+  const api = connect({
+    "/movie/1003596": () => ({ id: 1003596, title: "Avengers: Doomsday", backdrop_path: "/doomsday.jpg" }),
+    "/movie/986056": () => ({ id: 986056, title: "Thunderbolts*", backdrop_path: "/thunderbolts.jpg" }),
+  });
+  const [slide] = await getHeroSlides(1, ["avengers-doomsday"]);
+  assert.equal(slide.id, "avengers-doomsday");
+  assert.equal(slide.tmdbId, 1003596);
+  assert.match(slide.backdrop, /\/doomsday\.jpg$/);
+  assert.ok(api.calls.some((url) => url.pathname.endsWith("/movie/1003596")));
+  assert.ok(!api.calls.some((url) => url.pathname.endsWith("/movie/986056")));
+  assert.equal(fromTmdb({ id: 1003596, title: "Avengers: Doomsday" }).id, "avengers-doomsday");
+  const thunderbolts = fromTmdb({ id: 986056, title: "Thunderbolts*", poster_path: "/thunderbolts.jpg" });
+  assert.equal(thunderbolts.id, "tmdb-movie-986056");
+  assert.equal(thunderbolts.title, "Thunderbolts*");
+});
 
 test("tmdb: sin token → modo local visible y catálogo local", async () => {
   configureTmdb({ token: "" });
@@ -217,11 +234,15 @@ test("tmdb: Duo pide solo el tipo elegido, con los filtros obligatorios en el se
   assert.equal(source, "tmdb");
   assert.ok(!api.calls.some((url) => url.pathname.endsWith("/discover/tv")), "no mezcla series");
   const discover = api.calls.filter((url) => url.pathname.endsWith("/discover/movie"));
-  const origins = discover.map((url) => url.searchParams.get("sort_by") + (url.searchParams.get("with_original_language") ? "+intl" : ""));
+  // Primera ronda (tope pedido: 130 min); con menos de MIN_RESULTS válidos, segunda ronda con +30 min.
+  const first = discover.filter((url) => url.searchParams.get("with_runtime.lte") === "130");
+  const origins = first.map((url) => url.searchParams.get("sort_by") + (url.searchParams.get("with_original_language") ? "+intl" : ""));
   assert.deepEqual(origins.sort(), ["popularity.desc", "popularity.desc", "popularity.desc", "vote_average.desc", "vote_average.desc+intl"]);
-  const params = discover[0].searchParams;
+  const wide = discover.filter((url) => url.searchParams.get("with_runtime.lte") === "160");
+  assert.ok(wide.length > 0 && wide.length + first.length === discover.length, "segunda ronda más amplia");
+  const params = first[0].searchParams;
   assert.equal(params.get("with_genres"), "878");
-  assert.equal(params.get("without_genres"), "27", "rechazado: terror");
+  assert.equal(params.get("without_genres"), "16|27|99", "rechazado (terror) + animación y documental, que nadie eligió");
   assert.equal(params.get("with_runtime.lte"), "130", "el menor de los dos límites");
   assert.equal(params.get("with_watch_providers"), "119|9|10");
   assert.deepEqual(titles.map((t) => t.id).sort(), ["tmdb-movie-1", "tmdb-movie-2", "tmdb-movie-3"], "sin duplicados");
@@ -230,9 +251,11 @@ test("tmdb: Duo pide solo el tipo elegido, con los filtros obligatorios en el se
   assert.deepEqual(one.collection, { id: 77, name: "Saga X" });
 
   const history = addToHistory(EMPTY_HISTORY, "rejected", ["tmdb-movie-3"]);
-  const { items, rejectedBy } = rankTitles(titles, profile, { history });
-  assert.deepEqual(items.map((item) => item.title.id), ["tmdb-movie-1"]);
+  const { items, strict, rejectedBy } = rankTitles(titles, profile, { history });
+  assert.deepEqual(items.map((item) => item.title.id), ["tmdb-movie-1", "tmdb-movie-2"]);
+  assert.equal(strict, 1);
   assert.deepEqual(rejectedBy, { platform: 1, history: 1 }, "fuera la que no está en Prime y la rechazada");
+  assert.equal(items[1].reasons[0], "Es una alternativa: puede no estar en sus plataformas.", "la de Netflix solo completa, marcada");
   assert.deepEqual(items[0].reasons, [
     "Coincide con ciencia ficción, que eligió Persona 1.",
     "Está dentro del límite de duración: 1 h 58 min de 2 h 10 min como máximo.",
