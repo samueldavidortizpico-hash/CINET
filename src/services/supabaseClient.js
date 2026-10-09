@@ -6,12 +6,13 @@
    ========================================================= */
 
 import { createClient } from "@supabase/supabase-js";
+import { clientEnv } from "../utils/env.js";
 
-const url = import.meta.env.VITE_SUPABASE_URL;
-const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const url = clientEnv.SUPABASE_URL;
+const key = clientEnv.SUPABASE_KEY;
 
-// Sin variables la app sigue funcionando; solo las cuentas quedan desactivadas.
-if (!url || !key) {
+// Sin variables la app sigue funcionando; solo las cuentas quedan desactivadas (en Node, pruebas: sin aviso).
+if ((!url || !key) && typeof window !== "undefined") {
   console.warn("Supabase desactivado: faltan VITE_SUPABASE_URL o VITE_SUPABASE_PUBLISHABLE_KEY en .env.local");
 }
 

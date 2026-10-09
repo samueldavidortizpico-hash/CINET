@@ -5,7 +5,7 @@
    Con TMDB: /discover del tipo elegido (nunca se mezclan) con los filtros
    obligatorios ya aplicados en el servidor (géneros, rechazados, duración,
    estado, plataformas), de varias fuentes para tener variedad: populares,
-   joyas poco vistas, internacionales y con sus actores. Los mejores se
+   estrenos del último año, joyas poco vistas, internacionales y con sus actores. Los mejores se
    completan con disponibilidad por región y detalle (duración exacta,
    temporadas, estado, saga, keywords). Si con eso menos de MIN_RESULTS
    cumplen todo, una segunda ronda más amplia (más páginas, imprescindibles
@@ -13,7 +13,7 @@
    Sin token o ante un error: el catálogo local de movieService.
    ========================================================= */
 
-import { FORMAT_GENRES, SERIES_STATUS } from "../data/duo.js";
+import { FORMAT_GENRES, SERIES_STATUS, VOTE_POINTS } from "../data/duo.js";
 import { PLATFORMS } from "../data/platforms.js";
 import { GENRES } from "../data/tmdb.js";
 import { fromTmdb, getMovies, toISODate } from "./movieService.js";
@@ -60,22 +60,27 @@ function discoverParams(profile) {
 }
 
 /**
- * Combinaciones de géneros (with_genres con ",", todos a la vez) para que haya títulos que encajen con los dos:
- * con imprescindibles, imprescindibles + un gusto de cada persona; con gustos distintos, un género de cada una.
+ * Combinaciones de géneros (with_genres con ",", todos a la vez) para títulos que encajen con varias personas:
+ * con imprescindibles, imprescindibles + un gusto de cada persona; con gustos distintos, un género de cada
+ * pareja de personas. Primero las combinaciones con géneros que gustan a más gente del grupo.
  */
 function pairSources(profile, pages = [1]) {
   const must = genreIds(profile.must, profile.type);
-  const [a = [], b = []] = profile.people.map((person) =>
+  const lists = profile.people.map((person) =>
     genreIds(person.genres.filter((key) => !profile.rejected.includes(key) && !profile.must.includes(key)), profile.type).filter(
       (id) => !must.includes(id)
     )
   );
+  const fans = (id) => lists.filter((list) => list.includes(id)).length;
   const combos = must.length
-    ? [...a.slice(0, 2), ...b.slice(0, 2)].map((id) => [...must, id].join(","))
+    ? lists.flatMap((list) => list.slice(0, 2)).map((id) => [...must, id])
     : profile.shared.length
       ? []
-      : a.flatMap((first) => b.filter((second) => second !== first).map((second) => `${first},${second}`));
-  return [...new Set(combos)]
+      : lists.flatMap((first, i) =>
+          lists.slice(i + 1).flatMap((second) => first.slice(0, 2).flatMap((a) => second.slice(0, 2).filter((b) => b !== a).map((b) => [a, b])))
+        );
+  const score = (ids) => ids.reduce((total, id) => total + fans(id), 0);
+  return [...new Map(combos.sort((a, b) => score(b) - score(a)).map((ids) => [ids.join(","), ids])).keys()]
     .slice(0, MAX_PAIR_SOURCES)
     .map((genres) => ({ origin: "pair", pages, params: { sort_by: "popularity.desc", "vote_count.gte": 50, with_genres: genres } }));
 }
@@ -97,8 +102,12 @@ function wideParams(profile, base) {
   return { ...base, with_genres: must.length > 1 ? must.join("|") : base.with_genres, "with_runtime.lte": cap && cap + NEAR_MINUTES };
 }
 
-/** Fuentes de candidatos: variedad de popularidad, origen e intérpretes. */
+/** Hace un año (AAAA-MM-DD): desde ahí cuenta como estreno. */
+const yearAgo = () => toISODate(new Date(Date.now() - 365 * 86_400_000));
+
+/** Fuentes de candidatos: variedad de popularidad, estrenos, origen e intérpretes. */
 function sources(profile) {
+  const date = profile.type === "tv" ? "first_air_date" : "primary_release_date";
   const cast =
     profile.type === "movie" // TMDB solo filtra por reparto en películas
       ? profile.actors.slice(0, MAX_CAST_SOURCES).map((actor) => ({
@@ -110,6 +119,8 @@ function sources(profile) {
       : [];
   return [
     { origin: "popular", pages: [1, 2, 3], params: { sort_by: "popularity.desc", "vote_count.gte": 50 } },
+    // Estrenos del último año: el catálogo se renueva solo con lo que TMDB publica.
+    { origin: "fresh", pages: [1, 2], params: { sort_by: "popularity.desc", "vote_count.gte": 20, [`${date}.gte`]: yearAgo() } },
     { origin: "gem", pages: [1], params: { sort_by: "vote_average.desc", "vote_count.gte": 150, "vote_count.lte": 2500 } },
     {
       origin: "international",
@@ -222,15 +233,32 @@ export async function getDuoCandidates(profile, { saga = false } = {}) {
 
 /* ---------- Votación ---------- */
 
-/** Voto de una persona (0 o 1); repetir el mismo voto lo quita. No muta. */
+/** Voto de una persona (su índice); repetir el mismo voto lo quita. No muta. */
 export function setVote(votes, titleId, person, vote) {
   const pair = [...(votes?.[titleId] ?? [])];
   pair[person] = pair[person] === vote ? null : vote;
   return { ...votes, [titleId]: pair };
 }
 
-/** Ids que ambos votaron "Sí". */
-export const bothLiked = (votes = {}) =>
+/** Ids que votaron "Sí" todas las personas (size = personas de la sesión). */
+export const groupLiked = (votes = {}, size = 2) =>
   Object.entries(votes)
-    .filter(([, pair]) => pair?.[0] === "yes" && pair?.[1] === "yes")
+    .filter(([, list]) => Array.from({ length: size }, (_, person) => list?.[person]).every((vote) => vote === "yes"))
     .map(([id]) => id);
+
+/** ¿Todas las personas votaron "No"? (entonces sale del historial de recomendables). */
+export const groupRejected = (list = [], size = 2) => Array.from({ length: size }, (_, person) => list[person]).every((vote) => vote === "no");
+
+/**
+ * Recuento de una ronda de votación: primero los "match" (todos dijeron sí), luego por puntos
+ * (sí 2, quizá 1, no 0); empate = el orden de recomendación. → [{ item, list, points, match, order }]
+ */
+export function tallyVotes(items, votes = {}, size = 2) {
+  return items
+    .map((item, order) => {
+      const list = Array.from({ length: size }, (_, person) => votes[item.title.id]?.[person] ?? null);
+      const points = list.reduce((total, vote) => total + (VOTE_POINTS[vote] ?? 0), 0);
+      return { item, list, points, match: list.every((vote) => vote === "yes"), order };
+    })
+    .sort((a, b) => Number(b.match) - Number(a.match) || b.points - a.points || a.order - b.order);
+}

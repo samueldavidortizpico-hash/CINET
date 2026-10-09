@@ -2,7 +2,7 @@ import { useState } from "react";
 import Button from "../common/Button.jsx";
 import PosterImage from "../common/PosterImage.jsx";
 import { ChoiceChips, Chip, Question } from "./DuoFields.jsx";
-import { EPISODE_OPTIONS, personName, RUNTIME_OPTIONS, SEASON_OPTIONS, SERIES_STATUS_OPTIONS, TONES } from "../../data/duo.js";
+import { EPISODE_OPTIONS, personName, RUNTIME_OPTIONS, SEASON_OPTIONS, seatColor, SERIES_STATUS_OPTIONS, TONES } from "../../data/duo.js";
 import { GENRES } from "../../data/tmdb.js";
 import { useAsync } from "../../hooks/useAsync.js";
 import { useDebounced } from "../../hooks/useTitleSearch.js";
@@ -10,6 +10,7 @@ import { listEs } from "../../services/recommender.js";
 import { isTmdbEnabled, searchPeople } from "../../services/tmdbClient.js";
 
 const MAX_ACTORS = 5;
+const PLACEHOLDERS = ["Ana", "Luis", "Sara", "Juan", "Valentina", "Tomás", "Lucía", "Nico"];
 const GENRE_INTENTS = [{ value: "like", label: "♥ Me gusta" }, { value: "must", label: "★ Imprescindible" }, { value: "reject", label: "✕ Evitar" }];
 const STATE_TEXT = { none: "sin marcar", like: "me gusta", must: "imprescindible", reject: "no quiero" };
 const STATE_MARK = { none: "+", like: "♥", must: "★", reject: "✕" };
@@ -86,8 +87,8 @@ function ActorPicker({ actors, onChange }) {
   );
 }
 
-/** Pasos 2 y 3: las preferencias de cada persona. */
-export default function DuoPersonStep({ index, person, type, nextName, onChange, onBack, onNext }) {
+/** Un paso por persona: sus preferencias, con el color de su butaca. */
+export default function DuoPersonStep({ index, size, person, type, nextName, onChange, onBack, onNext }) {
   const [genreIntent, setGenreIntent] = useState("like");
   const name = personName(person, index);
   const set = (patch) => onChange({ ...person, ...patch });
@@ -108,12 +109,22 @@ export default function DuoPersonStep({ index, person, type, nextName, onChange,
   };
 
   return (
-    <form className={`duo-step duo-person-form duo-person-${index}`} aria-labelledby={`duo-person-${index}-title`} onSubmit={submit}>
-      <p className="duo-overline">UN ESPACIO PARA TU UNIVERSO</p>
+    <form className="duo-step duo-person-form" style={{ "--person-accent": seatColor(index) }} aria-labelledby={`duo-person-${index}-title`} onSubmit={submit}>
+      <p className="duo-overline">{size > 1 ? `BUTACA ${index + 1} DE ${size}` : "UN ESPACIO PARA TU UNIVERSO"}</p>
       <h2 id={`duo-person-${index}-title`}>
-        Turno de <span className="duo-accent">{name}</span>
+        {size > 1 ? (
+          <>
+            Turno de <span className="duo-accent">{name}</span>
+          </>
+        ) : (
+          "¿Qué te apetece hoy?"
+        )}
       </h2>
-      <p className="duo-lead">Responde solo por ti; al final buscamos lo que encaja con los dos.</p>
+      <p className="duo-lead">
+        {size > 1
+          ? `Responde solo por ti; al final buscamos lo que encaja con ${size === 2 ? "los dos" : "todo el grupo"}.`
+          : "Cuéntanos qué te gusta y qué prefieres evitar. Lo demás corre por nuestra cuenta."}
+      </p>
 
       <label className="duo-field duo-field-inline">
         <span>Nombre</span>
@@ -121,7 +132,7 @@ export default function DuoPersonStep({ index, person, type, nextName, onChange,
           type="text"
           maxLength={20}
           autoComplete="off"
-          placeholder={index === 0 ? "Ej. Ana" : "Ej. Luis"}
+          placeholder={`Ej. ${PLACEHOLDERS[index % PLACEHOLDERS.length]}`}
           value={person.name}
           onChange={(event) => set({ name: event.target.value })}
         />
@@ -157,7 +168,7 @@ export default function DuoPersonStep({ index, person, type, nextName, onChange,
           })}
         </div>
         <p className="duo-fineprint" aria-live="polite">
-          {summary.length ? `${summary.join(" · ")}.` : "Sin géneros marcados: aceptaremos cualquiera que no rechace la otra persona."}
+          {summary.length ? `${summary.join(" · ")}.` : size > 1 ? "Sin géneros marcados: aceptaremos cualquiera que no rechace nadie del grupo." : "Sin géneros marcados: aceptaremos cualquiera."}
         </p>
         {hidden.length > 0 && <p className="duo-fineprint">En series, TMDB no usa {listEs(hidden)} como géneros.</p>}
       </Question>

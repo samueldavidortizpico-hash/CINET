@@ -67,6 +67,39 @@ export function recommendedStart(runtime = 120, endBy = 23 * 60) {
   return `${String(Math.floor(clamped / 60)).padStart(2, "0")}:${String(clamped % 60).padStart(2, "0")}`;
 }
 
+/** "5:15 PM" o "20:30" → "17:15" / "20:30" (24 h). null si no se entiende. */
+export function to24h(text) {
+  const match = /^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i.exec(String(text ?? "").trim());
+  if (!match) return null;
+  let hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  const period = match[3]?.toUpperCase();
+  if (period === "PM" && hours < 12) hours += 12;
+  if (period === "AM" && hours === 12) hours = 0;
+  if (hours > 23 || minutes > 59) return null;
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+}
+
+/** Fecha y hora que se envían al servidor (la zona va aparte). */
+export const toStartParts = (selection) => ({ dateISO: selection?.dateISO ?? null, time: to24h(selection?.time) });
+
+const capitalize = (text) => (text ? text[0].toUpperCase() + text.slice(1) : text);
+
+/**
+ * Inicio guardado (instante UTC) → cómo se ve en la zona del plan:
+ * { date: "Viernes, 17 de octubre", dateISO: "2026-10-17", time: "20:30" }.
+ */
+export function describeStart(startsAt, timeZone = "America/Bogota") {
+  if (!startsAt) return { date: "Fecha por definir", dateISO: null, time: "" };
+  const instant = new Date(startsAt);
+  const part = (options, locale = "es-CO") => new Intl.DateTimeFormat(locale, { timeZone, ...options }).format(instant);
+  return {
+    date: capitalize(part({ weekday: "long", day: "numeric", month: "long" })),
+    dateISO: part({ year: "numeric", month: "2-digit", day: "2-digit" }, "en-CA"),
+    time: part({ hour: "2-digit", minute: "2-digit", hourCycle: "h23" }),
+  };
+}
+
 /** Planes sin dueño (creados antes del login) los puede gestionar cualquiera. */
 export function canManagePlan(plan, user) {
   return !plan.ownerEmail || plan.ownerEmail === user?.email;

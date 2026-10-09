@@ -2,7 +2,8 @@ import Button from "../common/Button.jsx";
 import Icon from "../common/Icon.jsx";
 import PlatformLogo from "../movie-detail/PlatformLogo.jsx";
 import { ChoiceChips, Question } from "./DuoFields.jsx";
-import { MARATHON_SCOPES, MARATHON_STYLES, MODES, SESSION_LENGTHS } from "../../data/duo.js";
+import { SeatAvatar } from "./DuoSeats.jsx";
+import { GROUPS, groupOf, MARATHON_SCOPES, MARATHON_STYLES, MAX_PEOPLE, MODES, personName, SESSION_LENGTHS } from "../../data/duo.js";
 import { PLATFORMS } from "../../data/platforms.js";
 import { REGIONS, regionName } from "../../data/tmdb.js";
 import { useAsync } from "../../hooks/useAsync.js";
@@ -13,10 +14,65 @@ const MARATHON_TYPES = [
   { value: "movie", label: "Películas" },
   { value: "tv", label: "Episodios de series" },
 ];
+const MIN_GROUP = 3;
 
-/** Paso 1: modo (película, serie o maratón), ajustes de la maratón, región y plataformas. */
-export default function DuoModeStep({ session, onChange, onNext }) {
+/** ¿Quiénes ven? Solo, en pareja o en grupo (de 3 a MAX_PEOPLE, con − y +). */
+function GroupPicker({ people, onGroupSize }) {
+  const size = people.length;
+  const current = groupOf(size);
+  return (
+    <Question title="¿Quiénes ven hoy?" hint="Cada persona responde sus gustos en su turno. Pueden cambiarlo cuando quieran.">
+      <div className="duo-groups">
+        {GROUPS.map((group) => (
+          <label key={group.key} className={`duo-mode-card duo-group-card duo-group-${group.key}`}>
+            <input
+              type="radio"
+              name="duo-group"
+              checked={current === group.key}
+              onChange={() => onGroupSize(group.key === "group" ? Math.max(MIN_GROUP, size > 2 ? size : group.count) : group.count)}
+            />
+            <span className="duo-group-seats" aria-hidden="true">
+              {Array.from({ length: group.count }, (_, index) => (
+                <span key={index} style={{ "--n": index }} />
+              ))}
+            </span>
+            <span className="duo-mode-selected" aria-hidden="true"><Icon name="check" /></span>
+            <strong>{group.label}</strong>
+            <small>{group.text}</small>
+          </label>
+        ))}
+      </div>
+
+      {current === "group" && (
+        <div className="duo-stepper" role="group" aria-label="Personas en el grupo">
+          <button type="button" aria-label="Una persona menos" disabled={size <= MIN_GROUP} onClick={() => onGroupSize(size - 1)}>
+            −
+          </button>
+          <output aria-live="polite">
+            <strong>{size}</strong> personas
+          </output>
+          <button type="button" aria-label="Una persona más" disabled={size >= MAX_PEOPLE} onClick={() => onGroupSize(size + 1)}>
+            +
+          </button>
+        </div>
+      )}
+
+      <ul className="duo-seat-row" aria-label="Butacas de la sesión">
+        {people.map((person, index) => (
+          <li key={index} style={{ "--n": index }}>
+            <SeatAvatar index={index} name={personName(person, index)} />
+            <span>{personName(person, index)}</span>
+          </li>
+        ))}
+      </ul>
+    </Question>
+  );
+}
+
+/** Paso 1: quiénes ven, modo (película, serie o maratón), ajustes de la maratón, región y plataformas. */
+export default function DuoModeStep({ session, onChange, onGroupSize, onNext }) {
   const { marathon } = session;
+  const solo = session.people.length === 1;
   const setMarathon = (patch) => onChange({ marathon: { ...marathon, ...patch } });
   // Con TMDB se avisa qué plataformas no figuran en la región elegida.
   const { data: available } = useAsync(isTmdbEnabled() ? `providers-${session.region}` : null, () =>
@@ -31,11 +87,13 @@ export default function DuoModeStep({ session, onChange, onNext }) {
   return (
     <section className="duo-step" aria-labelledby="duo-mode-title">
       <p className="duo-overline">PRIMERO, EL PLAN</p>
-      <h2 id="duo-mode-title">¿Cómo se ve su noche ideal?</h2>
-      <p className="duo-lead">Elijan un formato. Después llega el turno de los gustos de cada uno.</p>
+      <h2 id="duo-mode-title">{solo ? "¿Cómo se ve tu noche ideal?" : "¿Cómo se ve su noche ideal?"}</h2>
+      <p className="duo-lead">Digan quiénes ven y el formato. Después llega el turno de los gustos de cada uno.</p>
+
+      <GroupPicker people={session.people} onGroupSize={onGroupSize} />
 
       <fieldset className="duo-fieldset">
-        <legend className="visually-hidden">Modo de Duo</legend>
+        <legend>¿Qué plan?</legend>
         <div className="duo-modes">
           {MODES.map((mode) => (
             <label key={mode.key} className={`duo-mode-card duo-format-${mode.key}`}>
@@ -150,7 +208,7 @@ export default function DuoModeStep({ session, onChange, onNext }) {
 
       <div className="duo-actions">
         <Button variant="primary" className="duo-cta" onClick={onNext}>
-          Ahora, nuestros gustos <Icon name="arrow" />
+          {solo ? "Ahora, tus gustos" : "Ahora, los gustos de cada uno"} <Icon name="arrow" />
         </Button>
       </div>
     </section>

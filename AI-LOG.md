@@ -60,3 +60,47 @@ CINET usando únicamente el logo que aportó el usuario.
 - Favicon: no se añadió; el logo es horizontal (2172×724) y no hay una versión cuadrada adecuada.
 - La caché persistente no tiene límite de entradas; si se llena la cuota, `storage.js` guarda en memoria.
 - La autenticación es local y demostrativa. CINET no conoce horarios reales ni tiene API con las cadenas de cine.
+
+## Intervención 2026-10-09 — Claude Code (Claude Opus 5.5)
+
+### Qué se pidió
+Llevar Duo de 2 personas a 1, 2 o más; mejorar mucho su UX, su aspecto y sus algoritmos; actualizar el
+catálogo; limpiar código muerto y bugs; optimizar; y un informe con nota de CINET e ideas de negocio.
+
+### Línea base (ejecutada antes de tocar nada)
+`npm run lint` sin errores · `npm test` 50/50 · `npm run build` correcto (bundle único de 777 kB, aviso > 500 kB).
+
+### Cambios realizados
+- **Grupos de 1 a 8** (`data/duo.js`, `useDuoSession`, `DuoPage`): selector "¿Quiénes ven?" (solo / pareja /
+  grupo con − y +), pasos dinámicos (`stepsFor`), un paso por persona, votos de N personas, textos en
+  singular/plural. Las sesiones guardadas de 2 personas siguen funcionando.
+- **Algoritmo** (`recommender.js`): perfil de grupo (todos, mayoría), quórum (todos hasta 2; 2/3 desde 3),
+  ajuste por persona y criterio `group` = ½ media + ½ mínimo (menor descontento), bonus de estreno,
+  aprendizaje con los votos de la sesión (`feedbackFrom`), reparto justo en `diversify` (nadie sin una
+  opción suya), conflictos con nombres. `duoService`: fuente de estrenos del último año, combinaciones de
+  géneros entre todas las parejas de personas, `groupLiked`/`groupRejected`/`tallyVotes`.
+- **UX/UI**: butacas de color por persona (`DuoSeats.jsx`), tarjeta principal tipo cartelera y tarjetas
+  compactas con acciones secundarias en menú, ronda de votación secreta "pásale el celular"
+  (`DuoVoteRound.jsx`, teclado ← ↓ →), elección final como entrada "ADMITE N" con compartir.
+  CSS de Duo consolidado en `styles/pages/duo.css` (se eliminó `duo-immersive.css`, que se pisaba con el anterior).
+- **Bugs corregidos**: logos de plataformas encogidos (SVG anchos forzados a 44×44); desbordamiento horizontal
+  de 160 px en móvil (etiquetas ocultas del progreso fuera de su lista con scroll); en la ronda, un rechazo
+  de todos reordenaba la baraja a mitad de votación (ahora la baraja se congela); butacas apiladas en el
+  recuento (selector demasiado amplio); póster diminuto de la tarjeta principal en móvil; 404 sin `h1`;
+  barra de scroll blanca del menú en móvil.
+- **Limpieza**: 74 archivos sin uso (`.vscode/images/` duplicados, `images/cinet-logo.png`,
+  `src/assets/cinet-header-bg.png`), `saveHeroPreferences` sin llamadas.
+- **Rendimiento**: carga diferida por ruta (`React.lazy` + `Suspense` en `Layout`): bundle inicial de
+  777 kB → 501 kB (gzip 231 → 147 kB); Duo va en su propio archivo (77 kB).
+
+### Pruebas ejecutadas y resultados
+- `npm run lint`: sin errores. `npm test`: 57/57 (7 nuevas: solo, grupo y quórum, votos que enseñan,
+  estrenos, sesión de N personas, recuento de la ronda, reparto justo). `npm run build`: correcto.
+- Navegador (Playwright, `vite` con TMDB): flujo solo completo; pareja con ronda de votación por teclado
+  (mismas 8 opciones para ambos, 2 match, elección final); grupo de 5 (quórum 3 de 4, la opción de quien
+  tenía gustos distintos sube al 2.º puesto); 375 px sin desbordamiento; rutas diferidas sin errores de consola.
+
+### Pendiente / limitaciones
+- El bundle inicial sigue en 501 kB (React, React Router y Supabase); siguiente paso: cargar Supabase bajo demanda.
+- La ronda es en un solo dispositivo; votar cada quien desde su celular requiere sala en tiempo real (Supabase Realtime).
+- Planes y RSVP siguen en `localStorage`: no se comparten entre dispositivos.

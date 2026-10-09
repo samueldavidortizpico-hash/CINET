@@ -122,7 +122,7 @@ html:not(.dark) .btn:not(.btn-primary) { color: var(--text); background: var(--s
 }
 html:not(.dark) .site-header { background: rgba(247, 246, 249, 0.9); border-color: var(--border); }
 .site-header > nav { min-width: 0; }
-.site-header .nav-list { justify-content: safe center; overflow-x: auto; padding: 5px 2px; scrollbar-width: thin; }
+.site-header .nav-list { justify-content: safe center; overflow-x: auto; padding: 5px 2px; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--text) 22%, transparent) transparent; }
 .site-header .nav-list a { min-height: 42px; padding: 9px 11px; color: var(--text-soft); font-weight: 500; font-size: 0.85rem; white-space: nowrap; }
 .site-header .nav-list a.active { color: var(--text); background: var(--surface-2); }
 .site-header .nav-list a::after { height: 2px; background: #ff3345; }

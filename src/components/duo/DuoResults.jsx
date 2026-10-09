@@ -5,18 +5,20 @@ import SkeletonRow from "../common/SkeletonRow.jsx";
 import TmdbStatus from "../common/TmdbStatus.jsx";
 import DuoEmptyState from "./DuoEmptyState.jsx";
 import DuoRecommendationCard from "./DuoRecommendationCard.jsx";
+import DuoVoteRound from "./DuoVoteRound.jsx";
 import { regionName } from "../../data/tmdb.js";
 import { useShare } from "../../hooks/useShare.js";
 import { useToast } from "../../hooks/useToast.js";
-import { bothLiked } from "../../services/duoService.js";
+import { groupLiked } from "../../services/duoService.js";
 import { addToHistory } from "../../services/historyService.js";
 import { fillBoard, findSimilar, genreName, listEs, MIN_RESULTS, rollDice } from "../../services/recommender.js";
 import { appUrl } from "../../utils/share.js";
 
 const BOARD_SIZE = MIN_RESULTS; // recomendación principal + 19 opciones
+const VISIBLE = 8; // opciones a la vista antes de "Ver más"
 const FEW = 4; // menos que esto: se explica y se ofrece ampliar
 
-/** Paso 6 (película o serie): recomendación principal, alternativas, dado y acciones por título. */
+/** Paso de resultados (película o serie): principal, ronda de votación, opciones, dado y acciones por título. */
 export default function DuoResults({
   session,
   profile,
@@ -37,9 +39,12 @@ export default function DuoResults({
   const share = useShare();
   const [note, setNote] = useState(null); // { id, text } del último cambio (dado o "parecida")
   const [announce, setAnnounce] = useState("");
+  const [showAll, setShowAll] = useState(false);
+  const [round, setRound] = useState(false);
   const items = useMemo(() => ranked?.items ?? [], [ranked]);
   const byId = useMemo(() => new Map(items.map((item) => [item.title.id, item])), [items]);
   const board = useMemo(() => fillBoard(session.board, items, BOARD_SIZE), [session.board, items]);
+  const size = names.length;
   const noun = profile.type === "tv" ? "series" : "películas";
 
   // Persiste lo que está en pantalla (una recarga muestra lo mismo) y lo marca como reciente,
@@ -66,7 +71,7 @@ export default function DuoResults({
     const pool = result.alternative
       ? `las ${result.poolSize} alternativas más cercanas a sus filtros (ya no quedaban títulos que los cumplan todos)`
       : `las ${result.poolSize} opciones que mejor cumplen sus filtros`;
-    const repeat = result.repeatsRecent ? " Ya no quedaban títulos que no les hubiéramos mostrado." : "";
+    const repeat = result.repeatsRecent ? " Ya no quedaban títulos que no hubieran visto aquí." : "";
     replaceAt(index, result.item, `🎲 Elegida al azar entre ${pool}; las que mejor encajan tienen más probabilidad.${repeat}`);
   };
 
@@ -97,12 +102,12 @@ export default function DuoResults({
 
   const relax = (patch) => onSession((current) => ({ relax: { ...current.relax, ...patch } }));
 
-  const liked = bothLiked(session.votes).filter((id) => byId.has(id));
+  const liked = groupLiked(session.votes, size).filter((id) => byId.has(id));
   const shareList = () =>
     share({
       title: "CINET Duo",
       text: [
-        `Lo que ${names.join(" y ")} quieren ver (CINET Duo):`,
+        size === 1 ? "Lo que quiero ver (CINET Duo):" : `Lo que ${listEs(names)} quieren ver (CINET Duo):`,
         ...(liked.length ? liked : board).slice(0, 5).map((id, index) => {
           const { title, year } = byId.get(id).title;
           return `${index + 1}. ${title}${year ? ` (${year})` : ""}`;
@@ -123,6 +128,7 @@ export default function DuoResults({
         votes={session.votes[id] ?? []}
         favorite={isFavorite(id)}
         note={note?.id === id ? note.text : null}
+        style={{ "--i": Math.min(index, 8) }}
         actions={{
           vote: (person, choice) => onVote(title, person, choice),
           choose: () => onChoose(id),
@@ -137,11 +143,15 @@ export default function DuoResults({
     );
   };
 
+  const options = board.slice(1);
+  const visible = showAll ? options : options.slice(0, VISIBLE);
+  const heading = size === 1 ? "Para ti" : size === 2 ? "Para ver juntos" : "Para el grupo";
+
   return (
     <section className="duo-results" aria-labelledby="duo-results-title">
       <div className="duo-results-head">
         <div>
-          <h2 id="duo-results-title">Para ver juntos</h2>
+          <h2 id="duo-results-title">{heading}</h2>
           <p>
             {ranked
               ? `${ranked.strict} ${noun} cumplen todos sus filtros${items.length > ranked.strict ? ` · ${items.length - ranked.strict} alternativas cercanas` : ""}`
@@ -151,6 +161,9 @@ export default function DuoResults({
           <TmdbStatus />
         </div>
         <div className="duo-actions">
+          <Button variant="primary" className="duo-cta duo-round-open" disabled={board.length < 2} onClick={() => setRound(true)}>
+            {size > 1 ? "🗳️ Ronda de votación" : "⚡ Modo rápido"}
+          </Button>
           <DiceButton
             label="Sorpréndeme"
             ariaLabel="Sorpréndeme: cambiar la recomendación principal por otra al azar que cumpla sus filtros"
@@ -184,11 +197,9 @@ export default function DuoResults({
         <DuoEmptyState ranked={ranked} profile={profile} source={candidates?.source} onRelax={relax} onEdit={onEdit} onOpenHistory={onOpenHistory} />
       )}
 
-      {board.length > 0 && cardFor(board[0], 0)}
-
       {liked.length > 0 && (
-        <div className="duo-together">
-          <h3>💞 A los dos les gusta</h3>
+        <div className="duo-together" role="status">
+          <h3>{size === 1 ? "💞 Te gustan" : "💞 ¡Match! A todos les gusta"}</h3>
           <ul>
             {liked.map((id) => (
               <li key={id}>
@@ -202,10 +213,22 @@ export default function DuoResults({
         </div>
       )}
 
-      {board.length > 1 && (
+      {board.length > 0 && cardFor(board[0], 0)}
+
+      {options.length > 0 && (
         <>
-          <h3 className="duo-subtitle">Otras opciones</h3>
-          <div className="duo-grid">{board.slice(1).map((id, index) => cardFor(id, index + 1))}</div>
+          <div className="duo-subtitle-row">
+            <h3 className="duo-subtitle">Otras opciones</h3>
+            <p className="duo-fineprint">{size > 1 ? "Butaca iluminada = le encaja. Tócala para votar: sí → quizá → no." : "Toca tu butaca para votar: sí → quizá → no."}</p>
+          </div>
+          <div className="duo-grid">{visible.map((id, index) => cardFor(id, index + 1))}</div>
+          {options.length > VISIBLE && (
+            <div className="duo-actions duo-actions-center">
+              <Button variant="secondary" onClick={() => setShowAll((value) => !value)}>
+                {showAll ? "Ver menos" : `Ver ${options.length - VISIBLE} opciones más`}
+              </Button>
+            </div>
+          )}
         </>
       )}
 
@@ -217,6 +240,20 @@ export default function DuoResults({
         Datos de películas y series: TMDB. Disponibilidad por plataforma: JustWatch vía TMDB; puede cambiar sin aviso. This product uses the TMDB API but is
         not endorsed or certified by TMDB.
       </p>
+
+      {round && (
+        <DuoVoteRound
+          items={board.map((id) => byId.get(id)).filter(Boolean)}
+          names={names}
+          votes={session.votes}
+          onVote={onVote}
+          onChoose={(id) => {
+            setRound(false);
+            onChoose(id);
+          }}
+          onClose={() => setRound(false)}
+        />
+      )}
     </section>
   );
 }

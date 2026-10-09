@@ -9,10 +9,11 @@ import DuoModeStep from "../components/duo/DuoModeStep.jsx";
 import DuoPersonStep from "../components/duo/DuoPersonStep.jsx";
 import DuoProgress from "../components/duo/DuoProgress.jsx";
 import DuoResults from "../components/duo/DuoResults.jsx";
+import { SeatAvatar } from "../components/duo/DuoSeats.jsx";
 import DuoSeenStep from "../components/duo/DuoSeenStep.jsx";
 import DuoSummary from "../components/duo/DuoSummary.jsx";
 import Icon from "../components/common/Icon.jsx";
-import { DEFAULT_DUO_SESSION, DUO_PREFERENCES_KEY, personName, STEPS } from "../data/duo.js";
+import { DEFAULT_DUO_SESSION, DEFAULT_PERSON, DUO_PREFERENCES_KEY, personName, stepsFor } from "../data/duo.js";
 import { useAsync } from "../hooks/useAsync.js";
 import { useDocumentTitle } from "../hooks/useDocumentTitle.js";
 import { useDuoHistory } from "../hooks/useDuoHistory.js";
@@ -20,15 +21,16 @@ import { useDuoSession } from "../hooks/useDuoSession.js";
 import { useFavorites } from "../hooks/useFavorites.js";
 import { useLocalStorage } from "../hooks/useLocalStorage.js";
 import { useToast } from "../hooks/useToast.js";
-import { getDuoCandidates, setVote } from "../services/duoService.js";
+import { getDuoCandidates, groupRejected, setVote } from "../services/duoService.js";
 import { addToHistory } from "../services/historyService.js";
 import { getMovieById } from "../services/movieService.js";
-import { buildProfile, genreName, listEs, rankTitles } from "../services/recommender.js";
+import { buildProfile, feedbackFrom, genreName, listEs, rankTitles } from "../services/recommender.js";
 import { isStorageAvailable } from "../utils/storage.js";
 
 const NEEDS_CANDIDATES = ["common", "results", "final"];
 // Cambiar preferencias invalida resultados, maratón, elección y filtros ampliados (se recalculan).
 const FRESH_RESULTS = { board: [], marathonPlan: null, final: null, relax: DEFAULT_DUO_SESSION.relax };
+const RESTART = "¿Empezar una sesión nueva? Se borran las respuestas de esta sesión (el historial se conserva).";
 
 /** Solo lo que cambia la consulta a TMDB: nombres, tono o votos no vuelven a pedir candidatos. */
 function candidatesKey(profile, saga) {
@@ -51,7 +53,7 @@ function candidatesKey(profile, saga) {
   ]);
 }
 
-/** /duo — sesión guiada para dos: modo → cada persona → ya vistas → en común → resultados → elección. */
+/** /duo — sesión guiada de 1 a 8 personas: plan → cada persona → ya vistas → en común → resultados → elección. */
 export default function DuoPage() {
   const { session, hasSession, update, reset } = useDuoSession();
   const { history, change: changeHistory, reset: resetHistory } = useDuoHistory();
@@ -66,20 +68,24 @@ export default function DuoPage() {
   const [storageOk] = useState(isStorageAvailable);
   useDocumentTitle("Duo");
 
+  const size = session.people.length;
+  const steps = useMemo(() => stepsFor(size), [size]);
   const profile = useMemo(() => buildProfile(session), [session]);
   const saga = session.mode === "marathon" && session.marathon.scope === "saga";
   const key = !intro && NEEDS_CANDIDATES.includes(session.step) ? `duo-${candidatesKey(profile, saga)}` : null;
   const { data: candidates } = useAsync(key, () => getDuoCandidates(profile, { saga }));
+  // Lo votado en la sesión reordena el resto: más de lo que gustó, menos de lo que no.
+  const feedback = useMemo(() => feedbackFrom(session.votes, candidates?.titles), [session.votes, candidates]);
   const ranked = useMemo(
-    () => candidates && rankTitles(candidates.titles, profile, { history, favorites: favorites.favorites, removed: session.removed }),
-    [candidates, profile, history, favorites.favorites, session.removed]
+    () => candidates && rankTitles(candidates.titles, profile, { history, favorites: favorites.favorites, removed: session.removed, feedback }),
+    [candidates, profile, history, favorites.favorites, session.removed, feedback]
   );
   const lookup = useMemo(() => new Map((candidates?.titles ?? []).map((title) => [title.id, title])), [candidates]);
   const names = session.people.map(personName);
 
   const go = useCallback(
     (step) => {
-      update((current) => ({ step, reached: Math.max(current.reached, STEPS.findIndex((item) => item.key === step)) }));
+      update((current) => ({ step, reached: Math.max(current.reached, stepsFor(current.people.length).findIndex((item) => item.key === step)) }));
       setIntro(false);
       window.scrollTo({ top: 0 });
     },
@@ -89,6 +95,17 @@ export default function DuoPage() {
     (patch) => update((current) => ({ ...(typeof patch === "function" ? patch(current) : patch), ...FRESH_RESULTS })),
     [update]
   );
+
+  /** Cambia cuántas personas ven: conserva las respuestas de quienes siguen y recorta sus votos. */
+  const setGroupSize = (count) =>
+    changePrefs((current) => {
+      const before = current.people.length;
+      return {
+        people: Array.from({ length: count }, (_, index) => current.people[index] ?? DEFAULT_PERSON),
+        votes: Object.fromEntries(Object.entries(current.votes).map(([id, list]) => [id, list.slice(0, count)])),
+        reached: Math.min(current.reached, Math.min(before, count)), // los pasos de personas nuevas aún no se visitaron
+      };
+    });
 
   // "Usar en Duo" (carrusel del inicio): parte de los géneros y el tipo de ese título.
   useEffect(() => {
@@ -123,9 +140,9 @@ export default function DuoPage() {
   const vote = (title, person, choice) => {
     const votes = setVote(session.votes, title.id, person, choice);
     update({ votes });
-    if (votes[title.id]?.[0] === "no" && votes[title.id]?.[1] === "no") {
+    if (groupRejected(votes[title.id], size)) {
       changeHistory((current) => addToHistory(current, "rejected", [title]));
-      showToast("❌ Rechazada por los dos: no volverá a aparecer.");
+      showToast(size === 1 ? "❌ Descartada: no volverá a aparecer." : "❌ Rechazada por todos: no volverá a aparecer.");
     }
   };
 
@@ -141,7 +158,7 @@ export default function DuoPage() {
   };
 
   const startNew = () => {
-    reset({ region: session.region, providers: session.providers });
+    reset({ region: session.region, providers: session.providers, people: session.people.map(() => DEFAULT_PERSON) });
     setSeed(null);
     go("mode");
   };
@@ -153,7 +170,7 @@ export default function DuoPage() {
           <DuoIntro
             hasSession={hasSession}
             onStart={() => {
-              if (!hasSession || window.confirm("¿Empezar una sesión nueva? Se borran las respuestas de esta sesión (el historial se conserva).")) startNew();
+              if (!hasSession || window.confirm(RESTART)) startNew();
             }}
             onResume={() => go(session.step)}
           />
@@ -163,26 +180,35 @@ export default function DuoPage() {
   }
 
   const { step } = session;
-  const current = STEPS.findIndex((item) => item.key === step);
-  const personIndex = step.startsWith("person-") ? Number(step.at(-1)) : null;
+  const current = steps.findIndex((item) => item.key === step);
+  const personIndex = step.startsWith("person-") ? Number(step.slice(7)) : null;
   const finalItem = ranked?.items.find((item) => item.title.id === session.final) ?? null;
   const setPerson = (person) =>
     changePrefs((currentSession) => ({ people: currentSession.people.map((item, index) => (index === personIndex ? person : item)) }));
+  const lastPerson = `person-${size - 1}`;
 
   return (
-    <div className={`duo-page duo-step-${step}`}>
+    <div className={`duo-page duo-step-${step.replace(/-\d+$/, "")}`}>
       <div className="duo-container">
         <header className="duo-header">
           <div className="duo-session-heading">
-            <div><span className="duo-badge"><Icon name="sparkles" /> CINET <b>DUO</b></span><h1>Su próxima historia empieza aquí.</h1></div>
-            <div className="duo-participants" aria-label={`Sesión de ${names[0]} y ${names[1]}`}>
-              {names.map((name, index) => <span key={index} className={`duo-participant duo-participant-${index}`}><i aria-hidden="true">{name.slice(0, 1).toUpperCase()}</i><span>{name}</span></span>)}
+            <div>
+              <span className="duo-badge"><Icon name="sparkles" /> CINET <b>DUO</b></span>
+              <h1>{size === 1 ? "Tu próxima historia empieza aquí." : "Su próxima historia empieza aquí."}</h1>
             </div>
+            <ul className="duo-participants" aria-label={`Sesión de ${listEs(names)}`}>
+              {names.map((name, index) => (
+                <li key={index} className={personIndex === index ? "is-current" : undefined}>
+                  <SeatAvatar index={index} name={name} />
+                  <span>{name}</span>
+                </li>
+              ))}
+            </ul>
           </div>
-          <DuoProgress current={current} reached={session.reached} names={names} onGo={go} />
+          <DuoProgress steps={steps} current={current} reached={session.reached} names={names} onGo={go} />
           <div className="duo-session-tools">
             <button type="button" className="duo-link" onClick={() => { setIntro(true); window.scrollTo({ top: 0 }); }}><Icon name="screen" /> Ver presentación de Duo</button>
-            <button type="button" className="duo-link duo-restart" onClick={() => window.confirm("¿Empezar una sesión nueva? Se borran las respuestas de esta sesión (el historial se conserva).") && startNew()}>
+            <button type="button" className="duo-link duo-restart" onClick={() => window.confirm(RESTART) && startNew()}>
               Empezar de nuevo
             </button>
           </div>
@@ -202,26 +228,28 @@ export default function DuoPage() {
 
         <div className="duo-layout">
           <div className="duo-main" key={step}>
-            {step === "mode" && <DuoModeStep session={session} onChange={changePrefs} onNext={() => go("person-0")} />}
+            {step === "mode" && <DuoModeStep session={session} onChange={changePrefs} onGroupSize={setGroupSize} onNext={() => go("person-0")} />}
             {personIndex !== null && (
               <DuoPersonStep
                 key={step}
                 index={personIndex}
+                size={size}
                 person={session.people[personIndex]}
                 type={profile.type}
-                nextName={personIndex === 0 ? names[1] : null}
+                nextName={names[personIndex + 1] ?? null}
                 onChange={setPerson}
-                onBack={() => go(personIndex === 0 ? "mode" : "person-0")}
-                onNext={() => go(personIndex === 0 ? "person-1" : "seen")}
+                onBack={() => go(personIndex === 0 ? "mode" : `person-${personIndex - 1}`)}
+                onNext={() => go(personIndex < size - 1 ? `person-${personIndex + 1}` : "seen")}
               />
             )}
             {step === "seen" && (
               <DuoSeenStep
                 type={profile.type}
+                size={size}
                 history={history}
                 onHistory={changeHistory}
                 onOpenHistory={() => setHistoryOpen(true)}
-                onBack={() => go("person-1")}
+                onBack={() => go(lastPerson)}
                 onNext={() => go("common")}
               />
             )}
@@ -258,7 +286,7 @@ export default function DuoPage() {
                 />
               ))}
             {step === "final" && (
-              <DuoFinal item={finalItem} loading={!ranked} names={names} onSeen={markSeen} onBack={() => go("results")} onNew={startNew} />
+              <DuoFinal item={finalItem} loading={!ranked} names={names} votes={session.votes[session.final]} onSeen={markSeen} onBack={() => go("results")} onNew={startNew} />
             )}
           </div>
 

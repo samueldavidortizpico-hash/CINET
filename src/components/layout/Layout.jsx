@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Outlet, ScrollRestoration, useMatches } from "react-router-dom";
 import Header from "./Header.jsx";
 import Footer from "./Footer.jsx";
@@ -23,7 +24,10 @@ export default function Layout() {
         </p>
       )}
       <main>
-        <Outlet />
+        {/* Las páginas se cargan bajo demanda (router.jsx): reserva el alto mientras llega su código. */}
+        <Suspense fallback={<div className="route-loading" role="status" aria-label="Cargando página" />}>
+          <Outlet />
+        </Suspense>
       </main>
       <Footer />
       <Toast />

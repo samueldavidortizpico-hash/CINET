@@ -2,14 +2,15 @@ import Button from "../common/Button.jsx";
 import { findConflicts, formatMinutes } from "../../services/recommender.js";
 
 // Motivos de descarte (checkTitle) → frase con el número real de títulos.
+// size: personas de la sesión (algunos textos cambian en grupo).
 const REASONS = {
   history: (n) => `${n} ya los vieron o descartaron`,
   unreleased: (n) => `${n} aún no se estrenan`,
   rejected: (n) => `${n} tienen un género que rechazaron`,
   format: (n) => `${n} son animación o documental y ninguno los eligió`,
   must: (n) => `${n} no tienen los géneros imprescindibles`,
-  taste: (n) => `${n} no encajan con los gustos de ninguno`,
-  oneSided: (n) => `${n} solo encajan con una persona`,
+  taste: (n) => `${n} no encajan con los gustos de nadie`,
+  oneSided: (n, size) => (size === 2 ? `${n} solo encajan con una persona` : `${n} encajan con muy poca gente del grupo`),
   runtime: (n) => `${n} superan la duración máxima (o TMDB no la confirma)`,
   seasons: (n) => `${n} tienen más temporadas de las que quieren`,
   status: (n) => `${n} no tienen el estado de serie que pidieron`,
@@ -29,7 +30,7 @@ export default function DuoEmptyState({ ranked, profile, source, few = false, on
   const reasons = Object.entries(rejectedBy)
     .filter(([reason]) => REASONS[reason])
     .sort((a, b) => b[1] - a[1])
-    .map(([reason, count]) => REASONS[reason](count));
+    .map(([reason, count]) => REASONS[reason](count, profile.people.length));
   const noLocalSeries = source === "local" && profile.type === "tv";
   const conflicts = findConflicts(profile).filter((conflict) => conflict.blocking);
 
@@ -41,15 +42,15 @@ export default function DuoEmptyState({ ranked, profile, source, few = false, on
         patch: { runtime: relax.runtime + 30 },
       },
     profile.providers.length > 0 && rejectedBy.platform > 0 && !relax.platforms && { label: "Incluir otras plataformas", patch: { platforms: true } },
-    rejectedBy.oneSided > 0 && !relax.oneSided && { label: "Incluir títulos que le gustan solo a uno", patch: { oneSided: true } },
+    rejectedBy.oneSided > 0 && !relax.oneSided && { label: profile.people.length === 2 ? "Incluir títulos que le gustan solo a uno" : "Incluir títulos que no encajan con todos", patch: { oneSided: true } },
   ].filter(Boolean);
   const relaxed = relax.runtime > 0 || relax.platforms || relax.oneSided;
 
   return (
     <div className={`duo-empty${few ? " is-few" : ""}`} role="status">
-      <h3>{noLocalSeries ? "Las series necesitan conexión con TMDB" : few ? `Solo hay unas pocas ${noun} que cumplen todo` : `No encontramos ${noun} para los dos`}</h3>
+      <h3>{noLocalSeries ? "Las series necesitan conexión con TMDB" : few ? `Solo hay unas pocas ${noun} que cumplen todo` : `No encontramos ${noun} para ${profile.people.length === 1 ? "ti" : profile.people.length === 2 ? "los dos" : "el grupo"}`}</h3>
       {noLocalSeries ? (
-        <p>El catálogo local de CINET solo tiene películas. Elijan el modo Película o configuren VITE_TMDB_READ_TOKEN.</p>
+        <p>El catálogo en vivo no está disponible y el catálogo local de CINET solo tiene películas. Elijan el modo Película o vuelvan a intentarlo más tarde.</p>
       ) : conflicts.length ? (
         <p>{conflicts.map((conflict) => conflict.text).join(" ")} Cambien una de las dos preferencias.</p>
       ) : reasons.length ? (

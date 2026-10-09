@@ -1,12 +1,30 @@
-/* CineHub Duo — sesión de dos personas, encuesta, series y maratón.
+/* CineHub Duo — sesión de 1 a MAX_PEOPLE personas, encuesta, series y maratón.
    Solo se guardan preferencias; nunca usuarios ni contraseñas de plataformas. */
 
 export const DUO_PREFERENCES_KEY = "cinehub-duo-preferences"; // { genres } de la última sesión (lo usa el inicio)
 export const DUO_HISTORY_KEY = "cinehub-duo-history";
 export const DUO_SESSION_KEY = "cinehub-duo-session";
 
+export const MIN_PEOPLE = 1;
+export const MAX_PEOPLE = 8;
+
+/** ¿Quiénes ven? count: personas al elegir la tarjeta (en grupo se ajusta con + y −). */
+export const GROUPS = [
+  { key: "solo", count: 1, label: "Solo yo", text: "Recomendaciones a tu medida." },
+  { key: "pair", count: 2, label: "En pareja", text: "Dos gustos, una elección." },
+  { key: "group", count: 4, label: "En grupo", text: `De 3 a ${MAX_PEOPLE} personas, sin que nadie se quede fuera.` },
+];
+export const groupOf = (count) => (count <= 1 ? "solo" : count === 2 ? "pair" : "group");
+
+/** Color de la butaca de cada persona: la acompaña en todo el recorrido. */
+export const SEAT_COLORS = ["#ff5a4f", "#ff9b55", "#f4c36c", "#7fd1ae", "#6fb6ff", "#b69cff", "#ff86c8", "#d8d0c8"];
+export const seatColor = (index) => SEAT_COLORS[index % SEAT_COLORS.length];
+
+/** "los dos" / "los 4" / "ti": a quién se le habla en los textos. */
+export const crowd = (count) => (count <= 1 ? "ti" : count === 2 ? "los dos" : `los ${count}`);
+
 export const MODES = [
-  { key: "movie", icon: "🎬", label: "Película", text: "Una película que encaje con los dos." },
+  { key: "movie", icon: "🎬", label: "Película", text: "Una película que encaje con todos." },
   { key: "tv", icon: "📺", label: "Serie", text: "Una serie según episodios, temporadas y si ya terminó." },
   { key: "marathon", icon: "🍿", label: "Maratón", text: "Varias películas o episodios que caben en su tiempo." },
 ];
@@ -49,12 +67,12 @@ export const DEFAULT_DUO_SESSION = {
   votes: {},
 };
 
-export const STEPS = [
-  { key: "mode", label: "Modo" },
-  { key: "person-0", label: "Persona 1" },
-  { key: "person-1", label: "Persona 2" },
+/** Pasos de una sesión: uno por persona entre "Plan" y "Ya vistas". */
+export const stepsFor = (count) => [
+  { key: "mode", label: "Plan" },
+  ...Array.from({ length: count }, (_, index) => ({ key: `person-${index}`, label: `Persona ${index + 1}` })),
   { key: "seen", label: "Ya vistas" },
-  { key: "common", label: "En común" },
+  { key: "common", label: count > 1 ? "En común" : "Resumen" },
   { key: "results", label: "Resultados" },
   { key: "final", label: "Elección" },
 ];
@@ -132,9 +150,11 @@ export const SESSION_LENGTHS = [
 
 export const VOTES = [
   { key: "yes", icon: "❤️", label: "Sí" },
-  { key: "later", icon: "🤔", label: "Después" },
+  { key: "later", icon: "🤔", label: "Quizá" },
   { key: "no", icon: "❌", label: "No" },
 ];
+/** Puntos de cada voto para ordenar la ronda de votación. */
+export const VOTE_POINTS = { yes: 2, later: 1, no: 0 };
 
 /** Ambiente del plan en casa y comida sugerida. */
 export const AMBIENCES = [

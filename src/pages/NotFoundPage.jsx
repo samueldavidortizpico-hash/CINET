@@ -8,7 +8,7 @@ export default function NotFoundPage() {
   return (
     <section className="plans-section">
       <div className="section-inner">
-        <EmptyState title="Página no encontrada" action={<Button variant="primary" to="/home">Volver al inicio</Button>}>
+        <EmptyState heading="h1" title="Página no encontrada" action={<Button variant="primary" to="/home">Volver al inicio</Button>}>
           La ruta que buscas no existe en CINET.
         </EmptyState>
       </div>

@@ -236,8 +236,17 @@ test("tmdb: Duo pide solo el tipo elegido, con los filtros obligatorios en el se
   const discover = api.calls.filter((url) => url.pathname.endsWith("/discover/movie"));
   // Primera ronda (tope pedido: 130 min); con menos de MIN_RESULTS válidos, segunda ronda con +30 min.
   const first = discover.filter((url) => url.searchParams.get("with_runtime.lte") === "130");
-  const origins = first.map((url) => url.searchParams.get("sort_by") + (url.searchParams.get("with_original_language") ? "+intl" : ""));
-  assert.deepEqual(origins.sort(), ["popularity.desc", "popularity.desc", "popularity.desc", "vote_average.desc", "vote_average.desc+intl"]);
+  const tag = (url) => (url.searchParams.get("with_original_language") ? "+intl" : url.searchParams.get("primary_release_date.gte") ? "+fresh" : "");
+  const origins = first.map((url) => url.searchParams.get("sort_by") + tag(url));
+  assert.deepEqual(origins.sort(), [
+    "popularity.desc",
+    "popularity.desc",
+    "popularity.desc",
+    "popularity.desc+fresh",
+    "popularity.desc+fresh",
+    "vote_average.desc",
+    "vote_average.desc+intl",
+  ]);
   const wide = discover.filter((url) => url.searchParams.get("with_runtime.lte") === "160");
   assert.ok(wide.length > 0 && wide.length + first.length === discover.length, "segunda ronda más amplia");
   const params = first[0].searchParams;

@@ -9,7 +9,6 @@ import { useAuth } from "../hooks/useAuth.js";
 import { useDocumentTitle } from "../hooks/useDocumentTitle.js";
 import { usePlans } from "../hooks/usePlans.js";
 import { useToast } from "../hooks/useToast.js";
-import { canManagePlan } from "../services/planService.js";
 
 /** Ruta dinámica /plan/:id — ver, responder y (si eres el organizador) editar el plan. */
 export default function PlanPage() {
@@ -34,9 +33,13 @@ export default function PlanPage() {
   }
 
   const saveChanges = ({ name, message }) => {
-    updatePlan(plan.id, { name: name.trim(), message: message.trim() });
-    setEditing(false);
-    showToast("✏️ Plan actualizado");
+    updatePlan(plan, { name: name.trim(), message: message.trim() }).then(
+      () => {
+        setEditing(false);
+        showToast("✏️ Plan actualizado");
+      },
+      (error) => showToast(error.message)
+    );
   };
 
   return (
@@ -45,7 +48,7 @@ export default function PlanPage() {
         <Link to="/my-plans" className="back-link">← Volver a mis planes</Link>
 
         <PlanHero plan={plan}>
-          {canManagePlan(plan, user) && !editing && (
+          {plan.isOwner && !editing && (
             <Button variant="secondary" className="plan-edit-button" onClick={() => setEditing(true)}>
               ✏️ Editar plan
             </Button>

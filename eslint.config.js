@@ -20,6 +20,11 @@ export default defineConfig([
     },
   },
   {
+    // Código que corre en Node (servidor, funciones de Vercel, configuración, pruebas de base de datos).
+    files: ["api/**/*.js", "server/**/*.js", "supabase/**/*.js", "*.config.js"],
+    languageOptions: { globals: globals.node },
+  },
+  {
     // Un contexto exporta su Provider y el objeto Context (lo consumen los hooks).
     // La regla solo afecta al hot-reload en desarrollo, no al funcionamiento.
     files: ["src/context/**/*.jsx"],

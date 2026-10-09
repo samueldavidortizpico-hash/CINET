@@ -23,7 +23,7 @@ export default function TmdbStatus({ className = "" }) {
   }, []);
 
   const detail = {
-    local: "Sin VITE_TMDB_READ_TOKEN: se muestra el catálogo local de CINET, no datos de TMDB.",
+    local: "El catálogo en vivo no está disponible: se muestra el catálogo local de CINET, no datos de TMDB.",
     saved: `${status.message} Datos de TMDB guardados en este navegador; pueden estar desactualizados.`,
     error: `${status.message} Se muestra el catálogo local de CINET.`,
   }[status.state] ?? "";

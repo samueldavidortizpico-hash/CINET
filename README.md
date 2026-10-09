@@ -1,6 +1,6 @@
 # CineHub (marca visible: CINET)
 
-> La marca visible de la app es **CINET** (logo en `images/cinet-logo.png`). CineHub se conserva como nombre
+> La marca visible de la app es **CINET** (logo vectorial en `components/common/BrandLogo.jsx`). CineHub se conserva como nombre
 > del proyecto académico, del paquete y de las claves de `localStorage`.
 
 Proyecto del curso DSAW · Universidad de La Sabana — **Milestone 2: React Frontend** (React + Vite + React Router).
@@ -142,7 +142,7 @@ npm run test:tmdb # prueba REAL contra TMDB (necesita VITE_TMDB_READ_TOKEN en .e
 | --- | --- | --- |
 | `/` | — | Redirige a `/home` |
 | `/home` | `HomePage` | Carrusel de tendencias, buscador, filas de descubrimiento, planes recientes y FAQ |
-| `/duo` | `DuoPage` | CineHub Duo: película, serie o maratón para dos personas (`?from=id` parte de un título) |
+| `/duo` | `DuoPage` | CineHub Duo: película, serie o maratón para 1 a 8 personas (`?from=id` parte de un título) |
 | `/movies` | `MoviesPage` | Catálogo con búsqueda, filtros por género y orden |
 | `/movie/:id` | `MovieDetailPage` | **Ruta dinámica** (`useParams`) · tráiler · plataformas · favoritos · compartir |
 | `/functions?movie=id` | `FunctionsPage` | Elegir cine, fecha y hora (`useSearchParams`) |
@@ -244,31 +244,44 @@ no hay integración API con ellas. La autenticación es **local y demostrativa**
 
 ### CineHub Duo
 
-Flujo guiado de 7 pasos con progreso, resumen siempre visible y cada paso editable:
-**modo** (película, serie o maratón; región y plataformas) → **persona 1** → **persona 2** (géneros
-♥ me gusta / ★ imprescindible / ✕ no quiero, tono, duración o —en series— episodio, temporadas y estado,
-actores) → **ya vistas** → **en común** (límites efectivos y conflictos) → **resultados** → **elección**.
+Flujo guiado con progreso, resumen siempre visible y cada paso editable, **para 1 a 8 personas**:
+**plan** (¿quiénes ven? solo / en pareja / en grupo de 3 a 8; película, serie o maratón; región y plataformas)
+→ **un paso por persona** (géneros ♥ me gusta / ★ imprescindible / ✕ no quiero, tono, duración o —en
+series— episodio, temporadas y estado, actores) → **ya vistas** → **en común** (lo de todos, lo de la
+mayoría, lo que aporta cada uno, límites y conflictos con nombre) → **resultados** → **elección**.
+
+Cada persona es una **butaca de color** (`DuoSeats.jsx`) que la acompaña en todo el recorrido: en las
+tarjetas, la butaca se ilumina si el título encaja con sus gustos (verificable: género, tono o actor).
+La **ronda de votación** (`DuoVoteRound.jsx`) es un "pásale el celular": cada persona vota en secreto las
+mismas 8 opciones (← no · ↓ quizá · → sí) y al final se revelan los votos, los *match* y la más votada.
 
 **Algoritmo (`services/recommender.js`, funciones puras y probadas).**
 
-1. *Filtros obligatorios* (`checkTitle`): tipo (nunca mezcla películas y series), historial, quitados de la
-   sesión, sin estrenar, géneros rechazados, imprescindibles, gustos de cada persona, duración, temporadas y
-   estado de la serie, plataformas. Si fallan, el título no aparece. Solo se amplían a mano (+30 min, otras
-   plataformas, "le gusta a uno solo"); esos títulos van después y su motivo empieza por "Es una alternativa…".
-2. *Puntuación* (`scoreTitle`): `score = Σ WEIGHTS[c] × valor[c]` con valores en [0, 1]:
-   género 30 · subgénero (combina dos elegidos) 10 · tono 15 · reparto 10 · encaja con ambos 20 ·
-   duración 5 · calidad bayesiana 15 · popularidad 5 · favorito 8 · recomendada hace poco −30.
-   No se muestran porcentajes: cada tarjeta explica su motivo con frases verificables y el desglose de puntos.
-3. *Diversidad* (`diversify`): penaliza encadenar títulos del mismo género o saga.
-4. *Dado* (`rollDice`): sorteo ponderado `e^((score − mejor)/12)` solo entre títulos válidos, sin repetir lo
-   que está en pantalla, lo anterior ni (mientras haya otros) lo recomendado hace poco.
-5. *Maratón* (`buildMarathon`): llena el tiempo de la sesión según estilo (temática, variada, equilibrada) y
-   alcance (mezcla o saga en orden de estreno); en series reparte episodios. Se puede reemplazar o quitar cada
-   título, regenerar todo y guardarla como plan.
+1. *Perfil del grupo* (`buildProfile`): límites = el menor; imprescindibles y rechazados = la unión;
+   "a todos" = la intersección; en grupos de 3+, "la mayoría" = géneros que eligió al menos la mitad.
+2. *Filtros* (`checkTitle`): tipo, historial, quitados, sin estrenar, rechazados, imprescindibles, duración,
+   temporadas, estado y plataformas. Un título "cumple todo" si encaja con el **quórum**: todas las personas
+   en solitario o pareja; 2/3 del grupo desde 3. Se amplían a mano (+30 min, otras plataformas, "no encaja con
+   todos"); esos títulos van después y su motivo empieza por "Es una alternativa…".
+3. *Puntuación* (`scoreTitle`): `score = Σ WEIGHTS[c] × valor[c]` con valores en [0, 1]:
+   género 30 · subgénero 10 · tono 15 · reparto 10 · **grupo 20** · duración 5 · calidad bayesiana 15 ·
+   popularidad 5 · **estreno 6** · **votos de la sesión ±14** · favorito 8 · recomendada hace poco −30.
+   *Grupo* = ½ media + ½ mínimo de los ajustes por persona ("menor descontento": nadie se queda fuera).
+   *Votos de la sesión*: parecido a lo que votaron "sí" menos parecido a lo que votaron "no"; el ranking
+   aprende mientras votan ("Se parece a «X», que les gustó"). Sin porcentajes: motivos verificables y desglose.
+4. *Diversidad y reparto* (`diversify`): penaliza encadenar títulos parecidos y, desde el 2.º puesto, adelanta
+   una opción para quien aún no tenga ninguna suya.
+5. *Dado* (`rollDice`): sorteo ponderado `e^((score − mejor)/10)` solo entre títulos válidos, sin repetir
+   lo que está en pantalla, lo anterior ni (mientras haya otros) lo recomendado hace poco.
+6. *Maratón* (`buildMarathon`): llena el tiempo según estilo y alcance (mezcla o saga en orden de estreno).
 
-**Sin repeticiones** (`services/historyService.js`, clave `cinehub-duo-history`): vistas, rechazadas (ambos
-votan ❌), "no me interesa" (se excluyen siempre, con opción de recuperarlas), recomendadas hace poco
-(bajan de puesto) y quitadas de la sesión. "Ver títulos excluidos" permite recuperar o reiniciar el historial.
+**Catálogo vivo** (`services/duoService.js`): con TMDB, Duo combina populares, **estrenos del último año**,
+joyas poco vistas, internacionales, combinaciones de géneros entre personas (primero las que gustan a más
+gente) y actores elegidos; enriquece los mejores con disponibilidad por región, duración, temporadas y saga.
+
+**Sin repeticiones** (`services/historyService.js`, clave `cinehub-duo-history`): vistas, rechazadas (todas
+las personas votan ❌), "no me interesa" (se excluyen siempre, con opción de recuperarlas), recomendadas hace
+poco (bajan de puesto) y quitadas de la sesión. "Ver títulos excluidos" permite recuperar o reiniciar.
 
 ### Prototipo anterior
 

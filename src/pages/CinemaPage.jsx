@@ -68,7 +68,7 @@ export default function CinemaPage() {
           <h2>{!isTmdbEnabled() ? "Cartelera no disponible sin TMDB" : tmdbState === "error" || error ? "Error al cargar la cartelera" : "Sin películas en cartelera"}</h2>
           <p>
             {!isTmdbEnabled()
-              ? "Falta VITE_TMDB_READ_TOKEN. El resto de CINET usa el catálogo local, pero la cartelera real necesita TMDB: sin ella no mostramos películas que quizá ya no están en salas."
+              ? "El catálogo en vivo no está disponible ahora mismo. El resto de CINET usa el catálogo local, pero la cartelera real necesita TMDB: sin ella no mostramos películas que quizá ya no están en salas."
               : tmdbState === "error" || error
                 ? "No hay conexión con TMDB y este navegador no tiene una cartelera guardada. Inténtalo de nuevo cuando vuelva la conexión."
                 : "TMDB no respondió con películas en cines de Colombia. Inténtalo de nuevo en unos minutos."}

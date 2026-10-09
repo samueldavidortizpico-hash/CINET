@@ -13,7 +13,7 @@ export default function ProfileCard() {
   const { favorites } = useFavorites();
   const { plans } = usePlans();
   const { showToast } = useToast();
-  const ownPlans = plans.filter((plan) => plan.ownerEmail === user.email).length;
+  const ownPlans = plans.filter((plan) => plan.isOwner).length;
 
   const handleLogout = async () => {
     try {

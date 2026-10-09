@@ -44,7 +44,7 @@ function SeenToggle({ title, seen, onToggle }) {
 }
 
 /** Paso 4: lo que ya vieron no se recomienda (se guarda en el historial y se puede recuperar). */
-export default function DuoSeenStep({ type, history, onHistory, onOpenHistory, onBack, onNext }) {
+export default function DuoSeenStep({ type, size, history, onHistory, onOpenHistory, onBack, onNext }) {
   const [text, setText] = useState("");
   const query = useDebounced(text.trim(), 350);
   const { data: found = [], loading, error } = useAsync(query.length >= 2 ? `seen-${type}-${query}` : null, () => findTitles(type, query));
@@ -57,8 +57,8 @@ export default function DuoSeenStep({ type, history, onHistory, onOpenHistory, o
 
   return (
     <section className="duo-step" aria-labelledby="duo-seen-title">
-      <h2 id="duo-seen-title">¿Qué {noun} ya vieron?</h2>
-      <p className="duo-lead">No se las volveremos a recomendar. Si cambian de opinión, las recuperan desde «Ver títulos excluidos».</p>
+      <h2 id="duo-seen-title">¿Qué {noun} ya {size === 1 ? "viste" : "vieron"}?</h2>
+      <p className="duo-lead">{size > 2 ? "Basta con que alguien del grupo la haya visto. " : ""}No se las volveremos a recomendar. Si cambian de opinión, las recuperan desde «Ver títulos excluidos».</p>
 
       <label className="duo-field">
         <span>Buscar {noun}</span>
@@ -95,7 +95,7 @@ export default function DuoSeenStep({ type, history, onHistory, onOpenHistory, o
       )}
 
       <p className="duo-fineprint">
-        {seenOfType.length ? `${seenOfType.length} ${noun} marcadas como vistas.` : `Ninguna de sus ${noun} está marcada como vista.`}{" "}
+        {seenOfType.length ? `${seenOfType.length} ${noun} marcadas como vistas.` : `Ninguna ${type === "tv" ? "serie" : "película"} marcada como vista todavía.`}{" "}
         <button type="button" className="duo-link" onClick={onOpenHistory}>
           Ver títulos excluidos
         </button>
@@ -106,7 +106,7 @@ export default function DuoSeenStep({ type, history, onHistory, onOpenHistory, o
           ← Atrás
         </Button>
         <Button variant="primary" className="duo-cta" onClick={onNext}>
-          Ver lo que tienen en común →
+          {size > 1 ? "Ver lo que tienen en común →" : "Ver el resumen →"}
         </Button>
       </div>
     </section>

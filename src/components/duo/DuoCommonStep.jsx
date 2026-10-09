@@ -1,9 +1,10 @@
 import Button from "../common/Button.jsx";
+import { SeatAvatar } from "./DuoSeats.jsx";
 import { MARATHON_STYLES, SERIES_STATUS_OPTIONS, SESSION_LENGTHS, TONES } from "../../data/duo.js";
 import { PLATFORMS } from "../../data/platforms.js";
 import { regionName } from "../../data/tmdb.js";
 import { EXCLUDING } from "../../services/historyService.js";
-import { findConflicts, formatMinutes, genreName, listEs } from "../../services/recommender.js";
+import { findConflicts, formatMinutes, genreName, listEs, quorum } from "../../services/recommender.js";
 
 const names = (keys) => listEs(keys.map(genreName));
 const toneNames = (keys) => listEs(keys.map((key) => TONES.find((tone) => tone.key === key)?.label ?? key));
@@ -18,24 +19,30 @@ function Row({ label, children }) {
   );
 }
 
-/** Paso 5: lo que tienen en común, lo que se suma, los límites efectivos y los conflictos. */
+/** Lo que tienen en común, lo que aporta cada persona, los límites efectivos y los conflictos. */
 export default function DuoCommonStep({ session, profile, history, ranked, onEdit, onNext }) {
-  const [a, b] = profile.people;
+  const { people } = profile;
+  const size = people.length;
   const conflicts = findConflicts(profile);
   const blocking = conflicts.some((conflict) => conflict.blocking);
-  const commonTones = a.tone.filter((key) => b.tone.includes(key));
-  const onlyA = a.genres.filter((key) => !b.genres.includes(key) && !profile.rejected.includes(key));
-  const onlyB = b.genres.filter((key) => !a.genres.includes(key) && !profile.rejected.includes(key));
+  const commonTones = size > 1 ? people.map((person) => person.tone).reduce((a, b) => a.filter((key) => b.includes(key))) : [];
+  const own = people
+    .map((person, index) => ({ index, name: person.name, genres: person.genres.filter((key) => !profile.shared.includes(key) && !profile.rejected.includes(key)) }))
+    .filter((person) => person.genres.length);
   const excluded = EXCLUDING.reduce((total, list) => total + history[list].length, 0);
   const platforms = PLATFORMS.filter((platform) => profile.providers.includes(platform.id)).map((platform) => platform.name);
   const isMarathon = session.mode === "marathon";
   const noun = profile.type === "tv" ? "series" : "películas";
   const status = SERIES_STATUS_OPTIONS.find((option) => option.value === profile.seriesStatus)?.label;
+  const expressed = people.filter((person) => person.genres.length + person.tone.length + person.actors.length > 0).length;
 
   return (
     <section className="duo-step" aria-labelledby="duo-common-title">
-      <h2 id="duo-common-title">Lo que tienen en común</h2>
-      <p className="duo-lead">Así combinamos sus respuestas. Lo imprescindible, lo rechazado y los límites se cumplen siempre.</p>
+      <p className="duo-overline">{size > 1 ? "LA MEZCLA" : "TU BÚSQUEDA"}</p>
+      <h2 id="duo-common-title">{size > 1 ? "Lo que tienen en común" : "Tu plan, en resumen"}</h2>
+      <p className="duo-lead">
+        {size > 1 ? "Así combinamos sus respuestas." : "Así quedó tu búsqueda."} Lo imprescindible, lo rechazado y los límites se cumplen siempre.
+      </p>
 
       {conflicts.length > 0 && (
         <div className={`duo-conflicts${blocking ? " is-blocking" : ""}`} role={blocking ? "alert" : "status"}>
@@ -46,25 +53,47 @@ export default function DuoCommonStep({ session, profile, history, ranked, onEdi
             ))}
           </ul>
           <div className="duo-actions">
-            <Button variant="secondary" onClick={() => onEdit("person-0")}>
-              Editar a {a.name}
-            </Button>
-            <Button variant="secondary" onClick={() => onEdit("person-1")}>
-              Editar a {b.name}
-            </Button>
+            {people.map((person, index) => (
+              <Button key={index} variant="secondary" onClick={() => onEdit(`person-${index}`)}>
+                <SeatAvatar index={index} name={person.name} /> Editar a {person.name}
+              </Button>
+            ))}
           </div>
         </div>
       )}
 
       <dl className="duo-common">
-        <Row label="Les gusta a los dos">
-          {profile.shared.length || commonTones.length
-            ? [profile.shared.length && names(profile.shared), commonTones.length && `tono ${toneNames(commonTones)}`].filter(Boolean).join(" · ")
-            : "Nada en común todavía: buscaremos títulos que tengan algo de cada uno."}
-        </Row>
-        {(onlyA.length > 0 || onlyB.length > 0) && (
+        {size > 1 ? (
+          <Row label={size === 2 ? "Les gusta a los dos" : "Les gusta a todos"}>
+            {profile.shared.length || commonTones.length
+              ? [profile.shared.length && names(profile.shared), commonTones.length && `tono ${toneNames(commonTones)}`].filter(Boolean).join(" · ")
+              : "Nada en común todavía: buscaremos títulos que tengan algo de cada uno."}
+          </Row>
+        ) : (
+          <Row label="Te gusta">
+            {[people[0].genres.length && names(people[0].genres), people[0].tone.length && `tono ${toneNames(people[0].tone)}`].filter(Boolean).join(" · ") ||
+              "Sin gustos marcados: te mostramos lo mejor valorado que cumpla tus filtros."}
+          </Row>
+        )}
+        {profile.majority.length > 0 && <Row label="A la mayoría">{names(profile.majority)}</Row>}
+        {size > 1 && own.length > 0 && (
           <Row label="Aporta cada uno">
-            {[onlyA.length && `${a.name}: ${names(onlyA)}`, onlyB.length && `${b.name}: ${names(onlyB)}`].filter(Boolean).join(" · ")}
+            <ul className="duo-common-people">
+              {own.map((person) => (
+                <li key={person.index}>
+                  <SeatAvatar index={person.index} name={person.name} />
+                  <span>
+                    <strong>{person.name}</strong> {names(person.genres)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </Row>
+        )}
+        {size > 2 && expressed > 2 && (
+          <Row label="Cómo decidimos">
+            Una opción cumple si encaja con al menos {quorum(expressed)} de {expressed}; las que encajan con todos van primero y nadie se queda
+            sin algo suyo.
           </Row>
         )}
         <Row label="Imprescindible">{profile.must.length ? names(profile.must) : "Nada"}</Row>
@@ -79,7 +108,7 @@ export default function DuoCommonStep({ session, profile, history, ranked, onEdi
                 .filter(Boolean)
                 .join(" · ")
             : profile.maxRuntime
-              ? `Películas de hasta ${formatMinutes(profile.maxRuntime)} (el menor de los dos límites)`
+              ? `Películas de hasta ${formatMinutes(profile.maxRuntime)}${size > 1 ? " (el límite más corto del grupo)" : ""}`
               : "Sin límite"}
         </Row>
         {isMarathon && (
@@ -92,7 +121,9 @@ export default function DuoCommonStep({ session, profile, history, ranked, onEdi
         <Row label="Dónde">
           {regionName(profile.region)} · {platforms.length ? platforms.join(", ") : "cualquier plataforma"}
         </Row>
-        <Row label="Historial">{excluded ? `No recomendaremos ${excluded} título${excluded === 1 ? "" : "s"} que ya vieron o descartaron.` : "Nada excluido."}</Row>
+        <Row label="Historial">
+          {excluded ? `No recomendaremos ${excluded} título${excluded === 1 ? "" : "s"} ya visto${excluded === 1 ? "" : "s"} o descartado${excluded === 1 ? "" : "s"}.` : "Nada excluido."}
+        </Row>
       </dl>
 
       <p className="duo-fineprint" aria-live="polite">

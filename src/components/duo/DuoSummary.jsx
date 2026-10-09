@@ -4,15 +4,19 @@ import { GENRES, regionName } from "../../data/tmdb.js";
 import { EXCLUDING } from "../../services/historyService.js";
 import { formatMinutes } from "../../services/recommender.js";
 import Icon from "../common/Icon.jsx";
+import { SeatAvatar } from "./DuoSeats.jsx";
 
 const label = (list, key, field = "key") => list.find((item) => item[field] === key)?.label ?? key;
 const genre = (key) => label(GENRES, key);
 
-function Section({ title, onEdit, editLabel, children }) {
+function Section({ title, seat, onEdit, editLabel, children }) {
   return (
     <div className="duo-summary-section">
       <div className="duo-summary-head">
-        <h3>{title}</h3>
+        <h3>
+          {seat}
+          {title}
+        </h3>
         {onEdit && (
           <button type="button" className="duo-link" aria-label={editLabel} onClick={onEdit}>
             Editar
@@ -60,11 +64,12 @@ export default function DuoSummary({ session, profile, history, onEdit, onOpenHi
   const { marathon } = session;
   const excluded = EXCLUDING.reduce((total, list) => total + history[list].length, 0);
   const platforms = PLATFORMS.filter((platform) => session.providers.includes(platform.id)).map((platform) => platform.name);
+  const size = session.people.length;
 
   return (
     <aside className="duo-summary" aria-labelledby="duo-summary-title">
-      <div className="duo-pass-heading"><Icon name="ticket" /><span>FUNCIÓN PARA DOS</span></div>
-      <h2 id="duo-summary-title">Su pase de cine</h2>
+      <div className="duo-pass-heading"><Icon name="ticket" /><span>{size === 1 ? "FUNCIÓN PRIVADA" : size === 2 ? "FUNCIÓN PARA DOS" : `FUNCIÓN PARA ${size}`}</span></div>
+      <h2 id="duo-summary-title">{size === 1 ? "Tu pase de cine" : "Su pase de cine"}</h2>
       <p className="duo-fineprint">El plan toma forma con cada elección.</p>
 
       <Section title="Modo" onEdit={() => onEdit("mode")} editLabel="Editar modo y plataformas">
@@ -87,6 +92,7 @@ export default function DuoSummary({ session, profile, history, onEdit, onOpenHi
         <Section
           key={index}
           title={personName(person, index)}
+          seat={<SeatAvatar index={index} name={personName(person, index)} />}
           onEdit={() => onEdit(`person-${index}`)}
           editLabel={`Editar gustos de ${personName(person, index)}`}
         >

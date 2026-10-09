@@ -1,9 +1,10 @@
 /* Duo: filtros obligatorios, puntuación, dado, maratón, historial y almacenamiento. `npm test` */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { DEFAULT_DUO_SESSION, DEFAULT_PERSON } from "../data/duo.js";
+import { DEFAULT_DUO_SESSION, DEFAULT_PERSON, MAX_PEOPLE, stepsFor } from "../data/duo.js";
+import { asSession } from "../hooks/useDuoSession.js";
 import { readStorage, writeStorage, isStorageAvailable } from "../utils/storage.js";
-import { bothLiked, getDuoCandidates, setVote } from "./duoService.js";
+import { getDuoCandidates, groupLiked, groupRejected, setVote, tallyVotes } from "./duoService.js";
 import { addToHistory, asHistory, EMPTY_HISTORY, excludedGroups, restoreTitle } from "./historyService.js";
 import { getCollection, getHeroSlides, getMovies, getTasteStats } from "./movieService.js";
 import {
@@ -11,12 +12,14 @@ import {
   buildProfile,
   describeMarathon,
   diversify,
+  feedbackFrom,
   fillBoard,
   findConflicts,
   findSimilar,
   isStrict,
   MIN_RESULTS,
   NEAR_MINUTES,
+  quorum,
   removeFromMarathon,
   rankTitles,
   replaceInMarathon,
@@ -41,7 +44,7 @@ test("mismo género: todos los resultados lo tienen y lo explican", () => {
   const { items } = rank(session({ genres: ["animation"] }, { genres: ["animation"] }));
   assert.ok(items.length > 0);
   assert.ok(items.every(({ title }) => title.genreKeys.includes("animation")));
-  assert.ok(items.every((item) => item.bothPleased));
+  assert.ok(items.every((item) => item.allPleased));
   assert.equal(items[0].reasons[0], "Coincide con el género elegido por ambos: animación.");
 });
 
@@ -112,7 +115,7 @@ test("géneros incompatibles: conflicto explicado y cero resultados", () => {
   const s = session({ mustGenres: ["horror"] }, { rejectedGenres: ["horror"] });
   const conflicts = findConflicts(buildProfile(s));
   assert.equal(conflicts[0].blocking, true);
-  assert.equal(conflicts[0].text, "Terror es imprescindible para una persona y la otra lo rechaza.");
+  assert.equal(conflicts[0].text, "Terror es imprescindible para Ana y Luis lo rechaza.");
   assert.deepEqual(rank(s).items, []);
 });
 
@@ -181,7 +184,7 @@ test("duración máxima muy corta: explicada; ampliar marca la alternativa", () 
   const fits = widened.items.slice(0, widened.strict);
   assert.ok(fits.length > 0 && fits.every(({ title }) => title.runtime <= 90), "ampliado a mano: hasta 60 + 30");
   assert.ok(widened.items.every(({ title }) => title.runtime <= 90 + NEAR_MINUTES), "las que completan se pasan poco");
-  assert.equal(widened.items[0].reasons[0], "Es una alternativa porque ampliaste el rango de duración.");
+  assert.equal(widened.items[0].reasons[0], "Es una alternativa porque ampliaron el rango de duración.");
 });
 
 test("puntuación: fórmula documentada, sin porcentajes", () => {
@@ -189,8 +192,8 @@ test("puntuación: fórmula documentada, sin porcentajes", () => {
   const title = { id: "t", type: "movie", rating: 6.5, runtime: 108, popularity: 0, genreKeys: ["drama", "science-fiction"] };
   const { score, breakdown, reasons } = scoreTitle(title, profile);
   const quality = Math.round(WEIGHTS.quality * ((6.5 - 5) / 3.5) * 10) / 10;
-  assert.equal(score, WEIGHTS.genre + WEIGHTS.subgenre + WEIGHTS.compat + WEIGHTS.runtime + quality);
-  assert.deepEqual(breakdown.map(({ key }) => key), ["genre", "subgenre", "compat", "runtime", "quality"]);
+  assert.equal(score, WEIGHTS.genre + WEIGHTS.subgenre + WEIGHTS.group + WEIGHTS.runtime + quality);
+  assert.deepEqual(breakdown.map(({ key }) => key), ["genre", "subgenre", "group", "runtime", "quality"]);
   assert.ok(reasons.includes("Está dentro del límite de duración: 1 h 48 min de 2 h 10 min como máximo."));
   assert.ok(reasons.every((reason) => !reason.includes("%")));
   const recent = scoreTitle(title, profile, { recent: ["t"] });
@@ -239,7 +242,8 @@ test("rechazos, 'no me interesa', recuperar y reiniciar historial", () => {
   let votes = setVote({}, first.id, 0, "no");
   votes = setVote(votes, first.id, 1, "no");
   assert.deepEqual(votes[first.id], ["no", "no"]);
-  assert.deepEqual(bothLiked(setVote(setVote({}, "x", 0, "yes"), "x", 1, "yes")), ["x"]);
+  assert.deepEqual(groupLiked(setVote(setVote({}, "x", 0, "yes"), "x", 1, "yes")), ["x"]);
+  assert.ok(groupRejected(votes[first.id], 2));
 
   let history = addToHistory(EMPTY_HISTORY, "rejected", [first]);
   history = addToHistory(history, "notInterested", [second]);
@@ -375,4 +379,84 @@ test("inicio y perfil: carrusel, secciones personalizadas y estadísticas (catá
   assert.equal(stats.topGenre, "Drama");
   assert.equal(stats.avgRuntime, 120);
   assert.equal(stats.favoriteDecade, "Años 1990");
+});
+
+/* ---------- Grupos de 1 a MAX_PEOPLE ---------- */
+
+const group = (...people) => ({ ...DEFAULT_DUO_SESSION, people: people.map((patch, index) => person({ name: `P${index + 1}`, ...patch })) });
+const film = (id, genreKeys, extra = {}) => ({ id, type: "movie", title: id, rating: 7, votes: 1000, runtime: 100, popularity: 50, genreKeys, ...extra });
+
+test("solo: una persona, explicaciones en singular y sin 'para los dos'", () => {
+  const { items } = rank(group({ genres: ["animation"] }));
+  assert.ok(items.length > 0 && items.every((item) => !item.allPleased));
+  assert.equal(items[0].reasons[0], "Es de animación, lo que elegiste.");
+  assert.equal(items[0].seats.length, 1);
+  assert.deepEqual(stepsFor(1).map((step) => step.key), ["mode", "person-0", "seen", "common", "results", "final"]);
+});
+
+test("grupo: quórum de 2/3, 'menor descontento' y la mayoría", () => {
+  assert.deepEqual([1, 2, 3, 4, 6, 8].map(quorum), [1, 2, 2, 3, 4, 6]);
+  const s = group({ genres: ["comedy"] }, { genres: ["comedy"] }, { genres: ["comedy", "action"] }, { genres: ["drama"] });
+  const profile = buildProfile(s);
+  assert.deepEqual(profile.majority, ["comedy"], "3 de 4 eligieron comedia");
+  const titles = [film("comedia", ["comedy"]), film("comedia-drama", ["comedy", "drama"]), film("accion", ["action"])];
+  const { items, strict } = rankTitles(titles, profile, { history: EMPTY_HISTORY });
+  assert.equal(strict, 2, "comedia (3 de 4) cumple el quórum; acción (1 de 4) no");
+  assert.equal(items[0].title.id, "comedia-drama", "la que no deja a nadie fuera va primero");
+  assert.ok(items[0].allPleased);
+  assert.match(items[0].reasons[0], /^Encaja con los 4: comedia para P1, comedia para P2, comedia para P3 y también con P4\.$/);
+  const comedy = items.find((item) => item.title.id === "comedia");
+  assert.equal(comedy.reasons[0], "Encaja con P1, P2 y P3 (3 de 4).");
+  assert.ok(comedy.seats.map((seat) => seat.pleased).join() === "true,true,true,false");
+  assert.ok(items.at(-1).relaxed.includes("oneSided"), "la de acción solo completa, marcada");
+  assert.match(findConflicts(buildProfile(group({ mustGenres: ["horror"] }, { rejectedGenres: ["horror"] }, { rejectedGenres: ["horror"] })))[0].text, /para P1 y P2 y P3 lo rechazan/);
+});
+
+test("votos de la sesión: el ranking aprende (más de lo que gustó, menos de lo que no)", () => {
+  const profile = buildProfile(group({ genres: ["action", "comedy"] }, { genres: ["action", "comedy"] }));
+  const titles = [film("a", ["action"]), film("b", ["comedy"]), film("a2", ["action"]), film("b2", ["comedy"])];
+  const votes = { a: ["yes", "yes"], b: ["no", "no"], x: ["yes", "no"] };
+  const feedback = feedbackFrom(votes, titles);
+  assert.deepEqual([feedback.liked.map((t) => t.id), feedback.disliked.map((t) => t.id)], [["a"], ["b"]], "empate = neutro; ids sin título se ignoran");
+  const before = rankTitles(titles, profile, { history: EMPTY_HISTORY });
+  const after = rankTitles(titles, profile, { history: EMPTY_HISTORY, feedback });
+  const scoreOf = (result, id) => result.items.find((item) => item.title.id === id).score;
+  assert.ok(scoreOf(after, "a2") > scoreOf(before, "a2") && scoreOf(after, "b2") < scoreOf(before, "b2"));
+  assert.ok(after.items.find((item) => item.title.id === "a2").reasons.includes("Se parece a «a», que les gustó."));
+  assert.ok(groupLiked({ t: ["yes", "yes", "yes"], u: ["yes", "yes"] }, 3).join() === "t", "todas las personas, no solo dos");
+});
+
+test("estrenos: bonus y motivo verificable", () => {
+  const profile = buildProfile(group({ genres: ["drama"] }));
+  const fresh = scoreTitle(film("new", ["drama"], { releaseDate: "2026-06-01", year: "2026" }), profile, { now: "2026-10-09" });
+  const old = scoreTitle(film("old", ["drama"], { releaseDate: "2010-06-01", year: "2010" }), profile, { now: "2026-10-09" });
+  assert.equal(Math.round((fresh.score - old.score) * 10) / 10, WEIGHTS.fresh);
+  assert.ok(fresh.reasons.includes("Es un estreno reciente (2026)."));
+});
+
+test("sesión guardada: de 1 a MAX_PEOPLE personas y pasos de cada una", () => {
+  assert.equal(asSession({ people: [{ name: "Sola" }] }).people.length, 1);
+  assert.equal(asSession({ people: Array.from({ length: 12 }, () => ({})) }).people.length, MAX_PEOPLE);
+  assert.equal(asSession({}).people.length, 2, "por defecto, en pareja");
+  assert.equal(asSession({ people: [{}, {}, {}], step: "person-2" }).step, "person-2");
+  assert.equal(asSession({ people: [{}, {}], step: "person-2" }).step, "mode", "un paso que no existe vuelve al inicio");
+});
+
+test("ronda de votación: match primero, luego puntos; empate = orden recomendado", () => {
+  const items = ["a", "b", "c", "d"].map((id) => ({ title: { id } }));
+  const votes = { a: ["later", "yes", "no"], b: ["yes", "yes", "yes"], c: ["yes", "later", "later"], d: ["later", "yes"] };
+  const rows = tallyVotes(items, votes, 3);
+  assert.deepEqual(rows.map((row) => row.item.title.id), ["b", "c", "a", "d"]);
+  assert.deepEqual([rows[0].match, rows[0].points, rows[3].list], [true, 6, ["later", "yes", null]]);
+});
+
+test("reparto justo: desde el 2.º puesto, quien aún no tiene una opción suya recibe una", () => {
+  const profile = buildProfile(group({ genres: ["comedy"] }, { genres: ["comedy"] }, { genres: ["comedy", "horror"] }, { genres: ["horror"] }));
+  const titles = [
+    ...["c1", "c2", "c3", "c4"].map((id) => film(id, ["comedy"], { rating: 8.5 })),
+    film("h1", ["horror", "thriller"], { rating: 6 }),
+  ];
+  const strict = rankTitles(titles, { ...profile, relax: { ...profile.relax, oneSided: true } }, { history: EMPTY_HISTORY }).items;
+  assert.equal(strict[0].title.id.startsWith("c"), true, "la mejor sigue primero");
+  assert.equal(strict[1].title.id, "h1", "después, algo para P4 (terror) antes que otra comedia");
 });

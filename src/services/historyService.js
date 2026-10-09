@@ -3,7 +3,7 @@
    Lo persiste useDuoHistory en localStorage ("cinehub-duo-history").
 
    seen           vistas ("Ya la vimos" o "Marcar como vista")
-   rejected       rechazadas (las dos personas votaron ❌)
+   rejected       rechazadas (todas las personas votaron ❌)
    notInterested  "No me interesa"
    recent         recomendadas hace poco: no se excluyen, bajan de puesto
                   y el dado las evita
@@ -74,7 +74,7 @@ export function excludedGroups(history) {
   return [
     { key: "seen-movie", label: "Películas vistas", items: seenOf("movie") },
     { key: "seen-tv", label: "Series vistas", items: seenOf("tv") },
-    { key: "rejected", label: "Rechazadas por los dos", items: current.rejected.map(entry) },
+    { key: "rejected", label: "Rechazadas por todos", items: current.rejected.map(entry) },
     { key: "notInterested", label: "No nos interesan", items: current.notInterested.map(entry) },
   ];
 }

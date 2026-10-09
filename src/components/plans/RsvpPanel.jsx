@@ -31,7 +31,7 @@ export default function RsvpPanel({ plan, voter }) {
             type="button"
             className={`rsvp-btn${current === option.key ? " selected" : ""}`}
             aria-pressed={current === option.key}
-            onClick={() => respondToPlan(plan.id, voter, option.key)}
+            onClick={() => respondToPlan(plan, voter, option.key)}
           >
             {option.button}
           </button>

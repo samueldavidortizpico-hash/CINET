@@ -2,7 +2,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { findMovie, getMovies, getShowtimes, queryMovies } from "./movieService.js";
-import { buildPlan, filterPlans, getPlanStats, getRsvpStatus, isUpcoming, recommendedStart, setRsvp, validatePlan } from "./planService.js";
+import { buildPlan, describeStart, filterPlans, getPlanStats, getRsvpStatus, isUpcoming, recommendedStart, setRsvp, to24h, toStartParts, validatePlan } from "./planService.js";
+import { isRemoteId, toPlanError, toUiPlan } from "./planRepository.js";
 import { hasErrors, normalizeProfile, validateForm, validateProfile } from "../utils/validation.js";
 
 test("catálogo: buscar, filtrar y ordenar", async () => {
@@ -69,4 +70,30 @@ test("perfil: mismas reglas que los CHECK de public.profiles", () => {
   assert.ok(validateProfile({ avatar_url: "http://img.test/a.png" }).avatar_url);
   assert.ok(validateProfile({ display_name: "x".repeat(61) }).display_name);
   assert.ok(validateProfile({ bio: "x".repeat(281) }).bio);
+});
+
+test("planes compartidos: hora en 24 h, zona del plan y forma para la interfaz", () => {
+  assert.deepEqual(["5:15 PM", "12:00 AM", "12:30 PM", "20:30", "8:05", "25:00", "mañana"].map(to24h), ["17:15", "00:00", "12:30", "20:30", "08:05", null, null]);
+  assert.deepEqual(toStartParts({ dateISO: "2026-10-17", time: "8:00 PM" }), { dateISO: "2026-10-17", time: "20:00" });
+  // 01:30 UTC del 18 = 20:30 del 17 en Bogotá (UTC-5): la fecha no se corre de día.
+  assert.deepEqual(describeStart("2026-10-18T01:30:00Z", "America/Bogota"), { date: "Sábado, 17 de octubre", dateISO: "2026-10-17", time: "20:30" });
+  assert.equal(describeStart(null).date, "Fecha por definir");
+
+  const row = {
+    id: "11111111-2222-4333-8444-555555555555", owner_id: "A", name: "Viernes", message: "", mode: "cinema", title_id: "dune",
+    title: { title: "Dune", year: "2021" }, place: { name: "Cinemark", location: "Bogotá", url: "https://www.cinemark.com.co/" },
+    starts_at: "2026-10-18T01:30:00Z", time_zone: "America/Bogota", time_source: "organizer", details: {}, status: "active", version: 3,
+    plan_members: [
+      { user_id: "B", role: "member", display_name: "Sam", rsvp: "maybe" },
+      { user_id: "A", role: "owner", display_name: "Sam", rsvp: "yes" },
+    ],
+  };
+  const asB = toUiPlan(row, "B");
+  assert.deepEqual([asB.isOwner, asB.myRsvp, asB.organizer, asB.time, asB.version], [false, "maybe", "Sam", "20:30", 3]);
+  assert.deepEqual(asB.rsvp, { yes: ["Sam"], maybe: ["Sam"], no: [] }, "dos personas con el mismo nombre siguen siendo dos");
+  assert.equal(toUiPlan(row, "A").isOwner, true);
+  assert.equal(isRemoteId(row.id), true);
+  assert.equal(isRemoteId("cinehub-1727000000000"), false);
+  assert.deepEqual([toPlanError({ code: "CN410", message: "Esta invitación caducó." }).code, toPlanError({ code: "CN410", message: "Esta invitación caducó." }).message], ["CN410", "Esta invitación caducó."]);
+  assert.equal(toPlanError({ code: "PGRST301", message: "JWT expired detalle interno" }).code, "network", "errores técnicos sin detalles");
 });

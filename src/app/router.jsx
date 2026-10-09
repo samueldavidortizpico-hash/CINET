@@ -1,21 +1,25 @@
+/* eslint-disable react-refresh/only-export-components -- exporta el router, no componentes: el fast refresh no aplica aquí. */
+import { lazy } from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import Layout from "../components/layout/Layout.jsx";
 import ProtectedRoute from "../components/ProtectedRoute.jsx";
-import AboutPage from "../pages/AboutPage.jsx";
-import AdminPage from "../pages/AdminPage.jsx";
-import CreatePlanPage from "../pages/CreatePlanPage.jsx";
-import CinemaPage from "../pages/CinemaPage.jsx";
-import CinemaTicketsPage from "../pages/CinemaTicketsPage.jsx";
-import DashboardPage from "../pages/DashboardPage.jsx";
-import DuoPage from "../pages/DuoPage.jsx";
-import FunctionsPage from "../pages/FunctionsPage.jsx";
 import HomePage from "../pages/HomePage.jsx";
-import MovieDetailPage from "../pages/MovieDetailPage.jsx";
-import MoviesPage from "../pages/MoviesPage.jsx";
-import MyPlansPage from "../pages/MyPlansPage.jsx";
 import NotFoundPage from "../pages/NotFoundPage.jsx";
-import PlanPage from "../pages/PlanPage.jsx";
-import ProfilePage from "../pages/ProfilePage.jsx";
+
+// El inicio llega en el bundle principal; el resto de páginas se descargan al visitarlas (Layout pone el Suspense).
+const AboutPage = lazy(() => import("../pages/AboutPage.jsx"));
+const AdminPage = lazy(() => import("../pages/AdminPage.jsx"));
+const CreatePlanPage = lazy(() => import("../pages/CreatePlanPage.jsx"));
+const CinemaPage = lazy(() => import("../pages/CinemaPage.jsx"));
+const CinemaTicketsPage = lazy(() => import("../pages/CinemaTicketsPage.jsx"));
+const DashboardPage = lazy(() => import("../pages/DashboardPage.jsx"));
+const DuoPage = lazy(() => import("../pages/DuoPage.jsx"));
+const FunctionsPage = lazy(() => import("../pages/FunctionsPage.jsx"));
+const MovieDetailPage = lazy(() => import("../pages/MovieDetailPage.jsx"));
+const MoviesPage = lazy(() => import("../pages/MoviesPage.jsx"));
+const MyPlansPage = lazy(() => import("../pages/MyPlansPage.jsx"));
+const PlanPage = lazy(() => import("../pages/PlanPage.jsx"));
+const ProfilePage = lazy(() => import("../pages/ProfilePage.jsx"));
 
 // handle.page → atributo data-page del Layout, que activa los estilos de esa página.
 const page = (name) => ({ handle: { page: name } });

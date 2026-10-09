@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from "react";
-import { DEFAULT_DUO_SESSION, DEFAULT_MARATHON, DEFAULT_PERSON, DUO_SESSION_KEY, MODES, STEPS } from "../data/duo.js";
+import { DEFAULT_DUO_SESSION, DEFAULT_MARATHON, DEFAULT_PERSON, DUO_SESSION_KEY, MAX_PEOPLE, MODES, stepsFor } from "../data/duo.js";
 import { useLocalStorage } from "./useLocalStorage.js";
 
 const isObject = (value) => Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -26,11 +26,13 @@ function asPerson(value) {
 /** Sesión guardada (quizá de la versión anterior o dañada) → sesión válida. */
 export function asSession(value) {
   const stored = isObject(value) ? value : {};
-  const people = [0, 1].map((index) => asPerson(asList(stored.people)[index]));
+  const saved = asList(stored.people).slice(0, MAX_PEOPLE);
+  const people = (saved.length ? saved : DEFAULT_DUO_SESSION.people).map(asPerson);
+  const steps = stepsFor(people.length);
   return {
     ...DEFAULT_DUO_SESSION,
-    step: STEPS.some(({ key }) => key === stored.step) ? stored.step : DEFAULT_DUO_SESSION.step,
-    reached: Math.min(asNumber(stored.reached, 0), STEPS.length - 1),
+    step: steps.some(({ key }) => key === stored.step) ? stored.step : DEFAULT_DUO_SESSION.step,
+    reached: Math.min(asNumber(stored.reached, 0), steps.length - 1),
     mode: MODES.some(({ key }) => key === stored.mode) ? stored.mode : DEFAULT_DUO_SESSION.mode,
     marathon: { ...DEFAULT_MARATHON, ...(isObject(stored.marathon) ? stored.marathon : {}) },
     region: typeof stored.region === "string" ? stored.region : DEFAULT_DUO_SESSION.region,

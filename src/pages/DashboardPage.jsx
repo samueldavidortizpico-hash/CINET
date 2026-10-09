@@ -25,7 +25,7 @@ export default function DashboardPage() {
 
   // Favoritas locales y de TMDB (guardadas desde Duo o la búsqueda global).
   const { data: favoriteMovies = [] } = useAsync(favorites.join(","), () => getMoviesByIds(favorites));
-  const ownPlans = plans.filter((plan) => plan.ownerEmail === user.email).reverse();
+  const ownPlans = plans.filter((plan) => plan.isOwner).reverse();
   const featuredIds = Array.isArray(heroPreferences?.featuredIds) ? heroPreferences.featuredIds : [];
   const featuredMovies = featuredIds.map((id) => allMovies.find((movie) => movie.id === id)).filter(Boolean);
   const availableMovies = allMovies.filter((movie) => !featuredIds.includes(movie.id));

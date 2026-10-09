@@ -6,21 +6,26 @@
    Sin token, todo rechaza con code "no-token" y los servicios usan
    el catálogo local. La carga por componente la expone useAsync.
 
-   ⚠️ Variables VITE_* = visibles en el bundle del navegador.
-   Futuro backend: apuntar VITE_TMDB_API_URL a un proxy propio que
-   añada el token en el servidor y dejar VITE_TMDB_READ_TOKEN vacío.
+   En el navegador TMDB se consulta SIEMPRE por el proxy del servidor
+   (/api/tmdb, ver server/tmdbProxy.js): el token nunca viaja en el
+   bundle. Solo Node (scripts y pruebas) usa el token directo
+   (TMDB_READ_TOKEN). Si el servidor no tiene token, el proxy responde
+   "no-token" y la app usa el catálogo local.
    ========================================================= */
 
+import { clientEnv } from "../utils/env.js";
 import { readStorage, writeStorage } from "../utils/storage.js";
 
 const DEFAULT_URL = "https://api.themoviedb.org/3";
-
-// Vite inyecta import.meta.env; en Node (scripts, `node --env-file=.env`) se usa process.env.
-const env = import.meta.env ?? globalThis.process?.env ?? {};
+const inBrowser = typeof window !== "undefined";
+const nodeEnv = inBrowser ? {} : (globalThis.process?.env ?? {});
 
 const config = {
-  token: env.VITE_TMDB_READ_TOKEN ?? "",
-  baseUrl: env.VITE_TMDB_API_URL || DEFAULT_URL,
+  token: nodeEnv.TMDB_READ_TOKEN || nodeEnv.VITE_TMDB_READ_TOKEN || "",
+  // En el navegador, una URL directa a TMDB no sirve (no hay token): se usa el proxy.
+  baseUrl: inBrowser
+    ? (clientEnv.TMDB_API_URL && clientEnv.TMDB_API_URL !== DEFAULT_URL ? clientEnv.TMDB_API_URL : "/api/tmdb")
+    : nodeEnv.TMDB_API_URL || DEFAULT_URL,
   language: "es-MX",
   timeout: 8000,
   retryDelay: 1000,
@@ -117,6 +122,10 @@ async function send(url, retries = 1) {
     await wait(config.retryDelay);
     return send(url, retries - 1);
   }
+  if (response.status === 503) {
+    const body = await response.json().catch(() => null);
+    if (body?.error?.code === "no-token") throw new TmdbError("no-token", "El catálogo en vivo no está configurado en el servidor.", 503);
+  }
   if (response.status === 401) throw new TmdbError("auth", "El token de TMDB no es válido (401).", 401);
   if (response.status === 404) throw new TmdbError("not-found", "TMDB no encontró ese recurso (404).", 404);
   if (response.status === 429) throw new TmdbError("rate-limit", "Demasiadas consultas a TMDB; intenta en unos segundos.", 429);
@@ -148,9 +157,10 @@ function loadOffline(key) {
 
 /** GET a TMDB con cache. Los parámetros vacíos se omiten; los errores no se cachean. */
 export function tmdbRequest(path, params = {}, ttl = SHORT_TTL) {
-  if (!isTmdbEnabled()) return Promise.reject(new TmdbError("no-token", "Falta VITE_TMDB_READ_TOKEN."));
+  if (!isTmdbEnabled()) return Promise.reject(new TmdbError("no-token", "Falta TMDB_READ_TOKEN."));
 
-  const url = new URL(`${config.baseUrl}${path}`);
+  // El proxy puede ser una ruta relativa (/api/tmdb): se resuelve contra el origen de la página.
+  const url = new URL(`${config.baseUrl}${path}`, globalThis.location?.origin ?? "http://localhost");
   for (const [key, value] of Object.entries({ language: config.language, ...params })) {
     if (value !== undefined && value !== null && value !== "") url.searchParams.set(key, value);
   }
@@ -167,6 +177,7 @@ export function tmdbRequest(path, params = {}, ttl = SHORT_TTL) {
       return data;
     } catch (error) {
       cache.delete(key);
+      if (error.code === "no-token") setStatus({ state: "local", code: error.code, message: error.message });
       if (!CONNECTION_ERRORS.includes(error.code)) throw error;
       // TMDB caído o sin red: la última respuesta buena guardada, si existe.
       const saved = error.code !== "auth" && loadOffline(key);

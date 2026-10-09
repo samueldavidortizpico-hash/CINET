@@ -1,14 +1,12 @@
 import Button from "../common/Button.jsx";
-import { useAuth } from "../../hooks/useAuth.js";
 import { usePlans } from "../../hooks/usePlans.js";
 import { useReveal } from "../../hooks/useReveal.js";
 import { useShare } from "../../hooks/useShare.js";
 import { useToast } from "../../hooks/useToast.js";
-import { canManagePlan, getPlanStats, getShareText, isUpcoming, marathonTitles } from "../../services/planService.js";
+import { getPlanStats, getShareText, isUpcoming, marathonTitles } from "../../services/planService.js";
 import { appUrl } from "../../utils/share.js";
 
 export default function PlanCard({ plan }) {
-  const { user } = useAuth();
   const { deletePlan } = usePlans();
   const { showToast } = useToast();
   const share = useShare();
@@ -20,8 +18,7 @@ export default function PlanCard({ plan }) {
 
   const handleDelete = () => {
     if (!window.confirm(`¿Seguro que quieres eliminar "${plan.name}"?`)) return;
-    deletePlan(plan.id);
-    showToast("🗑️ Plan eliminado");
+    deletePlan(plan).then(() => showToast("🗑️ Plan eliminado"), (error) => showToast(error.message));
   };
 
   return (
@@ -50,7 +47,7 @@ export default function PlanCard({ plan }) {
         <Button variant="secondary" onClick={handleShare}>
           📤 Compartir
         </Button>
-        {canManagePlan(plan, user) && (
+        {plan.isOwner && (
           <button type="button" className="delete-plan" onClick={handleDelete}>
             🗑️ Eliminar
           </button>

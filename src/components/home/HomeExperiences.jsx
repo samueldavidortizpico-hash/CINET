@@ -32,10 +32,10 @@ export function DuoSpotlight() {
     <section ref={ref} className={`duo-spotlight ${revealClass}`} aria-labelledby="duo-spotlight-title" {...sceneMotion}>
       <div className="duo-spotlight-copy">
         <p className="landing-eyebrow"><Icon name="heart" /> CINET DUO</p>
-        <h2 id="duo-spotlight-title">Dos gustos.<br /><span>Una gran película.</span></h2>
-        <p>Menos «elige tú». Más darle al play. Combinen sus gustos y descubran qué ver juntos.</p>
-        <Link className="btn duo-spotlight-cta" to="/duo">Encontrar nuestra película <Icon name="arrow" /></Link>
-        <span className="duo-spotlight-note">DOS OPINIONES. UNA GRAN ELECCIÓN.</span>
+        <h2 id="duo-spotlight-title">Todos los gustos.<br /><span>Una gran película.</span></h2>
+        <p>Menos «elige tú». Más darle al play. Solo, en pareja o con hasta 8 personas: Duo cruza los gustos de todos y encuentra qué ver.</p>
+        <Link className="btn duo-spotlight-cta" to="/duo">Encontrar qué ver <Icon name="arrow" /></Link>
+        <span className="duo-spotlight-note">MUCHAS OPINIONES. UNA ELECCIÓN JUSTA.</span>
       </div>
       <div className="duo-art" aria-hidden="true">
         <span className="duo-art-aura duo-art-aura-one" /><span className="duo-art-aura duo-art-aura-two" />

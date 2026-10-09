@@ -14,6 +14,7 @@ import tmdbIds from "../data/tmdbIds.json" with { type: "json" };
 import { PLATFORMS } from "../data/platforms.js";
 import { CINEMAS, MONTHS, SHOW_TIMES, WEEKDAYS } from "../data/showtimes.js";
 import { getHeroPreferences } from "./heroPreferences.js";
+import { clientEnv } from "../utils/env.js";
 import { GENRES, genreKeysFor, genreLabel } from "../data/tmdb.js";
 import {
   discoverMovies,
@@ -28,7 +29,7 @@ import {
   tmdbImage,
 } from "./tmdbClient.js";
 
-const BASE_URL = import.meta.env?.BASE_URL ?? "/";
+const BASE_URL = clientEnv.BASE_URL ?? "/";
 
 // Enlaces antiguos (pelicula.html?id=spiderman) → id actual del catálogo.
 const ALIASES = { spiderman: "spider-man-no-way-home", batman: "the-batman" };
