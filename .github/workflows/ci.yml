@@ -1,0 +1,43 @@
+# Calidad en cada push y pull request. No usa secretos de producción:
+# la app se prueba en modo local (sin TMDB ni Supabase) y la base de datos con PGlite.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - name: Pruebas unitarias, proxy TMDB y permisos SQL (PGlite)
+        run: npm test
+      - name: Build (falla si un secreto llega al bundle)
+        run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - name: Recorrido E2E en modo local
+        run: npm run test:e2e
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7

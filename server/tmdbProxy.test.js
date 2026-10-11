@@ -30,6 +30,9 @@ test("parámetros validados: desconocidos, page, búsqueda, append y contenido a
   assert.equal((await get(proxy, "/discover/movie", { with_genres: "28<script>" })).status, 400);
   assert.equal((await get(proxy, "/search/multi", { query: "x".repeat(101) })).status, 400);
   assert.equal((await get(proxy, "/movie/1", { append_to_response: "credits,account_states" })).status, 400);
+  assert.equal((await get(proxy, "/find/tt0816692", { external_source: "imdb_id" })).status, 200, "importar CSV de IMDb");
+  assert.equal((await get(proxy, "/find/tt0816692", { external_source: "facebook_id" })).status, 400);
+  assert.equal((await get(proxy, "/find/nm0000123", { external_source: "imdb_id" })).status, 404, "solo títulos");
   assert.equal((await get(proxy, "/search/multi", { query: "spider-man: un nuevo universo", include_adult: "true", page: "2" })).status, 200);
   const sent = new URL(calls.at(-1).url);
   assert.equal(sent.origin, "https://api.themoviedb.org", "el host siempre es TMDB");

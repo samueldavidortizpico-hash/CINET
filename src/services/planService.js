@@ -18,15 +18,26 @@ export function toPlanMovie(movie) {
     title: movie.title,
     year: movie.year,
     duration: movie.duration,
+    runtime: movie.runtime ?? null, // minutos: el evento de calendario dura lo real
     rating: movie.rating,
     genres: movie.genre ? [movie.genre] : [],
     image: movie.poster,
   };
 }
 
-export function validatePlan({ name = "", organizer = "" }) {
+/** Presupuesto aproximado por persona (lo estima quien organiza; no es un precio verificado). "45.000" → 45000. */
+export function parseBudget(text) {
+  const digits = String(text ?? "").replace(/\D/g, "");
+  if (!digits) return null;
+  const value = Number(digits);
+  return value > 0 && value <= 2_000_000 ? value : NaN;
+}
+export const formatBudget = (value) => `$${new Intl.NumberFormat("es-CO").format(value)}`;
+
+export function validatePlan({ name = "", organizer = "", budget = "" }) {
   if (!name.trim()) return { field: "name", message: "Escribe un nombre para el plan." };
   if (!organizer.trim()) return { field: "organizer", message: "Escribe tu nombre." };
+  if (Number.isNaN(parseBudget(budget))) return { field: "budget", message: "El presupuesto va en pesos por persona, hasta $2.000.000." };
   return null;
 }
 
@@ -45,10 +56,12 @@ export function buildPlan(selection, form, owner = null, now = new Date()) {
     time: selection.time,
     // Plan en casa (streaming): plataforma en cinema.name, ambiente y comida sugerida.
     mode: selection.mode ?? "cinema",
+    timeSource: selection.timeSource ?? "organizer",
     ambience: selection.ambience ?? null,
     food: selection.food ?? null,
     duration: selection.duration ?? selection.movie.duration ?? null,
     marathon: selection.marathon ?? null, // maratón de Duo: [{ id, title, minutes, episodes }]
+    budget: parseBudget(form.budget) || null, // estimación por persona de quien organiza
     createdAt: now.toISOString(),
     rsvp: { yes: [organizer], maybe: [], no: [] },
   };

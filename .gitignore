@@ -142,5 +142,11 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
 
-# Artefactos locales de pruebas con Playwright MCP
+# Artefactos locales de pruebas con Playwright MCP y Playwright Test
 .playwright-mcp/
+test-results/
+playwright-report/
+
+
+# Respaldos del catálogo (npm run catalog:snapshot): datos de TMDB, no se versionan
+snapshots/

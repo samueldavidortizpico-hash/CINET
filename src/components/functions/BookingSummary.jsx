@@ -6,7 +6,7 @@ export default function BookingSummary({ movie, cinema, date, time, onContinue, 
     ["🎬 Película", movie.title],
     [placeLabel, cinema && `${cinema.name} · ${cinema.location}`],
     ["📅 Fecha", date?.label],
-    ["🕐 Hora", time],
+    ["🕐 Hora propuesta", time],
     ...extraRows.filter(([, value]) => value),
   ];
 
@@ -14,7 +14,7 @@ export default function BookingSummary({ movie, cinema, date, time, onContinue, 
     <aside className="booking-summary">
       <div>
         <span className="section-kicker">TU SELECCIÓN</span>
-        <h2>Resumen de la función</h2>
+        <h2>Resumen del plan</h2>
       </div>
 
       <div className="summary-details">

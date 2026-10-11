@@ -5,7 +5,7 @@ import { useShare } from "../../hooks/useShare.js";
 import { addToHistory, removeFromHistory } from "../../services/historyService.js";
 import { appUrl } from "../../utils/share.js";
 
-/** inCinemas: se abrió desde la cartelera (/cine) → "Ver película" lleva a escoger el cine para comprar boletas. */
+/** Disponibilidad y cartelera abren servicios externos; CINET no reproduce el título. */
 export default function MovieActions({ movie, inCinemas = false, onOpenTrailer, onOpenWatch }) {
   const { isFavorite, toggleFavorite } = useFavorites();
   const share = useShare();
@@ -18,7 +18,7 @@ export default function MovieActions({ movie, inCinemas = false, onOpenTrailer, 
   const handleShare = () =>
     share({
       title: `${movie.title} — CINET`,
-      text: `Mira ${movie.title} en CINET.`,
+      text: `Descubre ${movie.title} y prepara un plan con CINET.`,
       url: appUrl(`movie/${movie.id}`),
     });
 
@@ -38,26 +38,26 @@ export default function MovieActions({ movie, inCinemas = false, onOpenTrailer, 
       </button>
 
       {inCinemas ? (
-        <Link id="watch-button" className="watch-btn" to={`/cine/${movie.id}`} aria-label="Ver película en cines: escoger el cine para comprar boletas">
+        <Link id="watch-button" className="watch-btn" to={`/cine/${movie.id}`} aria-label="Consultar cartelera en los sitios oficiales de los cines">
           <span aria-hidden="true">🎟️</span>
-          Ver película
+          Consultar cartelera
         </Link>
       ) : (
         <button
           id="watch-button"
           type="button"
           className="watch-btn"
-          aria-label="Ver película en plataformas de streaming"
+          aria-label="Consultar dónde verla en plataformas de streaming"
           onClick={onOpenWatch}
         >
           <span aria-hidden="true">🎬</span>
-          Ver película
+          Dónde verla
         </button>
       )}
 
-      <Link className="movie-action movie-action-primary" to={`/functions?movie=${movie.id}`}>
-        🎟️ Ver funciones
-      </Link>
+      {movie.type !== "tv" && <Link className="movie-action movie-action-primary" to={`/functions?movie=${movie.id}`}>
+        🎟️ Organizar salida al cine
+      </Link>}
 
       <button
         type="button"
@@ -72,12 +72,9 @@ export default function MovieActions({ movie, inCinemas = false, onOpenTrailer, 
         {seen ? "👀 Ya la vi" : "👀 Marcar como vista"}
       </button>
 
-      {/* En cartelera aún no está en streaming: sin "Plan en casa". */}
-      {!inCinemas && (
-        <Link className="movie-action" to={`/functions?movie=${movie.id}&mode=home`}>
-          🏠 Plan en casa
-        </Link>
-      )}
+      <Link className="movie-action" to={`/functions?movie=${movie.id}&mode=home`}>
+        🏠 Plan en casa
+      </Link>
 
       <button type="button" className="movie-action" onClick={handleShare}>
         ↗ Compartir

@@ -358,6 +358,31 @@ button.person-chip span { display: grid; }
 .plan-mode { display: flex; flex-wrap: wrap; gap: 10px; margin: 24px 0 8px; }
 .plan-mode .filter-btn { min-height: 46px; padding: 0 22px; font-size: 0.9rem; }
 .plan-note { margin: 0 0 14px; color: var(--text-soft); }
+.plan-note a { color: var(--pink-light); font-weight: 700; text-underline-offset: 3px; }
+
+/* Avisos de planes: modo local, plan cancelado e importación a la cuenta. */
+.plan-mode-notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin: 0 0 20px;
+  padding: 14px 18px;
+  border: 1px solid color-mix(in srgb, var(--yellow) 35%, var(--border));
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  color: var(--text-soft);
+  text-wrap: pretty;
+}
+.plan-mode-notice .btn { min-height: 40px; padding: 0 16px; }
+.plan-mode-notice.is-cancelled { border-color: color-mix(in srgb, var(--pink) 35%, var(--border)); }
+.plan-import { display: grid; justify-items: start; }
+.plan-import strong { color: var(--text); }
+.plan-import p { margin: 0; }
+.plan-import ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.plan-import label { display: flex; align-items: center; gap: 10px; min-height: 40px; cursor: pointer; }
+.plan-import input { width: 18px; height: 18px; accent-color: var(--pink); }
+.my-plans .error-message { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; color: #ff668e; }
 
 .ambience-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: 12px; }
 

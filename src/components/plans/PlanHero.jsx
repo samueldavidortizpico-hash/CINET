@@ -1,13 +1,14 @@
 import PosterImage from "../common/PosterImage.jsx";
-import { getPlanPoster, marathonTitles } from "../../services/planService.js";
+import { formatBudget, getPlanPoster, marathonTitles } from "../../services/planService.js";
 
 /** Cabecera del plan. `children` recibe acciones extra (p. ej. editar). */
 export default function PlanHero({ plan, children }) {
   const details = [
     plan.marathon ? ["🍿 Maratón", marathonTitles(plan)] : ["🎬 Película", plan.movie.title],
-    [plan.mode === "home" ? "📺 Dónde" : "📍 Cine", `${plan.cinema.name} · ${plan.cinema.location}`],
+    [plan.mode === "home" ? "📺 Dónde" : "📍 Cine", [plan.cinema.name, plan.cinema.location].filter(Boolean).join(" · ")],
     ["📅 Fecha", plan.date],
-    ["🕐 Hora", plan.time],
+    // La hora la propone quien organiza; solo una función confirmada por el cine se muestra como "Función".
+    [plan.timeSource === "showtime" ? "🕐 Función" : "🕐 Hora propuesta", plan.time || "Por definir"],
     ["👤 Organizador", plan.organizer],
     ...(plan.mode === "home"
       ? [
@@ -16,6 +17,7 @@ export default function PlanHero({ plan, children }) {
           ["🍕 Comida", plan.food],
         ].filter(([, value]) => value)
       : []),
+    ...(plan.budget ? [["💰 Presupuesto aprox.", `${formatBudget(plan.budget)} por persona · estimado`]] : []),
   ];
 
   return (
@@ -39,6 +41,14 @@ export default function PlanHero({ plan, children }) {
             </div>
           ))}
         </div>
+
+        {plan.mode === "cinema" && plan.cinema.url && (
+          <p className="plan-note">
+            <a href={plan.cinema.url} target="_blank" rel="noreferrer">
+              Consultar funciones en {plan.cinema.name} (sitio oficial) ↗
+            </a>
+          </p>
+        )}
 
         {children}
       </div>

@@ -23,12 +23,10 @@ export default function PlanCard({ plan }) {
 
   return (
     <article ref={ref} className={`plan-card ${revealClass}`}>
-      <span className="status">{isUpcoming(plan) ? "🟢 PRÓXIMO" : "⚪ ANTERIOR"}</span>
+      <span className="status">{plan.status === "cancelled" ? "⛔ CANCELADO" : isUpcoming(plan) ? "🟢 PRÓXIMO" : "⚪ ANTERIOR"}</span>
       <h3>{plan.name || "Plan de cine"}</h3>
       <p>{plan.marathon ? `🍿 Maratón: ${marathonTitles(plan)}` : `🎬 ${plan.movie?.title ?? "Película"}`}</p>
-      <p>
-        📍 {plan.cinema?.name} · {plan.cinema?.location}
-      </p>
+      <p>📍 {[plan.cinema?.name, plan.cinema?.location].filter(Boolean).join(" · ")}</p>
       <p>
         📅 {plan.date} · 🕐 {plan.time}
       </p>
@@ -44,9 +42,12 @@ export default function PlanCard({ plan }) {
         <Button variant="primary" to={`/plan/${plan.id}`}>
           👀 Ver plan
         </Button>
-        <Button variant="secondary" onClick={handleShare}>
-          📤 Compartir
-        </Button>
+        {/* Un plan de cuenta es privado: se invita con enlace desde su página, no compartiendo su URL. */}
+        {!plan.remote && (
+          <Button variant="secondary" onClick={handleShare}>
+            📤 Compartir
+          </Button>
+        )}
         {plan.isOwner && (
           <button type="button" className="delete-plan" onClick={handleDelete}>
             🗑️ Eliminar

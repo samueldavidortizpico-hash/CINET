@@ -16,7 +16,19 @@ function hitText(seat) {
   return listEs(parts.filter(Boolean));
 }
 
-const short = (seat) => (!seat.expressed ? "le vale cualquiera" : seat.pleased ? hitText(seat) : seat.tone.length ? "solo el tono" : "no es lo suyo");
+// La similitud con su calibración se muestra como dato ("parecida a…"), no como gusto declarado.
+const short = (seat) =>
+  !seat.expressed
+    ? seat.like
+      ? `parecida a «${seat.like}»`
+      : "le vale cualquiera"
+    : seat.pleased
+      ? hitText(seat)
+      : seat.like
+        ? `no es su género, pero parecida a «${seat.like}»`
+        : seat.tone.length
+          ? "solo el tono"
+          : "no es lo suyo";
 const fitState = (seat) => (!seat ? "open" : !seat.expressed ? "open" : seat.pleased ? "lit" : seat.tone.length ? "dim" : "off");
 
 /**

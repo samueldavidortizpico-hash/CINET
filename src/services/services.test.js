@@ -4,6 +4,14 @@ import assert from "node:assert/strict";
 import { findMovie, getMovies, getShowtimes, queryMovies } from "./movieService.js";
 import { buildPlan, describeStart, filterPlans, getPlanStats, getRsvpStatus, isUpcoming, recommendedStart, setRsvp, to24h, toStartParts, validatePlan } from "./planService.js";
 import { isRemoteId, toPlanError, toUiPlan } from "./planRepository.js";
+import { toAppUser } from "./authService.js";
+
+test("cuenta: un invitado sin email no rompe la app ni pasa por cuenta permanente", () => {
+  assert.deepEqual(toAppUser({ id: "g", email: "", is_anonymous: true, user_metadata: { name: "Ana" } }), { id: "g", email: null, guest: true, name: "Ana" });
+  assert.equal(toAppUser({ id: "g", email: null, is_anonymous: true, user_metadata: {} }).name, "Invitado");
+  assert.deepEqual(toAppUser({ id: "u", email: "sam@cinet.co", user_metadata: {} }), { id: "u", email: "sam@cinet.co", guest: false, name: "sam" });
+  assert.equal(toAppUser(null), null);
+});
 import { hasErrors, normalizeProfile, validateForm, validateProfile } from "../utils/validation.js";
 
 test("catálogo: buscar, filtrar y ordenar", async () => {

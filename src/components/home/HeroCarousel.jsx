@@ -12,7 +12,7 @@ import { useSceneMotion } from "../../hooks/useSceneMotion.js";
 import { useSceneVisibility } from "../../hooks/useSceneVisibility.js";
 import { HERO_PREFERENCES_KEY } from "../../services/heroPreferences.js";
 import { getHeroSlides, getMovieById } from "../../services/movieService.js";
-import { titleMeta } from "../../services/recommender.js";
+import { titleMeta } from "../../utils/titleMeta.js";
 import { fallbackPoster } from "../../utils/poster.js";
 
 const INTERVAL = 7000; // tiempo para leer título, datos y sinopsis

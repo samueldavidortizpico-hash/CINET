@@ -1,0 +1,200 @@
+ M .env.example
+ M .gitignore
+ M AI-LOG.md
+ M README.md
+ M docs/IMPLEMENTACION-CINET.md
+ M docs/PROMPT-CODEX-CINET.md
+ M graphify-out/.graphify_labels.json
+ M graphify-out/.graphify_labels.json.sig
+ M graphify-out/2026-10-09/.graphify_labels.json
+ M graphify-out/2026-10-09/GRAPH_REPORT.md
+ M graphify-out/2026-10-09/graph.json
+ M graphify-out/2026-10-09/manifest.json
+ M graphify-out/GRAPH_REPORT.md
+ M graphify-out/cache/last_query_stamp
+ M graphify-out/cache/stat-index.json
+ M graphify-out/graph.html
+ M graphify-out/graph.json
+ M graphify-out/manifest.json
+ M index.html
+ M package-lock.json
+ M package.json
+ M scripts/tmdb-live.mjs
+ M server/tmdbProxy.js
+ M server/tmdbProxy.test.js
+ M src/app/router.jsx
+ M src/components/auth/ProfileCard.jsx
+ M src/components/duo/DuoFinal.jsx
+ M src/components/duo/DuoIntro.jsx
+ M src/components/duo/DuoModeStep.jsx
+ M src/components/duo/DuoResults.jsx
+ M src/components/duo/DuoSeenStep.jsx
+ M src/components/duo/DuoSummary.jsx
+ M src/components/functions/BookingSummary.jsx
+ M src/components/home/HeroCarousel.jsx
+ M src/components/layout/Footer.jsx
+ M src/components/layout/UserMenu.jsx
+ M src/components/movie-detail/MovieActions.jsx
+ M src/components/movies/MovieCard.jsx
+ M src/components/plans/PlanCard.jsx
+ M src/components/plans/PlanForm.jsx
+ M src/components/plans/PlanHero.jsx
+ M src/components/plans/RsvpPanel.jsx
+ M src/context/AuthContext.jsx
+ M src/context/PlanContext.jsx
+ M src/data/duo.js
+ M src/data/showtimes.js
+ M src/hooks/useDuoSession.js
+ M src/main.jsx
+ M src/pages/AdminPage.jsx
+ M src/pages/CinemaPage.jsx
+ M src/pages/CinemaTicketsPage.jsx
+ M src/pages/CreatePlanPage.jsx
+ M src/pages/DuoPage.jsx
+ M src/pages/FunctionsPage.jsx
+ M src/pages/HomePage.jsx
+ M src/pages/MyPlansPage.jsx
+ M src/pages/PlanPage.jsx
+ M src/pages/ProfilePage.jsx
+ M src/services/analytics.js
+ M src/services/authService.js
+ M src/services/duoService.js
+ M src/services/movieService.js
+ M src/services/planRepository.js
+ M src/services/planService.js
+ M src/services/recommender.js
+ M src/services/services.test.js
+ M src/styles/components/app.css
+ M src/styles/components/experience.css
+ M src/styles/index.css
+ M src/styles/pages/cine.css
+ M src/styles/pages/create-plan.css
+ M src/styles/pages/duo-intro.css
+ M src/styles/pages/plan.css
+ M supabase/tests/plans.test.js
+ M vercel.json
+ M vite.config.js
+?? .github/
+?? api/billing-webhook.js
+?? api/og.js
+?? api/partner-webhook.js
+?? docs/.git-status-inicial-2026-10-10.txt
+?? docs/ANALITICA.md
+?? docs/COSTOS-Y-MERCADO.md
+?? docs/DUO-EXPERIENCIA-2026-10-09.md
+?? docs/PILOTO-CINES.md
+?? docs/PROMPT-CLAUDE-CINET.md
+?? docs/PROMPT-DUO-EXPERIENCIA-AVANZADA.md
+?? e2e/
+?? "ecure TMDB proxy and shared plans implementation\357\200\242"
+?? graphify-out/2026-10-10/
+?? graphify-out/cache/ast/v0.9.57-s2/0a56f6eb9d12b57ef05a1da55180f09833b098be15e16b756e5ee0c1bb4250eb.json
+?? graphify-out/cache/ast/v0.9.57-s2/0a9ea769b66c6a658c5f84f15521d6643483c7789653c3239ba559264dad4222.json
+?? graphify-out/cache/ast/v0.9.57-s2/0c1169399168135ce82fc0f52d9721e9d4f7085b659064a56472f79e6f9551f6.json
+?? graphify-out/cache/ast/v0.9.57-s2/0cd1f5c91bfcd3e7eff9ade9b52babb9519c9ad14367c5cdbc5a342178a26a1b.json
+?? graphify-out/cache/ast/v0.9.57-s2/0e52476b7477b383ccf20f8f4eb101d6486c6fceac768d0f72b7fb8874fa23ba.json
+?? graphify-out/cache/ast/v0.9.57-s2/1985af01a68a1cad9556e991bafeb4c9352c5ad59fc2e955bbec3c531462b500.json
+?? graphify-out/cache/ast/v0.9.57-s2/1e900b84d43e587c447d19552a5389011968fc65bf2b6ea7a4452eec817c0e4e.json
+?? graphify-out/cache/ast/v0.9.57-s2/2072d35ba3210f2b90173b4524ef6c3d3b67f17cddfa289c29c33f930405cef7.json
+?? graphify-out/cache/ast/v0.9.57-s2/2576fcd4abfea4847e82a03703569163a4c50e1f045d8292ea1c0a8616a13fd1.json
+?? graphify-out/cache/ast/v0.9.57-s2/274167dbf3626cf0314163c3b092966ef9c47d8531b187c60f5e7e4e31abb038.json
+?? graphify-out/cache/ast/v0.9.57-s2/282ddcabcfd1fe6793963ca23cfd8853e354e39c9cdcd6b7eae501733a6ab779.json
+?? graphify-out/cache/ast/v0.9.57-s2/2b1cbfb748493cacafe1c186a94f98784cbecb48d2b41c42230d9c11b2c121c1.json
+?? graphify-out/cache/ast/v0.9.57-s2/30fc1b1821a1cf47f0b2f72ffcc4671ae35fd65c3d09a63400c5e81c4a1fbd51.json
+?? graphify-out/cache/ast/v0.9.57-s2/49b9af783fce8b3d8c7f91edbd0dd8a69a46bf53d77ab7dddea022faf8381330.json
+?? graphify-out/cache/ast/v0.9.57-s2/564b91f6e0a2c73b1dcd4c8a09555cd2be6e4905339b1a7ba929efef7264e4c7.json
+?? graphify-out/cache/ast/v0.9.57-s2/59f80081c7a952e3ed42e9e88e06c3fde3fa723560b3a1e5bd7e91b842f3832a.json
+?? graphify-out/cache/ast/v0.9.57-s2/5b2a3edce4f5928cfb3bb2d8185671e7fd33f327fc83b231faf4351aed170a98.json
+?? graphify-out/cache/ast/v0.9.57-s2/61c61c55189fd1aa744c201735d041540f9d8da36d0404382f2878a9801acc19.json
+?? graphify-out/cache/ast/v0.9.57-s2/68342dd9e34550e70cd459785ccfb3699de483a53d8849b5521c288cc5070adb.json
+?? graphify-out/cache/ast/v0.9.57-s2/74839edc39fbd9fca9f6d9ba9fbf968c9eeb863e2b48a8f536e3dd1e35950054.json
+?? graphify-out/cache/ast/v0.9.57-s2/75664ec8febbe759caa04fa401154b5b8083acb0c77f92701dcbf894a4d77e13.json
+?? graphify-out/cache/ast/v0.9.57-s2/7aba00b0ebcd4e0204b11641f94235b3832813d9a721c881dd1fd4aab89f6ea5.json
+?? graphify-out/cache/ast/v0.9.57-s2/8e6337d0fe3039302b9d34aff0af6d1be95562c444926a4d61542e661e8140d3.json
+?? graphify-out/cache/ast/v0.9.57-s2/9a7c55671ec1ddb479366de073bbf7462cbec68e5889bb6aca7bd6cb235779e9.json
+?? graphify-out/cache/ast/v0.9.57-s2/9e12577ead6d1ba281045658146906c978431babeca42af288a5e6d3fd372406.json
+?? graphify-out/cache/ast/v0.9.57-s2/a3eb53a4977b0916dfc45c5014ae70af6a4ba5bf6a6cdd2f3b99400612f44635.json
+?? graphify-out/cache/ast/v0.9.57-s2/a94140d5666b406b604b31f1a144559d544933e423a80db295b7d6f7ee18fa28.json
+?? graphify-out/cache/ast/v0.9.57-s2/abff849bdca6916c0b6a09b0c58045d64809c0ba89023212546c19b07f2aa971.json
+?? graphify-out/cache/ast/v0.9.57-s2/ae539c38535065464f39b20a87ef916d9820b475688f4daa5952f21870080089.json
+?? graphify-out/cache/ast/v0.9.57-s2/b4d9757b9d1cd09c7bbfe2611eaaacebe63e5a1f0a154e8ccfe3cbccec729c00.json
+?? graphify-out/cache/ast/v0.9.57-s2/ba9e6ffc1838bd62e99b63a3429b6dc6d5356c34d4ee879ff2f9b971fbcbbaf7.json
+?? graphify-out/cache/ast/v0.9.57-s2/c239cc41b913e4be0dd51a8431c5789e2c4208fffe599bc920b262882761ecc4.json
+?? graphify-out/cache/ast/v0.9.57-s2/c715ec3bedbb72316e5dfc0fec8b26748421ade245d5bbf048b2ca35f13f2db1.json
+?? graphify-out/cache/ast/v0.9.57-s2/cc429a65cabfca66b00f8c8e29ec71b223310480d77eb2451140c1dbb16b312a.json
+?? graphify-out/cache/ast/v0.9.57-s2/d04d38e18b524ccf9efcd33aa1f7baa26ccf6be16f0dacab33af214c70102ce6.json
+?? graphify-out/cache/ast/v0.9.57-s2/d1c527b8e9f6b478b9c220d9f2c8edbba99647c51cf2f4fbf87cce39e7421e71.json
+?? graphify-out/cache/ast/v0.9.57-s2/d48694dd5901fe79cebd9f65855528b8aed5ba8b40c5713b3947e3e6562ce7f5.json
+?? graphify-out/cache/ast/v0.9.57-s2/d4b53608bba8d0bfece067b8373e1f6f27047257288ba752a346e89646039cea.json
+?? graphify-out/cache/ast/v0.9.57-s2/d59680efe82da9082cbdfabe49e08aab6eb48d705b449852e92b093ce66bb5d2.json
+?? graphify-out/cache/ast/v0.9.57-s2/de9f0aec657a5998a9f38fc1fd78a8d2311643ce07f7b79fbcbba1de6bfc021f.json
+?? graphify-out/cache/ast/v0.9.57-s2/e0b9f5f5318dda6cb34a4ae720ee71fbe6168a02ab57948a5ff3f62beb588507.json
+?? graphify-out/cache/ast/v0.9.57-s2/e838c547636e3f9b3631b464d33914c47d367bae8c60dd4279436c66f6de8da7.json
+?? graphify-out/cache/ast/v0.9.57-s2/eef5a8f1a018b563915303b6e1fa1f60634beea5dc41db6f9943ee1acd7dd992.json
+?? playwright.config.js
+?? public/icon-192.png
+?? public/icon-512.png
+?? public/icon-maskable-512.png
+?? public/manifest.webmanifest
+?? public/og-cinet.png
+?? public/sw.js
+?? scripts/catalog-snapshot.mjs
+?? server/billingWebhook.js
+?? server/billingWebhook.test.js
+?? server/ogMeta.js
+?? server/ogMeta.test.js
+?? server/partnerWebhook.js
+?? server/partnerWebhook.test.js
+?? src/components/auth/PreferencesPanel.jsx
+?? src/components/cine/
+?? src/components/common/AnalyticsConsent.jsx
+?? src/components/duo/DuoShortlist.jsx
+?? src/components/duo/TasteFields.jsx
+?? src/components/duo/duoExperience.ui.test.mjs
+?? src/components/plans/PlanGroupPanel.jsx
+?? src/components/plans/PlanTimePoll.jsx
+?? src/hooks/useAccountPreferences.js
+?? src/pages/DuoRoomPage.jsx
+?? src/pages/GroupsPage.jsx
+?? src/pages/ImportPage.jsx
+?? src/pages/InvitePage.jsx
+?? src/pages/PartnerPage.jsx
+?? src/pages/PlusPage.jsx
+?? src/pages/RecapPage.jsx
+?? src/services/csvImport.js
+?? src/services/csvImport.test.js
+?? src/services/duoExperience.js
+?? src/services/duoExperience.test.js
+?? src/services/duoRoom.js
+?? src/services/duoRoom.test.js
+?? src/services/fairness.js
+?? src/services/fairness.test.js
+?? src/services/family.test.js
+?? src/services/groupRepository.js
+?? src/services/naturalQuery.js
+?? src/services/naturalQuery.test.js
+?? src/services/partnerRepository.js
+?? src/services/plusRepository.js
+?? src/services/preferencesRepository.js
+?? src/services/recap.js
+?? src/services/recap.test.js
+?? src/services/roomRepository.js
+?? src/services/showtimeService.js
+?? src/services/showtimeService.test.js
+?? src/styles/pages/duo-experience.css
+?? src/styles/pages/duo-room.css
+?? src/utils/calendar.js
+?? src/utils/calendar.test.js
+?? src/utils/titleMeta.js
+?? supabase/migrations/20261010120000_duo_rooms.sql
+?? supabase/migrations/20261011120000_user_preferences.sql
+?? supabase/migrations/20261012120000_groups.sql
+?? supabase/migrations/20261013120000_plan_time_poll.sql
+?? supabase/migrations/20261014120000_partners.sql
+?? supabase/migrations/20261015120000_plus_sandbox.sql
+?? supabase/tests/groups.test.js
+?? supabase/tests/partners.test.js
+?? supabase/tests/plus.test.js
+?? supabase/tests/preferences.test.js
+?? supabase/tests/rooms.test.js
+?? supabase/tests/time-poll.test.js

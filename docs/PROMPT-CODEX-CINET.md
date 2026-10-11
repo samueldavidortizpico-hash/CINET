@@ -1,5 +1,7 @@
 # Prompt de ejecución para Codex: CINET
 
+> Para continuar el trabajo ya iniciado por Claude, usa `docs/PROMPT-CLAUDE-CINET.md`: incorpora los pendientes verificados y las nuevas propuestas. Este archivo conserva la especificación original; su estado de partida es histórico y debe revalidarse.
+
 Puedes copiar todo este archivo a Codex o pedirle que lo lea y lo ejecute desde el checkout de CINET. La estrategia complementaria está en `docs/CINET-ESTRATEGIA-2026-10-09.md`.
 
 ---

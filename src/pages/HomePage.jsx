@@ -40,6 +40,7 @@ export default function HomePage() {
         />
         <DuoSpotlight />
         <CollectionSection collection="top-rated" kicker="LAS MEJORES" title="De esas que dejan huella" />
+        <CollectionSection collection="colombia" kicker="CINE COLOMBIANO" title="Hecho en Colombia" />
         <CollectionSection collection="upcoming" kicker="EN COLOMBIA" title="Lo que viene a la gran pantalla" />
         <CollectionSection collection="popular-tv" kicker="PARA MARATONEAR" title="Solo un capítulo más" />
         <CollectionSection

@@ -449,6 +449,15 @@ a.watch-btn { text-decoration: none; }
     scroll-behavior: auto !important;
   }
 }
+/* «Menos movimiento» elegido en CINET (usePrefersReducedMotion → html[data-motion]): mismo efecto. */
+html[data-motion="reduced"] *,
+html[data-motion="reduced"] *::before,
+html[data-motion="reduced"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
 
 /* ---------- Marca CINET: vector nítido y contraste propio de cada tema ---------- */
 .logo-brand::before { content: none; }

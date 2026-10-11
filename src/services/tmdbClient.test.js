@@ -230,12 +230,16 @@ test("tmdb: Duo pide solo el tipo elegido, con los filtros obligatorios en el se
     people: [{ ...DEFAULT_PERSON, genres: ["science-fiction"] }, { ...DEFAULT_PERSON, rejectedGenres: ["horror"], maxRuntime: 160 }],
   };
   const profile = buildProfile(session);
-  const { source, titles } = await getDuoCandidates(profile);
+  const { source, titles, stats } = await getDuoCandidates(profile);
   assert.equal(source, "tmdb");
   assert.ok(!api.calls.some((url) => url.pathname.endsWith("/discover/tv")), "no mezcla series");
   const discover = api.calls.filter((url) => url.pathname.endsWith("/discover/movie"));
-  // Primera ronda (tope pedido: 130 min); con menos de MIN_RESULTS válidos, segunda ronda con +30 min.
-  const first = discover.filter((url) => url.searchParams.get("with_runtime.lte") === "130");
+  // Con menos de MIN_RESULTS válidos hay segunda ronda: MÁS PÁGINAS con los MISMOS límites (nunca +minutos).
+  assert.ok(discover.every((url) => url.searchParams.get("with_runtime.lte") === "130"), "los límites no se amplían para rellenar");
+  const param = (url, key) => url.searchParams.get(key);
+  const isWide = (url) =>
+    (param(url, "sort_by") === "popularity.desc" && ["4", "5", "6"].includes(param(url, "page"))) || param(url, "vote_count.gte") === "500" || (param(url, "vote_count.lte") === "2500" && param(url, "page") === "2");
+  const first = discover.filter((url) => !isWide(url));
   const tag = (url) => (url.searchParams.get("with_original_language") ? "+intl" : url.searchParams.get("primary_release_date.gte") ? "+fresh" : "");
   const origins = first.map((url) => url.searchParams.get("sort_by") + tag(url));
   assert.deepEqual(origins.sort(), [
@@ -247,8 +251,9 @@ test("tmdb: Duo pide solo el tipo elegido, con los filtros obligatorios en el se
     "vote_average.desc",
     "vote_average.desc+intl",
   ]);
-  const wide = discover.filter((url) => url.searchParams.get("with_runtime.lte") === "160");
-  assert.ok(wide.length > 0 && wide.length + first.length === discover.length, "segunda ronda más amplia");
+  assert.ok(discover.some(isWide), "segunda ronda: más páginas");
+  assert.deepEqual([stats.discovered, stats.enriched], [3, 3], "se mide cuánto se revisó y comprobó");
+  assert.ok(stats.requests > 0 && Number.isFinite(stats.ms));
   const params = first[0].searchParams;
   assert.equal(params.get("with_genres"), "878");
   assert.equal(params.get("without_genres"), "16|27|99", "rechazado (terror) + animación y documental, que nadie eligió");
@@ -261,10 +266,9 @@ test("tmdb: Duo pide solo el tipo elegido, con los filtros obligatorios en el se
 
   const history = addToHistory(EMPTY_HISTORY, "rejected", ["tmdb-movie-3"]);
   const { items, strict, rejectedBy } = rankTitles(titles, profile, { history });
-  assert.deepEqual(items.map((item) => item.title.id), ["tmdb-movie-1", "tmdb-movie-2"]);
+  assert.deepEqual(items.map((item) => item.title.id), ["tmdb-movie-1"], "la de Netflix no completa: la plataforma marcada es un límite");
   assert.equal(strict, 1);
   assert.deepEqual(rejectedBy, { platform: 1, history: 1 }, "fuera la que no está en Prime y la rechazada");
-  assert.equal(items[1].reasons[0], "Es una alternativa: puede no estar en sus plataformas.", "la de Netflix solo completa, marcada");
   assert.deepEqual(items[0].reasons, [
     "Coincide con ciencia ficción, que eligió Persona 1.",
     "Está dentro del límite de duración: 1 h 58 min de 2 h 10 min como máximo.",

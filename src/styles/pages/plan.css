@@ -197,6 +197,114 @@
     margin-top: 2rem;
   }
 
+  /* Invitaciones, personas y acciones del plan compartido. */
+  .plan-invite-link {
+    display: grid;
+    gap: .4rem;
+    margin: 1.5rem 0 0;
+    color: #9992a5;
+    font-size: .85rem;
+  }
+
+  .plan-invite-link input,
+  .invite-form input {
+    width: 100%;
+    min-height: 46px;
+    padding: 0 1rem;
+    border: 1px solid #3a3348;
+    border-radius: 12px;
+    background: #211d2b;
+    color: white;
+    font: inherit;
+  }
+
+  .plan-invite-link input:focus-visible,
+  .invite-form input:focus-visible {
+    outline: none;
+    border-color: #e50914;
+    box-shadow: 0 0 0 3px rgba(229, 9, 20, .15);
+  }
+
+  .plan-invite-list,
+  .plan-member-list {
+    margin: 1.25rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .plan-invite-list li,
+  .plan-member-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    min-height: 48px;
+    padding: .6rem 0;
+    border-bottom: 1px solid #302a38;
+    color: #c7c2d1;
+    font-size: .9rem;
+  }
+
+  .plan-member-list li span { color: white; font-weight: 700; }
+
+  .plan-invite-list .duo-link,
+  .plan-member-list .duo-link { min-height: 40px; flex: none; }
+
+  .plan-danger-zone {
+    justify-content: flex-end;
+    padding-top: 1.5rem;
+    border-top: 1px solid #302a38;
+  }
+
+  .plan-edit-button { margin-top: 1.5rem; }
+  .plan-hero-actions { flex-wrap: wrap; margin-top: 1.5rem; }
+  .plan-hero-actions .plan-edit-button { margin-top: 0; }
+  .plan-hero-actions + .plan-note { margin: .75rem 0 0; font-size: .85rem; }
+
+  .invite-form {
+    display: grid;
+    gap: 1rem;
+    max-width: 420px;
+    margin-top: 1.5rem;
+  }
+
+  .invite-form .form-group { display: grid; gap: .4rem; }
+  .invite-form label { color: #9992a5; font-size: .85rem; }
+  .invite-form .btn { justify-self: start; }
+  .error-message { color: #ff668e; font-size: .85rem; }
+
+  /* Encuesta de horarios */
+  .plan-poll-options { margin: 1rem 0; padding: 0; list-style: none; display: grid; gap: .6rem; }
+  .plan-poll-options li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; padding: .75rem 1rem; border: 1px solid #332d3d; border-radius: 12px; background: #211d2b; }
+  .plan-poll-options label { display: flex; align-items: center; gap: .75rem; min-height: 44px; cursor: pointer; }
+  .plan-poll-options input { width: 20px; height: 20px; accent-color: #e50914; }
+  .plan-poll-options span { display: grid; gap: .15rem; }
+  .plan-poll-options small { color: #9992a5; }
+  .plan-poll-form { display: grid; gap: .75rem; }
+
+  /* Grupo y repetir plan */
+  .plan-group-share,
+  .plan-group-fixed,
+  .plan-group-repeat { display: grid; gap: .6rem; justify-items: start; margin-top: 1.25rem; }
+  .plan-group-share label,
+  .plan-group-fixed label,
+  .plan-group-when span { color: #9992a5; font-size: .85rem; }
+  .plan-group-share select,
+  .plan-group-fixed select,
+  .plan-group-when input {
+    min-height: 46px;
+    padding: 0 1rem;
+    border: 1px solid #3a3348;
+    border-radius: 12px;
+    background: #211d2b;
+    color: white;
+    font: inherit;
+  }
+  .plan-group-when { display: flex; flex-wrap: wrap; gap: 1rem; }
+  .plan-group-when label { display: grid; gap: .4rem; }
+  .plan-group-repeat h3,
+  .plan-group-fixed h3 { margin: .5rem 0 0; }
+
   @media (max-width:700px) {
 
     .plan-hero-card {
@@ -227,3 +335,8 @@
 
   }
 }
+
+/* Después de la función: autoinforme opcional y recuerdo revisable antes de compartir. */
+.plan-memory { margin: 18px 0 0; }
+.plan-memory figcaption { color: var(--text-muted); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.plan-memory blockquote { margin: 10px 0 12px; padding: 12px 14px; border-left: 3px solid var(--yellow); border-radius: 6px; background: var(--surface-2); font-size: 1rem; line-height: 1.5; }

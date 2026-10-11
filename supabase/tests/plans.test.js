@@ -139,6 +139,14 @@ test("invitado anónimo: se une y responde, pero no organiza", async () => {
   assert.deepEqual(await visiblePlans(), [plan]);
 });
 
+test("un cambio de miembro «toca» el plan: Realtime avisa sin publicar plan_members", async () => {
+  await as(db, A);
+  const before = (await db.query("select updated_at from public.plans where id = $1", [plan])).rows[0].updated_at;
+  await rpc(db, "set_plan_rsvp", [plan, "maybe"]); // solo escribe en plan_members
+  const after = (await db.query("select updated_at from public.plans where id = $1", [plan])).rows[0].updated_at;
+  assert.ok(after > before, "updated_at avanza con la respuesta");
+});
+
 test("cancelar bloquea respuestas e invitaciones; solo el dueño elimina", async () => {
   await as(db, A);
   const invite = (await rpc(db, "create_plan_invite", [plan, 7, null])).create_plan_invite;

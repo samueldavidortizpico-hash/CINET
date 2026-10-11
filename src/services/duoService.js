@@ -5,11 +5,15 @@
    Con TMDB: /discover del tipo elegido (nunca se mezclan) con los filtros
    obligatorios ya aplicados en el servidor (géneros, rechazados, duración,
    estado, plataformas), de varias fuentes para tener variedad: populares,
-   estrenos del último año, joyas poco vistas, internacionales y con sus actores. Los mejores se
-   completan con disponibilidad por región y detalle (duración exacta,
-   temporadas, estado, saga, keywords). Si con eso menos de MIN_RESULTS
-   cumplen todo, una segunda ronda más amplia (más páginas, imprescindibles
-   "cualquiera", +NEAR_MINUTES) trae material para las alternativas.
+   estrenos del último año, joyas poco vistas, internacionales y con sus actores.
+   Cada candidato lleva qué comprobó discover (runtimeCap, filtered.*) para que
+   el motor distinga un dato comprobado de uno desconocido.
+   Si menos de MIN_RESULTS cumplen todo, una segunda ronda trae MÁS PÁGINAS con
+   los MISMOS límites (nunca se amplían para rellenar).
+   Enriquecimiento (disponibilidad + detalle) progresivo y con presupuesto:
+   primero se descartan duplicados, vistos y quitados; luego tandas de
+   ENRICH_BATCH de los mejor puestos hasta tener suficientes válidos o llegar a
+   ENRICH_BUDGET. Si la consulta queda obsoleta (signal), no se lanzan más tandas.
    Sin token o ante un error: el catálogo local de movieService.
    ========================================================= */
 
@@ -17,7 +21,7 @@ import { FORMAT_GENRES, SERIES_STATUS, VOTE_POINTS } from "../data/duo.js";
 import { PLATFORMS } from "../data/platforms.js";
 import { GENRES } from "../data/tmdb.js";
 import { fromTmdb, getMovies, toISODate } from "./movieService.js";
-import { MIN_RESULTS, NEAR_MINUTES, rankTitles } from "./recommender.js";
+import { MIN_RESULTS, rankTitles } from "./recommender.js";
 import {
   discoverMovies,
   discoverTv,
@@ -25,9 +29,12 @@ import {
   getTitleSummary,
   getTitleWatchProviders,
   isTmdbEnabled,
+  tmdbCounts,
 } from "./tmdbClient.js";
 
-const ENRICH = 40; // candidatos que consultan disponibilidad y detalle (cubre el tablero de MIN_RESULTS)
+const ENRICH_BATCH = 8; // títulos por tanda (≈16 consultas; el cliente limita la concurrencia a 6)
+const ENRICH_BUDGET = 40; // máximo de títulos enriquecidos por búsqueda
+const ENRICH_ENOUGH = 12; // con tantos válidos ya comprobados hay tablero y finalistas
 const MAX_CAST_SOURCES = 4;
 const MAX_PAIR_SOURCES = 4;
 const MAX_SAGAS = 3;
@@ -55,6 +62,9 @@ function discoverParams(profile) {
     "with_runtime.gte": cap ? 1 : undefined, // descarta duraciones desconocidas (0)
     "with_runtime.lte": cap,
     with_status: type === "tv" ? SERIES_STATUS[profile.seriesStatus]?.code : undefined,
+    // Modo familia: lista exacta ("G|PG"); un título sin clasificación en ese país no coincide.
+    certification_country: profile.family ? profile.family.country : undefined,
+    certification: profile.family ? profile.family.certifications.join("|") : undefined,
     [`${date}.lte`]: toISODate(new Date()), // solo estrenados
   };
 }
@@ -85,7 +95,7 @@ function pairSources(profile, pages = [1]) {
     .map((genres) => ({ origin: "pair", pages, params: { sort_by: "popularity.desc", "vote_count.gte": 50, with_genres: genres } }));
 }
 
-/** Segunda ronda: más páginas y lo mejor valorado, con los filtros ampliados de wideParams. */
+/** Segunda ronda: más páginas y lo mejor valorado, con los mismos límites. */
 function wideSources(profile) {
   return [
     { origin: "popular", pages: [4, 5, 6], params: { sort_by: "popularity.desc", "vote_count.gte": 50 } },
@@ -93,13 +103,6 @@ function wideSources(profile) {
     { origin: "gem", pages: [2], params: { sort_by: "vote_average.desc", "vote_count.gte": 150, "vote_count.lte": 2500 } },
     ...pairSources(profile, [2]),
   ];
-}
-
-/** Imprescindibles "cualquiera" en vez de "todos" y NEAR_MINUTES más: material para alternativas. */
-function wideParams(profile, base) {
-  const must = genreIds(profile.must, profile.type);
-  const cap = base["with_runtime.lte"];
-  return { ...base, with_genres: must.length > 1 ? must.join("|") : base.with_genres, "with_runtime.lte": cap && cap + NEAR_MINUTES };
 }
 
 /** Hace un año (AAAA-MM-DD): desde ahí cuenta como estreno. */
@@ -132,18 +135,22 @@ function sources(profile) {
   ];
 }
 
-/** Disponibilidad en la región + duración exacta, temporadas, estado, saga y keywords. */
-function enrich(titles, region) {
+/** Disponibilidad en la región + duración exacta, temporadas, estado, saga y keywords. stats.enrichFailed cuenta fallos. */
+function enrich(titles, region, stats = {}) {
   return Promise.all(
     titles.map(async (title) => {
+      const failed = () => {
+        stats.enrichFailed = (stats.enrichFailed ?? 0) + 1;
+        return null;
+      };
       const [watch, summary] = await Promise.all([
-        getTitleWatchProviders(title.type, title.tmdbId, region).catch(() => null),
-        getTitleSummary(title.type, title.tmdbId).catch(() => null),
+        getTitleWatchProviders(title.type, title.tmdbId, region).catch(failed),
+        getTitleSummary(title.type, title.tmdbId).catch(failed),
       ]);
       const detail = summary ? fromTmdb(summary, title.type) : {};
       return {
         ...title,
-        providers: watch?.providers ?? null,
+        providers: watch?.providers ?? null, // null = disponibilidad desconocida (no "no está")
         region,
         runtime: detail.runtime ?? title.runtime,
         seasons: detail.seasons ?? title.seasons,
@@ -183,12 +190,14 @@ async function sagaParts(enriched, all, region) {
 
 async function fetchSources(list, base, profile, required = false) {
   const discover = profile.type === "tv" ? discoverTv : discoverMovies;
+  // Lo que discover ya comprobó en el servidor: cuenta como dato comprobado mientras no llegue el detalle.
+  const filtered = { providers: Boolean(base.with_watch_providers), status: Boolean(base.with_status) };
   const batches = await Promise.all(
     list.flatMap(({ origin, pages, params, castMatch }) =>
       pages.map((page) =>
         discover({ ...base, ...params }, page).then(
           ({ results }) =>
-            results.map((raw) => ({ ...fromTmdb(raw, profile.type), origin, runtimeCap: base["with_runtime.lte"], castMatch })),
+            results.map((raw) => ({ ...fromTmdb(raw, profile.type), origin, runtimeCap: base["with_runtime.lte"], filtered, castMatch })),
           // Solo la primera página de populares es obligatoria; las demás pueden fallar sin romper Duo.
           (error) => {
             if (required && origin === "popular" && page === 1) throw error;
@@ -201,34 +210,63 @@ async function fetchSources(list, base, profile, required = false) {
   return batches.flat();
 }
 
-async function discoverForDuo(profile, saga) {
+async function discoverForDuo(profile, saga, { history, removed, signal, stats }) {
   const base = discoverParams(profile);
-  // Sin historial ni plataformas: aún no se conocen.
-  const rank = (list) => rankTitles(list, { ...profile, providers: [] }, {});
+  // Antes del detalle: con historial y quitados (no se gasta detalle en lo que el ranking final excluye).
+  const rank = (list) => rankTitles(list, profile, { history, removed });
   let titles = uniqueById(await fetchSources(sources(profile), base, profile, true));
-  if (rank(titles).strict < MIN_RESULTS) {
-    const wide = await fetchSources(wideSources(profile), wideParams(profile, base), profile);
-    titles = uniqueById([...wide, ...titles]); // con ids repetidos gana la primera ronda (su tope de duración es el pedido)
+  if (rank(titles).strict < MIN_RESULTS && !signal?.aborted) {
+    const wide = await fetchSources(wideSources(profile), base, profile);
+    titles = uniqueById([...titles, ...wide]);
   }
-  // Se enriquecen los que mejor encajan: primero los que cumplen todo.
-  const { items } = rank(titles);
-  const top = new Set(items.slice(0, ENRICH).map(({ title }) => title.id));
-  const enriched = await enrich(titles.filter((title) => top.has(title.id)), profile.region);
-  const rest = titles.filter((title) => !top.has(title.id));
-  const parts = saga && profile.type === "movie" ? await sagaParts(enriched, titles, profile.region) : [];
+  stats.discovered = titles.length;
+
+  // Enriquecimiento progresivo: tandas de los mejor puestos hasta tener suficientes válidos comprobados.
+  const done = new Map();
+  while (done.size < ENRICH_BUDGET && !signal?.aborted) {
+    const current = titles.map((title) => done.get(title.id) ?? title);
+    const ranked = rank(current);
+    const verified = ranked.items.filter((item) => done.has(item.title.id) && !item.relaxed.length).length;
+    if (verified >= ENRICH_ENOUGH) break;
+    const next = ranked.items.map(({ title }) => title).filter((title) => !done.has(title.id)).slice(0, Math.min(ENRICH_BATCH, ENRICH_BUDGET - done.size));
+    if (!next.length) break;
+    (await enrich(next, profile.region, stats)).forEach((title) => done.set(title.id, title));
+  }
+  stats.enriched = done.size;
+  const enriched = [...done.values()];
+  const rest = titles.filter((title) => !done.has(title.id));
+  // Las partes de una saga no pasan por el filtro de clasificación: en modo familia no se añaden.
+  const parts = saga && profile.type === "movie" && !profile.family && !signal?.aborted ? await sagaParts(enriched, titles, profile.region) : [];
   return [...enriched, ...rest, ...parts]; // las partes van al final: con ids repetidos gana su colección de TMDB
 }
 
-/** → { source: "tmdb" | "local", notice?, titles }. Sin token, sin red o con error: catálogo local. */
-export async function getDuoCandidates(profile, { saga = false } = {}) {
+/**
+ * → { source: "tmdb" | "local" | "family", notice?, titles, stats }. Sin token, sin red o con error: catálogo local.
+ * stats (sin datos personales): { discovered, enriched, enrichFailed, requests, reused, ms } — requests/reused son
+ * aproximados: el contador del cliente TMDB es global.
+ * signal: AbortSignal de una búsqueda que quedó obsoleta (no se lanzan más tandas de detalle).
+ */
+export async function getDuoCandidates(profile, { saga = false, history, removed = [], signal } = {}) {
+  const started = Date.now();
+  const before = tmdbCounts();
+  const stats = { discovered: 0, enriched: 0, enrichFailed: 0 };
+  const finish = (result) => {
+    const after = tmdbCounts();
+    return { ...result, stats: { ...stats, requests: after.requests - before.requests, reused: after.reused - before.reused, ms: Date.now() - started } };
+  };
+  // Modo familia: solo con clasificación comprobable. Sin ella no se muestra nada (desconocida ≠ apta).
+  const unverifiable = (reason) => finish({ source: "family", notice: `${reason} En modo familia no mostramos títulos cuya clasificación no podemos comprobar.`, titles: [] });
+  if (profile.family && profile.type === "tv") return unverifiable("TMDB no permite filtrar series por clasificación por edad.");
   if (isTmdbEnabled()) {
     try {
-      return { source: "tmdb", titles: await discoverForDuo(profile, saga) };
+      return finish({ source: "tmdb", titles: await discoverForDuo(profile, saga, { history, removed, signal, stats }) });
     } catch (error) {
-      return { source: "local", notice: `${error.message} Usamos el catálogo de CINET.`, titles: await getMovies() };
+      if (profile.family) return unverifiable(error.message);
+      return finish({ source: "local", notice: `${error.message} Usamos el catálogo de CINET.`, titles: await getMovies() });
     }
   }
-  return { source: "local", titles: await getMovies() };
+  if (profile.family) return unverifiable("El catálogo local no trae clasificación por edad.");
+  return finish({ source: "local", titles: await getMovies() });
 }
 
 /* ---------- Votación ---------- */

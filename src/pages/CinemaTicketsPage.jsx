@@ -1,9 +1,11 @@
 import { Link, useParams } from "react-router-dom";
+import PartnerListings from "../components/cine/PartnerListings.jsx";
 import { CINEMA_CHAINS } from "../data/showtimes.js";
 import { useDocumentTitle } from "../hooks/useDocumentTitle.js";
 import { useMovie } from "../hooks/useMovie.js";
 import { useToast } from "../hooks/useToast.js";
-import { titleMeta } from "../services/recommender.js";
+import { track } from "../services/analytics.js";
+import { titleMeta } from "../utils/titleMeta.js";
 import { fallbackPoster } from "../utils/poster.js";
 
 /** /cine/:id — escoger la cadena de cine; cada una abre su página oficial para comprar boletas. */
@@ -63,6 +65,8 @@ export default function CinemaTicketsPage() {
             </div>
           </div>
 
+          <PartnerListings titleId={movie.id} />
+
           <div className="cine-chains">
             <h2>¿En qué cine la quieres ver?</h2>
             <p>
@@ -74,6 +78,7 @@ export default function CinemaTicketsPage() {
                   <a
                     className="cine-chain"
                     href={chain.url}
+                    onClick={() => track("official_booking_clicked", { chain: chain.id })}
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={`Comprar boletas de ${movie.title} en ${chain.name} (abre su página oficial en una pestaña nueva)`}

@@ -32,6 +32,8 @@ const ROUTES = [
   { pattern: /^\/(movie|tv)\/\d{1,9}\/watch\/providers$/, ttl: 6 * HOUR },
   { pattern: /^\/watch\/providers\/(movie|tv)$/, ttl: DAY },
   { pattern: /^\/collection\/\d{1,9}$/, ttl: DAY },
+  // Importar CSV de IMDb: id tt… → título de TMDB (solo con external_source=imdb_id).
+  { pattern: /^\/find\/tt\d{7,10}$/, ttl: DAY },
 ];
 
 const APPEND = new Set(["credits", "videos", "similar", "recommendations", "keywords", "release_dates", "content_ratings"]);
@@ -42,7 +44,9 @@ const PARAMS = new Set([
   "with_original_language", "with_runtime.gte", "with_runtime.lte", "with_watch_providers",
   "with_watch_monetization_types", "with_status", "with_cast", "with_people", "with_companies",
   "vote_average.gte", "vote_count.gte", "vote_count.lte", "primary_release_date.gte", "primary_release_date.lte",
-  "first_air_date.gte", "first_air_date.lte", "release_date.gte", "release_date.lte",
+  "first_air_date.gte", "first_air_date.lte", "release_date.gte", "release_date.lte", "external_source",
+  "certification_country", "certification", // modo familia
+  "with_origin_country", // «Hecho en Colombia»
 ]);
 
 const json = (status, body, headers = {}) => ({
@@ -68,6 +72,9 @@ function validParams(query) {
       out.set(key, String(page));
     } else if (key === "include_adult") {
       out.set(key, "false"); // nunca contenido adulto, pida lo que pida el cliente
+    } else if (key === "external_source") {
+      if (value !== "imdb_id") return { error: "external_source solo admite imdb_id." };
+      out.set(key, value);
     } else if (key === "append_to_response") {
       const parts = value.split(",");
       if (parts.length > APPEND.size || parts.some((part) => !APPEND.has(part))) return { error: "append_to_response no permitido." };

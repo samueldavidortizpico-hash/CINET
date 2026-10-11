@@ -12,7 +12,7 @@ import { movies as catalog } from "../data/movies.js";
 import trailerKeys from "../data/trailerKeys.json" with { type: "json" };
 import tmdbIds from "../data/tmdbIds.json" with { type: "json" };
 import { PLATFORMS } from "../data/platforms.js";
-import { CINEMAS, MONTHS, SHOW_TIMES, WEEKDAYS } from "../data/showtimes.js";
+import { MONTHS, WEEKDAYS } from "../data/showtimes.js";
 import { getHeroPreferences } from "./heroPreferences.js";
 import { clientEnv } from "../utils/env.js";
 import { GENRES, genreKeysFor, genreLabel } from "../data/tmdb.js";
@@ -442,6 +442,14 @@ const COLLECTIONS = {
     exclude: ({ favorites = [] }) => favorites,
   },
   // Joyas poco vistas y bien valoradas; página al azar para que cambie en cada visita.
+  // Cine colombiano según TMDB (país de origen). Sin catálogo en vivo no se muestra: el local no lo distingue.
+  colombia: {
+    remote: () => [
+      discovered("movie", { with_origin_country: "CO", sort_by: "popularity.desc", "vote_count.gte": 20 }),
+      discovered("tv", { with_origin_country: "CO", sort_by: "popularity.desc", "vote_count.gte": 20 }),
+    ],
+    local: () => [],
+  },
   "discover-new": {
     remote: ({ random = Math.random }) => [
       discovered("movie", { sort_by: "vote_average.desc", "vote_count.gte": 150, "vote_count.lte": 2500 }, 1 + Math.floor(random() * 5)),
@@ -626,7 +634,7 @@ export async function getTitleExtras(movie, region = "CO") {
   };
 }
 
-/** Cines, próximos `days` días y horarios para elegir una función. */
+/** Próximos `days` días para proponer la fecha de un plan. */
 export function getShowtimes(from = new Date(), days = 4) {
   const dates = Array.from({ length: days }, (_, i) => {
     const date = new Date(from.getFullYear(), from.getMonth(), from.getDate() + i);
@@ -640,5 +648,5 @@ export function getShowtimes(from = new Date(), days = 4) {
       label: `${weekday} ${date.getDate()} de ${month}`,
     };
   });
-  return { cinemas: CINEMAS, dates, times: SHOW_TIMES };
+  return { dates };
 }

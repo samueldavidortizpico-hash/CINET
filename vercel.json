@@ -1,7 +1,17 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "api/og.js": { "includeFiles": "dist/index.html" }
+  },
+  "headers": [
+    { "source": "/sw.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] }
+  ],
   "rewrites": [
     { "source": "/api/tmdb/:path*", "destination": "/api/tmdb?path=:path*" },
+    { "source": "/movie/:id", "destination": "/api/og?path=/movie/:id" },
+    { "source": "/plan/:id", "destination": "/api/og?path=/plan/:id" },
+    { "source": "/invite/:token", "destination": "/api/og?path=/invite/:token" },
+    { "source": "/duo/sala/:code", "destination": "/api/og?path=/duo/sala/:code" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }

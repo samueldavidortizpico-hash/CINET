@@ -46,7 +46,8 @@ export function PlanProvider({ children }) {
     [storedPlans, user]
   );
   const current = remote && remoteState.userId === userId ? remoteState : null;
-  const plans = remote ? (current?.plans ?? []) : localPlans;
+  const remotePlans = current?.plans;
+  const plans = useMemo(() => (remote ? (remotePlans ?? []) : localPlans), [remote, remotePlans, localPlans]);
 
   /** clientRef: un id por intento de creación; repetir el envío no duplica el plan. */
   const createPlan = useCallback(

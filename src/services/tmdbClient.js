@@ -38,6 +38,9 @@ const LONG_TTL = 24 * 60 * 60 * 1000; // géneros, proveedores, detalles
 const MAX_IN_FLIGHT = 6;
 
 const cache = new Map();
+// Medición local (sin URLs ni datos): peticiones nuevas y reutilizadas (caché o la misma petición en vuelo).
+const counts = { requests: 0, reused: 0 };
+export const tmdbCounts = () => ({ ...counts });
 
 export class TmdbError extends Error {
   constructor(code, message, status = null) {
@@ -167,8 +170,12 @@ export function tmdbRequest(path, params = {}, ttl = SHORT_TTL) {
 
   const key = url.href;
   const hit = cache.get(key);
-  if (hit && hit.expires > Date.now()) return hit.promise;
+  if (hit && hit.expires > Date.now()) {
+    counts.reused += 1;
+    return hit.promise;
+  }
 
+  counts.requests += 1;
   const promise = (async () => {
     try {
       const data = await limited(() => send(url));

@@ -10,10 +10,13 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "test": "node --test",
-    "test:tmdb": "node --env-file=.env --test scripts/tmdb-live.mjs"
+    "test:e2e": "playwright test",
+    "test:tmdb": "node --env-file=.env --test scripts/tmdb-live.mjs",
+    "catalog:snapshot": "node --env-file=.env scripts/catalog-snapshot.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.2",
+    "qrcode-generator": "^2.0.4",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "react-router-dom": "^7.18.4"
@@ -21,6 +24,7 @@
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8",
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.63.0",
     "@vitejs/plugin-react": "^6.1.1",
     "eslint": "^10.11.0",
     "eslint-plugin-react-hooks": "^7.1.1",

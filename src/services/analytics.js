@@ -15,6 +15,8 @@ import { readStorage, writeStorage } from "../utils/storage.js";
 export const EVENTS = {
   duo_started: ["group_size", "mode"],
   preferences_completed: ["group_size"],
+  calibration_completed: ["answers"], // cuántas respuestas, nunca cuáles ni qué títulos
+  shortlist_shown: ["finalists"], // cuántas finalistas (0–3), nunca cuáles
   round_started: ["group_size", "candidates"],
   round_completed: ["group_size", "result"], // result: match | top | none
   title_chosen: ["group_size", "source"], // source: round | card | match
@@ -24,7 +26,11 @@ export const EVENTS = {
   invite_accepted: [],
   rsvp_changed: ["rsvp"],
   official_booking_clicked: ["chain"],
+  partner_listing_clicked: ["kind"], // clic hacia la compra oficial de un aliado: NO es una venta
+  sponsored_offer_clicked: [],
   plan_completed_reported: [],
+  plus_price_answer: ["price_cop", "answer"], // prueba de precio: answer interested | too_expensive. No es una compra
+  plus_sandbox_started: [],
 };
 
 const CONSENT_KEY = "cinet-analytics-consent"; // "granted" | "denied"
@@ -71,10 +77,11 @@ function beacon(endpoint, payload) {
   const body = JSON.stringify(payload);
   try {
     if (navigator.sendBeacon?.(endpoint, new Blob([body], { type: "application/json" }))) return;
-    fetch(endpoint, { method: "POST", body, headers: { "content-type": "application/json" }, keepalive: true }).catch(() => {});
   } catch {
-    /* la medición nunca rompe la app */
+    /* sendBeacon lanza con algunas URL: se intenta con fetch */
   }
+  // La medición nunca rompe la app: un fallo de red se ignora.
+  fetch(endpoint, { method: "POST", body, headers: { "content-type": "application/json" }, keepalive: true }).catch(() => {});
 }
 
 const analytics = createAnalytics({

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import Button from "../common/Button.jsx";
 import PosterImage from "../common/PosterImage.jsx";
 import { useAsync } from "../../hooks/useAsync.js";
@@ -59,6 +60,7 @@ export default function DuoSeenStep({ type, size, history, onHistory, onOpenHist
     <section className="duo-step" aria-labelledby="duo-seen-title">
       <h2 id="duo-seen-title">¿Qué {noun} ya {size === 1 ? "viste" : "vieron"}?</h2>
       <p className="duo-lead">{size > 2 ? "Basta con que alguien del grupo la haya visto. " : ""}No se las volveremos a recomendar. Si cambian de opinión, las recuperan desde «Ver títulos excluidos».</p>
+      <p className="duo-fineprint">¿Usas Letterboxd o IMDb? <Link className="duo-link" to="/importar">Importa lo que ya viste desde su CSV</Link>.</p>
 
       <label className="duo-field">
         <span>Buscar {noun}</span>
