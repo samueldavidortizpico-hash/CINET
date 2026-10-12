@@ -150,3 +150,6 @@ playwright-report/
 
 # Respaldos del catálogo (npm run catalog:snapshot): datos de TMDB, no se versionan
 snapshots/
+
+.vercel
+.env*
