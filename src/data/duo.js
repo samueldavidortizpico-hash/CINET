@@ -72,6 +72,7 @@ export const sceneOf = (step, roundOpen = false) =>
   step === "mode" ? "setup" : step.startsWith("person-") || step === "seen" ? "taste" : step === "common" ? "match" : step === "final" ? "plan" : roundOpen ? "decide" : "compare";
 
 export const DEFAULT_MARATHON = { type: "movie", maxMinutes: 360, count: 3, style: "balanced", scope: "mix" };
+export const MARATHON_COUNTS = { movie: [2, 3, 4, 5, 6], tv: [2, 4, 6, 8, 10, 12] };
 
 /**
  * Sesión persistida (una recarga retoma el mismo paso y los mismos resultados).

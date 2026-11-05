@@ -38,7 +38,7 @@ function SlideMedia({ slide, priority }) {
   return (
     <>
       <img className="hero-ambient" src={poster} alt="" aria-hidden="true" {...loading} />
-      <img className="hero-poster" src={poster} alt={`Póster de ${slide.title}`} {...loading} onError={() => setPosterFailed(true)} />
+      <img className={`hero-poster${slide.posterFirst ? " is-hd" : ""}`} src={poster} alt={`Póster de ${slide.title}`} {...loading} onError={() => setPosterFailed(true)} />
     </>
   );
 }

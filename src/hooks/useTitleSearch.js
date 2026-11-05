@@ -4,6 +4,7 @@ import { isTmdbEnabled } from "../services/tmdbClient.js";
 
 const DEBOUNCE_MS = 400;
 const EMPTY = { key: null, titles: [], people: [], page: 0, totalPages: 0, error: null, loadingMore: false };
+export const applySearchError = (current, key, error) => current.key !== key ? current : { ...current, error, loadingMore: false };
 
 /** Valor que solo cambia tras `delay` ms sin cambios (búsqueda mientras se escribe). */
 export function useDebounced(value, delay) {
@@ -55,7 +56,7 @@ export function useTitleSearch(filters) {
                 loadingMore: false,
               }
         ),
-      (error) => setState((current) => ({ ...current, error, loadingMore: false }))
+      (error) => setState((current) => applySearchError(current, key, error))
     );
   };
 

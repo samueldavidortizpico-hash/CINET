@@ -1,11 +1,23 @@
 import { useCallback, useMemo } from "react";
-import { CALIBRATION_ANSWERS, DEFAULT_DUO_SESSION, DEFAULT_MARATHON, DEFAULT_PERSON, DUO_SESSION_KEY, FAMILY_LEVELS, MAX_PEOPLE, MODES, stepsFor, TONES } from "../data/duo.js";
+import { CALIBRATION_ANSWERS, DEFAULT_DUO_SESSION, DEFAULT_MARATHON, DEFAULT_PERSON, DUO_SESSION_KEY, FAMILY_LEVELS, MARATHON_COUNTS, MARATHON_SCOPES, MARATHON_STYLES, MAX_PEOPLE, MODES, SESSION_LENGTHS, stepsFor, TONES } from "../data/duo.js";
 import { DUO_OCCASIONS } from "../services/duoExperience.js";
 import { useLocalStorage } from "./useLocalStorage.js";
 
 const isObject = (value) => Boolean(value) && typeof value === "object" && !Array.isArray(value);
 const asList = (value) => (Array.isArray(value) ? value : []);
 const asNumber = (value, fallback) => (Number.isFinite(Number(value)) ? Number(value) : fallback);
+
+function asMarathon(value) {
+  const saved = isObject(value) ? value : {};
+  const type = ["movie", "tv"].includes(saved.type) ? saved.type : DEFAULT_MARATHON.type;
+  return {
+    type,
+    maxMinutes: SESSION_LENGTHS.some(({ value: minutes }) => minutes === Number(saved.maxMinutes)) ? Number(saved.maxMinutes) : DEFAULT_MARATHON.maxMinutes,
+    count: MARATHON_COUNTS[type].includes(Number(saved.count)) ? Number(saved.count) : type === "tv" ? 6 : DEFAULT_MARATHON.count,
+    style: MARATHON_STYLES.some(({ key }) => key === saved.style) ? saved.style : DEFAULT_MARATHON.style,
+    scope: MARATHON_SCOPES.some(({ key }) => key === saved.scope) ? saved.scope : DEFAULT_MARATHON.scope,
+  };
+}
 
 function asPerson(value) {
   const saved = isObject(value) ? value : {};
@@ -59,7 +71,7 @@ export function asSession(value) {
     occasion: DUO_OCCASIONS.some(({ id }) => id === stored.occasion) ? stored.occasion : null,
     mood: TONES.some(({ key }) => key === stored.mood) ? stored.mood : null,
     resultView: stored.resultView === "explore" ? "explore" : "shortlist",
-    marathon: { ...DEFAULT_MARATHON, ...(isObject(stored.marathon) ? stored.marathon : {}) },
+    marathon: asMarathon(stored.marathon),
     region: typeof stored.region === "string" ? stored.region : DEFAULT_DUO_SESSION.region,
     providers: asList(stored.providers),
     people,

@@ -263,7 +263,7 @@ async function serveStatic(res, path) {
   }
 }
 
-createServer(async (req, res) => {
+const server = createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
   if (process.env.FAKE_SUPABASE_LOG) {
     const started = Date.now();
@@ -288,4 +288,17 @@ createServer(async (req, res) => {
   } catch (error) {
     send(res, error.code === "42501" ? 403 : 400, pgError(error));
   }
-}).listen(PORT, () => console.log(`Supabase de pruebas en http://localhost:${PORT} (sirve ${ROOT})`));
+});
+
+let closing = false;
+async function shutdown() {
+  if (closing) return;
+  closing = true;
+  server.close(async () => {
+    await db.close();
+  });
+  server.closeIdleConnections?.();
+}
+process.once("SIGTERM", shutdown);
+process.once("SIGINT", shutdown);
+server.listen(PORT, () => console.log(`Supabase de pruebas en http://localhost:${PORT} (sirve ${ROOT})`));

@@ -1,7 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const LOCAL = 4173;
-const ROOMS = 4176;
+const LOCAL = Number(process.env.CINET_E2E_LOCAL_PORT) || 4173;
+const ROOMS = Number(process.env.CINET_E2E_ROOMS_PORT) || 4176;
+const NODE = `"${process.execPath}"`;
+const VITE = "node_modules/vite/bin/vite.js";
 const NO_SECRETS = { TMDB_READ_TOKEN: "", VITE_TMDB_READ_TOKEN: "", VITE_TMDB_API_URL: "", VITE_ANALYTICS_ENDPOINT: "" };
 
 /**
@@ -21,14 +23,14 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: `npx vite build && npx vite preview --port ${LOCAL} --strictPort`,
+      command: `${NODE} ${VITE} preview --port ${LOCAL} --strictPort`,
       url: `http://localhost:${LOCAL}`,
       timeout: 120_000,
       reuseExistingServer: false,
       env: { ...NO_SECRETS, VITE_SUPABASE_URL: "", VITE_SUPABASE_PUBLISHABLE_KEY: "" },
     },
     {
-      command: "npx vite build --outDir node_modules/.cache/cinet-e2e-rooms --emptyOutDir && node e2e/support/fake-supabase.mjs node_modules/.cache/cinet-e2e-rooms",
+      command: `${NODE} e2e/support/fake-supabase.mjs node_modules/.cache/cinet-e2e-rooms`,
       url: `http://localhost:${ROOMS}`,
       timeout: 120_000,
       reuseExistingServer: false,

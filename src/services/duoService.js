@@ -41,7 +41,23 @@ const MAX_SAGAS = 3;
 const INTERNATIONAL = "ko|ja|fr|es|it|de|pt|hi|da|sv";
 
 const genreIds = (keys, type) => [...new Set(GENRES.filter((genre) => keys.includes(genre.key)).map((genre) => genre[type]).filter(Boolean))];
-const uniqueById = (titles) => [...new Map(titles.map((title) => [title.id, title])).values()];
+export const mergeTitlesById = (titles) => {
+  const merged = new Map();
+  for (const title of titles) {
+    const current = merged.get(title.id);
+    if (!current) {
+      merged.set(title.id, { ...title, castMatch: [...new Set(title.castMatch ?? [])] });
+      continue;
+    }
+    merged.set(title.id, {
+      ...current,
+      ...title,
+      castMatch: [...new Set([...(current.castMatch ?? []), ...(title.castMatch ?? [])])],
+    });
+  }
+  return [...merged.values()];
+};
+const uniqueById = mergeTitlesById;
 
 /** Filtros obligatorios que TMDB puede aplicar en el servidor. */
 function discoverParams(profile) {

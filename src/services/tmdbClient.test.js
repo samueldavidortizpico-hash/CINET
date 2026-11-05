@@ -39,6 +39,28 @@ const connect = (routes) => {
 
 const page = (results, totalPages = 3, number = 1) => ({ page: number, results, total_pages: totalPages, total_results: results.length });
 
+test("tmdb respeta Retry-After en segundos y fecha HTTP, con tope de espera", async () => {
+  for (const [retryAfter, now, expected] of [["3", 1_000, 3_000], [new Date(5_000).toUTCString(), 1_000, 4_000], ["999", 0, 30_000]]) {
+    let calls = 0;
+    const waits = [];
+    let clock = now;
+    configureTmdb({
+      token: "t",
+      now: () => clock,
+      wait: async (ms) => { waits.push(ms); clock += ms; },
+      fetch: async () => {
+        calls += 1;
+        return calls === 1
+          ? { ok: false, status: 429, headers: { get: () => retryAfter } }
+          : { ok: true, status: 200, json: async () => ({ ok: true }) };
+      },
+    });
+    assert.deepEqual(await tmdbRequest(`/retry-${calls}-${expected}`, {}, 0), { ok: true });
+    assert.deepEqual(waits, [expected]);
+    assert.equal(calls, 2);
+  }
+});
+
 test("Doomsday fijada en el carrusel pide su fondo y no se confunde con Thunderbolts", async () => {
   const api = connect({
     "/movie/1003596": () => ({ id: 1003596, title: "Avengers: Doomsday", backdrop_path: "/doomsday.jpg" }),
@@ -164,6 +186,30 @@ test("tmdb: búsqueda + filtros (Batman, Netflix, 2020+, rating > 7, acción)", 
   assert.equal(result.people.length, 0);
   const providerCalls = api.calls.filter((url) => url.pathname.endsWith("/watch/providers")).length;
   assert.equal(providerCalls, 2, "solo consulta plataforma de los que pasan los demás filtros");
+});
+
+test("FE03: búsqueda por texto aplica también el filtro de actor", async () => {
+  connect({
+    "/search/movie": () => page([
+      { id: 801, title: "Dune actor", release_date: "2024-01-01", genre_ids: [], vote_average: 8 },
+      { id: 802, title: "Dune sin actor", release_date: "2024-01-01", genre_ids: [], vote_average: 8 },
+    ]),
+    "/movie/801": () => ({ credits: { cast: [{ id: 77 }] } }),
+    "/movie/802": () => ({ credits: { cast: [{ id: 88 }] } }),
+  });
+  const result = await searchCatalog({ query: "Dune", genre: "todas", sort: "default", advanced: { ...EMPTY_ADVANCED, person: { id: 77, name: "Actor" } } });
+  assert.deepEqual(result.titles.map((title) => title.tmdbId), [801]);
+});
+
+test("FE10: película inexistente y error transitorio tienen resultados distintos", async () => {
+  configureTmdb({
+    token: "t",
+    fetch: async (url) => url.pathname.endsWith("990001")
+      ? { ok: false, status: 404 }
+      : { ok: false, status: 503, json: async () => ({ error: { code: "upstream" } }) },
+  });
+  assert.equal(await getMovieById("tmdb-movie-990001"), null);
+  await assert.rejects(getMovieById("tmdb-movie-990002"), (error) => error.code === "http" && error.status === 503);
 });
 
 test("tmdb: filtros avanzados → discover", () => {

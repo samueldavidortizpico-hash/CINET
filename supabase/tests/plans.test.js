@@ -32,6 +32,16 @@ test("crear es idempotente y guarda la hora con su zona", async () => {
   assert.deepEqual((await members(plan)).map((m) => [m.role, m.rsvp]), [["owner", "yes"]]);
 });
 
+test("AD08: creación rechaza JSON con forma inválida y zonas no reconocidas", async () => {
+  await as(db, A);
+  const badJson = newPlan("client-ref-bad-json");
+  badJson[5] = JSON.stringify(["no es objeto"]);
+  assert.equal(await errorCode(rpc(db, "create_plan", badJson)), "CN422");
+  const badZone = newPlan("client-ref-bad-zone");
+  badZone[9] = "Mars/Olympus";
+  assert.equal(await errorCode(rpc(db, "create_plan", badZone)), "CN422");
+});
+
 test("sin invitación nadie más lee, edita ni responde", async () => {
   await as(db, C);
   assert.deepEqual(await visiblePlans(), [], "C no ve el plan");
@@ -86,6 +96,9 @@ test("versiones: editar con una versión vieja es un conflicto", async () => {
   await as(db, A);
   assert.equal((await rpc(db, "update_plan", [plan, 1, "Noche de cine 2", "Cambio"])).update_plan, 2);
   assert.equal(await errorCode(rpc(db, "update_plan", [plan, 1, "Otro cambio", ""])), "CN409");
+  assert.equal(await errorCode(rpc(db, "update_plan", [plan, null, "Versión omitida", ""])), "CN409", "NULL no omite el control optimista");
+  const current = (await db.query("select name, version from public.plans where id = $1", [plan])).rows[0];
+  assert.deepEqual(current, { name: "Noche de cine 2", version: 2 }, "el conflicto no cambia el plan");
   assert.equal(await errorCode(rpc(db, "update_plan", [plan, 2, "", ""])), "CN422", "nombre vacío");
 });
 
@@ -107,8 +120,13 @@ test("invitaciones caducadas, de uso limitado y cupo del plan", async () => {
   const limited = (await rpc(db, "create_plan_invite", [plan, 1, 1])).create_plan_invite;
   await as(db, C);
   await rpc(db, "accept_plan_invite", [limited, "C"]);
+  assert.equal((await rpc(db, "accept_plan_invite", [limited, "C"])).accept_plan_invite, plan,
+    "el miembro ganador puede reintentar tras perder la respuesta del último uso");
   await as(db, B);
   assert.equal(await errorCode(rpc(db, "accept_plan_invite", [limited, "B"])), "CN410", "un solo uso");
+  await asAdmin(db);
+  assert.equal((await db.query("select uses from public.plan_invites where token_hash = public.hash_invite_token($1)", [limited])).rows[0].uses, 1,
+    "el reintento idempotente no consume otra unidad");
   await as(db, A);
   const expiring = (await rpc(db, "create_plan_invite", [plan, 1, null])).create_plan_invite;
   await asAdmin(db);

@@ -9,7 +9,7 @@ import { useAuth } from "../hooks/useAuth.js";
 import { useDocumentTitle } from "../hooks/useDocumentTitle.js";
 import { useFavorites } from "../hooks/useFavorites.js";
 import { usePlans } from "../hooks/usePlans.js";
-import { getMovies, getMoviesByIds } from "../services/movieService.js";
+import { EMPTY_ADVANCED, getMovies, getMoviesByIds, searchCatalog } from "../services/movieService.js";
 import { HERO_PREFERENCES_KEY } from "../services/heroPreferences.js";
 import { useState } from "react";
 
@@ -27,8 +27,13 @@ export default function DashboardPage() {
   const { data: favoriteMovies = [] } = useAsync(favorites.join(","), () => getMoviesByIds(favorites));
   const ownPlans = plans.filter((plan) => plan.isOwner).reverse();
   const featuredIds = Array.isArray(heroPreferences?.featuredIds) ? heroPreferences.featuredIds : [];
-  const featuredMovies = featuredIds.map((id) => allMovies.find((movie) => movie.id === id)).filter(Boolean);
-  const availableMovies = allMovies.filter((movie) => !featuredIds.includes(movie.id));
+  // Fijadas: locales o de TMDB (tmdb-movie-123), en el orden elegido.
+  const { data: featuredMovies = [] } = useAsync(`featured-${featuredIds.join(",")}`, () => getMoviesByIds(featuredIds));
+  // Búsqueda en TMDB al enviar el formulario; sin ella, el catálogo local.
+  const [search, setSearch] = useState("");
+  const [submitted, setSubmitted] = useState("");
+  const { data: found } = useAsync(submitted ? `hero-search-${submitted}` : null, async () => (await searchCatalog({ query: submitted, genre: "todas", sort: "default", advanced: EMPTY_ADVANCED }, 1)).titles.filter((title) => title.poster));
+  const availableMovies = (submitted ? found ?? [] : allMovies).filter((movie) => !featuredIds.includes(movie.id));
   const addFeatured = () => { if (selectedMovieId) { setHeroPreferences({ featuredIds: [...featuredIds, selectedMovieId] }); setSelectedMovieId(""); } };
   const removeFeatured = (id) => setHeroPreferences({ featuredIds: featuredIds.filter((movieId) => movieId !== id) });
   const makePrimary = (id) => setHeroPreferences({ featuredIds: [id, ...featuredIds.filter((movieId) => movieId !== id)] });
@@ -52,6 +57,7 @@ export default function DashboardPage() {
             <div><p className="eyebrow">EDITORIAL CINEHUB</p><h3 id="hero-editor-title">Controla el carrusel principal</h3><p>Elige qué película aparece primero en Inicio. Tus cambios quedan guardados en este navegador.</p></div>
             <span className="hero-editor-badge">{featuredMovies.length ? `${featuredMovies.length} fijadas` : "Automático"}</span>
           </div>
+          <form className="hero-editor-row" onSubmit={(event) => { event.preventDefault(); setSubmitted(search.trim()); }}><input type="search" aria-label="Buscar en TMDB" placeholder="Buscar en TMDB, p. ej. Clayface" value={search} onChange={(event) => setSearch(event.target.value)} /><button type="submit" className="btn">Buscar</button>{submitted && <button type="button" className="btn" onClick={() => { setSearch(""); setSubmitted(""); }}>Ver catálogo</button>}</form>
           <div className="hero-editor-controls"><label htmlFor="hero-movie">Añadir una película a tendencias</label><div className="hero-editor-row"><select id="hero-movie" value={selectedMovieId} onChange={(event) => setSelectedMovieId(event.target.value)}><option value="">Selecciona una película…</option>{availableMovies.map((movie) => <option key={movie.id} value={movie.id}>{movie.title}</option>)}</select><button type="button" className="btn btn-primary" onClick={addFeatured} disabled={!selectedMovieId}>Añadir</button>{featuredIds.length > 0 && <button type="button" className="btn" onClick={() => setHeroPreferences({ featuredIds: [] })}>Volver a automático</button>}</div></div>
           {featuredMovies.length > 0 ? <ol className="hero-editor-list">{featuredMovies.map((movie, index) => <li key={movie.id} className={index === 0 ? "is-primary" : ""}><span className="hero-editor-number">{index + 1}</span><img src={movie.poster} alt="" /><span className="hero-editor-title">{movie.title}<small>{index === 0 ? "Aparece primero" : "En el carrusel"}</small></span>{index > 0 && <button type="button" className="hero-editor-action" onClick={() => makePrimary(movie.id)}>Hacer principal</button>}<button type="button" className="hero-editor-remove" onClick={() => removeFeatured(movie.id)} aria-label={`Quitar ${movie.title}`}>×</button></li>)}</ol> : <p className="hero-editor-empty">El carrusel usa automáticamente las tendencias más populares.</p>}
         </section>

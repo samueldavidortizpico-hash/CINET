@@ -19,7 +19,7 @@ import { isTmdbEnabled } from "../services/tmdbClient.js";
 export default function MovieDetailPage() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
-  const { movie: baseMovie, loading, notFound } = useMovie(id);
+  const { movie: baseMovie, loading, notFound, error } = useMovie(id);
   const { data: extras } = useAsync(
     baseMovie?.tmdbId && isTmdbEnabled() ? `extras-${baseMovie.id}` : null,
     () => getTitleExtras(baseMovie)
@@ -50,6 +50,16 @@ export default function MovieDetailPage() {
             <h1>Película no encontrada</h1>
             <p>No encontramos esta película en el catálogo de CINET.</p>
             <Button to="/movies">← Volver al catálogo</Button>
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="movie-error" role="alert">
+          <div className="movie-error-box">
+            <h1>No pudimos cargar la película</h1>
+            <p>Ocurrió un problema temporal al consultar el catálogo. Intenta de nuevo en un momento.</p>
+            <Button onClick={() => window.location.reload()}>Reintentar</Button>
           </div>
         </div>
       )}

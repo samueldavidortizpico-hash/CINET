@@ -1,16 +1,23 @@
 import { useEffect, useRef } from "react";
 
-const FOCUSABLE = "button, [href], [tabindex]:not([tabindex='-1'])";
+const FOCUSABLE = "a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), iframe, [tabindex]:not([tabindex='-1'])";
 
 function trapFocus(event, dialog) {
   const focusable = [...dialog.querySelectorAll(FOCUSABLE)].filter((el) => !el.disabled);
-  if (!focusable.length) return;
+  if (!focusable.length) {
+    event.preventDefault();
+    dialog.focus();
+    return;
+  }
   const first = focusable[0];
   const last = focusable.at(-1);
   if (event.shiftKey && document.activeElement === first) {
     event.preventDefault();
     last.focus();
-  } else if (!event.shiftKey && document.activeElement === last) {
+  } else if (event.shiftKey && (document.activeElement === dialog || !dialog.contains(document.activeElement))) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && (document.activeElement === last || !dialog.contains(document.activeElement))) {
     event.preventDefault();
     first.focus();
   }
@@ -35,7 +42,7 @@ export default function Modal({ open, onClose, prefix, label, labelledBy, childr
 
     document.addEventListener("keydown", onKeyDown);
     document.body.style.overflow = "hidden";
-    dialogRef.current.querySelector("button")?.focus();
+    (dialogRef.current.querySelector(FOCUSABLE) ?? dialogRef.current).focus();
 
     return () => {
       document.removeEventListener("keydown", onKeyDown);
@@ -55,7 +62,7 @@ export default function Modal({ open, onClose, prefix, label, labelledBy, childr
       inert={!open}
       onClick={(event) => event.target === event.currentTarget && onClose()}
     >
-      <div className={`${prefix}-dialog`} ref={dialogRef}>
+      <div className={`${prefix}-dialog`} ref={dialogRef} tabIndex={-1}>
         {children}
       </div>
     </div>

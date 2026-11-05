@@ -42,6 +42,12 @@ export function writeStorage(key, value) {
   globalThis.dispatchEvent?.(new CustomEvent(CHANGE_EVENT, { detail: { key } }));
 }
 
+export function removeStorage(key) {
+  memory.delete(key);
+  try { globalThis.localStorage?.removeItem(key); } catch { /* almacenamiento no disponible */ }
+  globalThis.dispatchEvent?.(new CustomEvent(CHANGE_EVENT, { detail: { key } }));
+}
+
 /** false si el navegador no deja guardar (lo guardado se pierde al recargar). */
 export function isStorageAvailable() {
   try {

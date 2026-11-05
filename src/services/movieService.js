@@ -198,16 +198,17 @@ export async function getMovieById(id) {
   if (local) return local;
   const match = TMDB_ID_PATTERN.exec(String(id ?? ""));
   if (!match || !isTmdbEnabled()) return null;
-  try {
-    return fromTmdb(await getTitleDetails(match[1], Number(match[2])), match[1]);
-  } catch {
-    return null;
-  }
+    try {
+      return fromTmdb(await getTitleDetails(match[1], Number(match[2])), match[1]);
+    } catch (error) {
+      if (error?.code === "not-found" || error?.status === 404) return null;
+      throw error;
+    }
 }
 
 /** Favoritos y listas guardadas pueden mezclar ids locales y de TMDB. */
 export async function getMoviesByIds(ids) {
-  const list = await Promise.all(ids.map(getMovieById));
+  const list = await Promise.all(ids.map((id) => getMovieById(id).catch(() => null)));
   return list.filter(Boolean);
 }
 
@@ -318,12 +319,16 @@ async function matchesTitleDetails(raw, type, { genre = "todas", advanced = EMPT
     if (!watch?.providers.some((provider) => platform.tmdbIds.includes(provider.id))) return false;
   }
   const companies = LEGACY_FILTERS[genre]?.companies?.split("|").map(Number);
-  if (advanced.runtimeMax || companies) {
+  if (advanced.runtimeMax || companies || advanced.person?.id) {
     const details = await getTitleDetails(type, raw.id).catch(() => null);
     if (!details) return false;
     const runtime = details.runtime ?? details.episode_run_time?.[0];
     if (advanced.runtimeMax && !(runtime && runtime <= Number(advanced.runtimeMax))) return false;
     if (companies && !details.production_companies?.some((company) => companies.includes(company.id))) return false;
+    if (advanced.person?.id) {
+      const credits = [...(details.credits?.cast ?? []), ...(details.credits?.crew ?? [])];
+      if (!credits.some((person) => String(person.id) === String(advanced.person.id))) return false;
+    }
   }
   return true;
 }
@@ -508,7 +513,7 @@ export async function getCollection(name, limit = 10, context = {}) {
  * si no hay, backdrop vacío y el carrusel muestra el póster nítido en lugar de un fondo roto.
  */
 async function withHeroBackdrop(title) {
-  if (title.backdrop) return title;
+  if (title.backdrop || title.posterFirst) return title;
   if (!title.tmdbId || !isTmdbEnabled()) return title;
   const summary = await getTitleSummary(title.type ?? "movie", title.tmdbId).catch(() => null);
   const backdrop = tmdbImage(summary?.backdrop_path, "w1280");
@@ -522,7 +527,9 @@ async function withHeroBackdrop(title) {
 export async function getHeroSlides(limit = 6, featuredIds = getHeroPreferences().featuredIds) {
   const { titles } = await getCollection("trending", 16);
   const byId = new Map([...MOVIES, ...titles].map((title) => [title.id, title]));
-  const pinned = (await Promise.all(featuredIds.map(async (id) => byId.get(id) ?? (await getMovieById(id))))).filter(Boolean);
+  // Fijadas de TMDB: la portada oficial a máxima resolución (/original) como imagen principal, sin backdrop.
+  const hd = (title) => (title.id.startsWith("tmdb-") && title.poster ? { ...title, poster: title.poster.replace("/w500/", "/original/"), backdrop: "", posterFirst: true } : title);
+  const pinned = (await Promise.all(featuredIds.map(async (id) => byId.get(id) ?? (await getMovieById(id))))).filter(Boolean).map(hd);
   const rest = titles.filter((title) => title.status !== "PRÓXIMAMENTE" && !featuredIds.includes(title.id));
   const slides = [...pinned, ...rest].filter((title) => title.backdrop || title.poster).slice(0, Math.max(limit, pinned.length));
   return Promise.all(slides.map(withHeroBackdrop));

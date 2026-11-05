@@ -14,7 +14,7 @@
    ========================================================= */
 
 import { clientEnv } from "../utils/env.js";
-import { readStorage, writeStorage } from "../utils/storage.js";
+import { readStorage, removeStorage, writeStorage } from "../utils/storage.js";
 
 const DEFAULT_URL = "https://api.themoviedb.org/3";
 const inBrowser = typeof window !== "undefined";
@@ -29,6 +29,8 @@ const config = {
   language: "es-MX",
   timeout: 8000,
   retryDelay: 1000,
+  wait: (ms) => wait(ms),
+  now: Date.now,
   fetch: (...args) => fetch(...args),
 };
 
@@ -36,6 +38,10 @@ const IMAGE_URL = "https://image.tmdb.org/t/p";
 const SHORT_TTL = 5 * 60 * 1000; // búsquedas, listas, discover
 const LONG_TTL = 24 * 60 * 60 * 1000; // géneros, proveedores, detalles
 const MAX_IN_FLIGHT = 6;
+const MAX_QUEUED = 100;
+const MAX_CACHE_ENTRIES = 200;
+const OFFLINE_TTL = 30 * 24 * 60 * 60 * 1000;
+const MAX_OFFLINE_ENTRIES = 100;
 
 const cache = new Map();
 // Medición local (sin URLs ni datos): peticiones nuevas y reutilizadas (caché o la misma petición en vuelo).
@@ -80,6 +86,7 @@ export function subscribeTmdbStatus(listener) {
 export function configureTmdb(overrides) {
   Object.assign(config, overrides);
   cache.clear();
+  retryAt = 0;
   status = { state: isTmdbEnabled() ? "checking" : "local", code: null, message: "" };
 }
 
@@ -103,13 +110,31 @@ function limited(task) {
         });
     };
     if (inFlight < MAX_IN_FLIGHT) run();
-    else queue.push(run);
+    else if (queue.length < MAX_QUEUED) queue.push(run);
+    else reject(new TmdbError("queue-full", "Hay demasiadas consultas pendientes. Intenta de nuevo."));
   });
 }
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+let retryAt = 0;
+const MAX_RETRY_AFTER_MS = 30_000;
+
+function retryAfterMs(value) {
+  if (!value) return config.retryDelay;
+  const seconds = /^\s*\d+\s*$/.test(value) ? Number(value) * 1000 : NaN;
+  const date = Number.isFinite(seconds) ? NaN : Date.parse(value);
+  const requested = Number.isFinite(seconds) ? seconds : Number.isFinite(date) ? date - config.now() : config.retryDelay;
+  return Math.max(0, Math.min(MAX_RETRY_AFTER_MS, requested));
+}
+
+async function waitForRetryWindow() {
+  const remaining = retryAt - config.now();
+  if (remaining > 0) await config.wait(remaining);
+}
+
 async function send(url, retries = 1) {
+  await waitForRetryWindow();
   let response;
   try {
     response = await config.fetch(url, {
@@ -122,7 +147,8 @@ async function send(url, retries = 1) {
   }
 
   if (response.status === 429 && retries > 0) {
-    await wait(config.retryDelay);
+    retryAt = Math.max(retryAt, config.now() + retryAfterMs(response.headers?.get?.("retry-after")));
+    await waitForRetryWindow();
     return send(url, retries - 1);
   }
   if (response.status === 503) {
@@ -144,18 +170,30 @@ async function send(url, retries = 1) {
    JSON dañado, caché inexistente y almacenamiento bloqueado → memoria).
    Si TMDB falla por red/timeout/5xx/429, tmdbRequest devuelve la copia guardada
    y el estado pasa a "saved" ("Showing saved data").
-   ponytail: sin límite de entradas; si llena la cuota, writeStorage cae a memoria. */
+   TTL de 30 días, máximo de 100 claves offline y presupuesto de caché en memoria. */
 
 const OFFLINE_PREFIX = "cinehub-tmdb:";
 
 function saveOffline(key, data) {
-  writeStorage(OFFLINE_PREFIX + key, { savedAt: Date.now(), data });
+  const storageKey = OFFLINE_PREFIX + key;
+  writeStorage(storageKey, { savedAt: Date.now(), data });
+  const indexKey = `${OFFLINE_PREFIX}index`;
+  const previous = readStorage(indexKey, []);
+  const keys = Array.isArray(previous) ? previous.filter((item) => typeof item === "string" && item !== storageKey) : [];
+  keys.push(storageKey);
+  while (keys.length > MAX_OFFLINE_ENTRIES) removeStorage(keys.shift());
+  writeStorage(indexKey, keys);
 }
 
 /** Datos guardados de `key`, o null si no hay o están dañados. */
 function loadOffline(key) {
   const entry = readStorage(OFFLINE_PREFIX + key, null);
-  return entry && typeof entry === "object" && entry.data && typeof entry.data === "object" ? entry.data : null;
+  if (!entry || typeof entry !== "object" || !entry.data || typeof entry.data !== "object") return null;
+  if (!Number.isFinite(entry.savedAt) || Date.now() - entry.savedAt > OFFLINE_TTL) {
+    removeStorage(OFFLINE_PREFIX + key);
+    return null;
+  }
+  return entry.data;
 }
 
 /** GET a TMDB con cache. Los parámetros vacíos se omiten; los errores no se cachean. */
@@ -174,6 +212,8 @@ export function tmdbRequest(path, params = {}, ttl = SHORT_TTL) {
     counts.reused += 1;
     return hit.promise;
   }
+  for (const [cachedKey, cached] of cache) if (cached.expires <= Date.now()) cache.delete(cachedKey);
+  while (cache.size >= MAX_CACHE_ENTRIES) cache.delete(cache.keys().next().value);
 
   counts.requests += 1;
   const promise = (async () => {

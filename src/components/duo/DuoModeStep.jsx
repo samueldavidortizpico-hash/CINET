@@ -4,14 +4,13 @@ import Icon from "../common/Icon.jsx";
 import PlatformLogo from "../movie-detail/PlatformLogo.jsx";
 import { ChoiceChips, Question } from "./DuoFields.jsx";
 import { SeatAvatar } from "./DuoSeats.jsx";
-import { FAMILY_LEVELS, familyFilter, GROUPS, groupOf, MARATHON_SCOPES, MARATHON_STYLES, MAX_PEOPLE, MODES, personName, SESSION_LENGTHS, TONES } from "../../data/duo.js";
+import { FAMILY_LEVELS, familyFilter, GROUPS, groupOf, MARATHON_COUNTS, MARATHON_SCOPES, MARATHON_STYLES, MAX_PEOPLE, MODES, personName, SESSION_LENGTHS, TONES } from "../../data/duo.js";
 import { PLATFORMS } from "../../data/platforms.js";
 import { REGIONS, regionName } from "../../data/tmdb.js";
 import { useAsync } from "../../hooks/useAsync.js";
 import { moodLabel } from "../../services/duoExperience.js";
 import { getWatchProviders, isTmdbEnabled } from "../../services/tmdbClient.js";
 
-const COUNTS = { movie: [2, 3, 4, 5, 6], tv: [2, 4, 6, 8, 10, 12] };
 const MARATHON_TYPES = [
   { value: "movie", label: "Películas" },
   { value: "tv", label: "Episodios de series" },
@@ -171,7 +170,7 @@ export default function DuoModeStep({ session, occasion, onChange, onGroupSize, 
               <label className="duo-field">
                 <span>{marathon.type === "tv" ? "Episodios (aprox.)" : "Películas (aprox.)"}</span>
                 <select value={marathon.count} onChange={(event) => setMarathon({ count: Number(event.target.value) })}>
-                  {COUNTS[marathon.type].map((count) => (
+                  {MARATHON_COUNTS[marathon.type].map((count) => (
                     <option key={count} value={count}>
                       {count}
                     </option>

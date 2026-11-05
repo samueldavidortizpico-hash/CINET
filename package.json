@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "test": "node --test",
+    "pretest:e2e": "node scripts/build-e2e.mjs",
     "test:e2e": "playwright test",
     "test:tmdb": "node --env-file=.env --test scripts/tmdb-live.mjs",
     "catalog:snapshot": "node --env-file=.env scripts/catalog-snapshot.mjs",

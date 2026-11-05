@@ -1,7 +1,7 @@
 /* Proxy de TMDB: lista blanca, validación, errores sin secretos, caché y límite. Sin red: fetch falso. */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createTmdbProxy, nodeHandler } from "./tmdbProxy.js";
+import { createTmdbProxy, createUpstashRateLimiter, nodeHandler } from "./tmdbProxy.js";
 
 const TOKEN = "server-only-token-1234567890";
 const calls = [];
@@ -40,6 +40,32 @@ test("parámetros validados: desconocidos, page, búsqueda, append y contenido a
   assert.equal(calls.at(-1).options.headers.authorization, `Bearer ${TOKEN}`, "el token lo pone el servidor");
 });
 
+test("la política adulta también filtra los resultados devueltos por TMDB", async () => {
+  const proxy = createTmdbProxy({
+    token: TOKEN,
+    fetchImpl: okFetch(200, { results: [{ id: 1, adult: false }, { id: 2, adult: true }, { id: 3 }] }),
+  });
+  const result = await get(proxy, "/search/multi", { query: "prueba", include_adult: "true" });
+  assert.deepEqual(JSON.parse(result.body).results.map((item) => item.id), [1, 3]);
+});
+
+test("Upstash eval aplica límites atómicos compartidos y falla cerrado si Redis no responde", async () => {
+  let command;
+  const limiter = createUpstashRateLimiter({
+    url: "https://redis.example", token: "secret", perIpMax: 1, globalMax: 1, now: () => 60_000,
+    fetchImpl: async (_url, options) => {
+      command = JSON.parse(options.body);
+      return Response.json({ result: [2, 2, 1500, 900] });
+    },
+  });
+  assert.deepEqual(await limiter("203.0.113.7"), { allowed: false, retryAfter: 2 });
+  assert.equal(command[0], "EVAL");
+  assert.equal(command[2], "2");
+  assert.match(command[3], /^cinet:tmdb:ip:[a-f0-9]{64}:1$/);
+  const down = createUpstashRateLimiter({ url: "https://redis.example", token: "secret", fetchImpl: async () => { throw Error("offline"); } });
+  assert.deepEqual(await down("203.0.113.7"), { unavailable: true });
+});
+
 test("errores de TMDB sin filtrar el token ni su detalle", async () => {
   for (const [status, expected] of [[401, 502], [404, 404], [429, 429], [500, 502]]) {
     const proxy = createTmdbProxy({ token: TOKEN, fetchImpl: okFetch(status, { status_message: `secreto ${TOKEN}` }, { "retry-after": "7" }) });
@@ -68,6 +94,38 @@ test("caché por tipo de dato y límite por IP (por instancia)", async () => {
   assert.equal(blocked.headers["cache-control"], "no-store", "los errores no se cachean");
 });
 
+test("superar 10.000 IP no reinicia una cuota activa", async () => {
+  const proxy = createTmdbProxy({ token: TOKEN, fetchImpl: okFetch(), limit: { max: 1, windowMs: 60_000 }, now: () => 10 });
+  assert.equal((await get(proxy, "/movie/1", {}, { ip: "activa" })).status, 200);
+  assert.equal((await get(proxy, "/movie/1", {}, { ip: "activa" })).status, 429);
+  for (let index = 0; index < 10_001; index += 1) {
+    assert.equal((await get(proxy, "/movie/1", {}, { ip: `sintetica-${index}` })).status, 200);
+  }
+  assert.equal((await get(proxy, "/movie/1", {}, { ip: "activa" })).status, 429);
+});
+
+test("normaliza el fallo al leer el cuerpo de TMDB", async () => {
+  const proxy = createTmdbProxy({
+    token: TOKEN,
+    fetchImpl: async () => ({ ok: true, status: 200, text: async () => { throw new Error(`body ${TOKEN}`); } }),
+  });
+  const result = await get(proxy, "/movie/1");
+  assert.equal(result.status, 502);
+  assert.equal(JSON.parse(result.body).error.code, "upstream-body");
+  assert.equal(result.headers["cache-control"], "no-store");
+  assert.ok(!result.body.includes(TOKEN));
+});
+
+test("el adaptador Node normaliza un rechazo inesperado antes de enviar headers", async () => {
+  const handler = nodeHandler(async () => { throw new Error(`unexpected ${TOKEN}`); });
+  const res = { headers: {}, setHeader(key, value) { this.headers[key] = value; }, end(body) { this.body = body; } };
+  await handler({ url: "/api/tmdb/movie/1", method: "GET", headers: {} }, res);
+  assert.equal(res.statusCode, 500);
+  assert.equal(JSON.parse(res.body).error.code, "internal");
+  assert.equal(res.headers["cache-control"], "no-store");
+  assert.ok(!res.body.includes(TOKEN));
+});
+
 test("adaptador Node: ruta por /api/tmdb/... o por ?path=... (reescritura de Vercel)", async () => {
   calls.length = 0;
   const handler = nodeHandler(createTmdbProxy({ token: TOKEN, fetchImpl: okFetch() }));
@@ -80,4 +138,13 @@ test("adaptador Node: ruta por /api/tmdb/... o por ?path=... (reescritura de Ver
   assert.equal(b.statusCode, 200);
   assert.deepEqual(calls.map((call) => new URL(call.url).pathname), ["/3/movie/550", "/3/movie/550"]);
   assert.ok(!calls[1].url.includes("path="), "el parámetro de reescritura no llega a TMDB");
+});
+
+test("el adaptador ignora X-Forwarded-For salvo que se configure un proxy confiable", async () => {
+  const observed = [];
+  const make = (hops) => nodeHandler(async ({ ip }) => { observed.push(ip); return { status: 200, headers: {}, body: "{}" }; }, { trustedProxyHops: hops });
+  const response = () => ({ setHeader() {}, end() {} });
+  await make(0)({ url: "/api/tmdb/movie/1", method: "GET", headers: { "x-forwarded-for": "spoofed, 198.51.100.8" }, socket: { remoteAddress: "10.0.0.2" } }, response());
+  await make(1)({ url: "/api/tmdb/movie/1", method: "GET", headers: { "x-forwarded-for": "spoofed, 198.51.100.8" }, socket: { remoteAddress: "10.0.0.2" } }, response());
+  assert.deepEqual(observed, ["10.0.0.2", "198.51.100.8"]);
 });

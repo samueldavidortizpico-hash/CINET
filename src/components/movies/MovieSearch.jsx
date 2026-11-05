@@ -7,6 +7,7 @@ import { useMovies } from "../../hooks/useMovies.js";
 import { useDebounced } from "../../hooks/useTitleSearch.js";
 import { EMPTY_ADVANCED, queryMovies, searchCatalog } from "../../services/movieService.js";
 import { isTmdbEnabled } from "../../services/tmdbClient.js";
+import { activeSuggestionIndex } from "../../utils/searchSuggestions.js";
 
 const HISTORY_KEY = "cinehub-search-history";
 const HISTORY_LIMIT = 8;
@@ -65,6 +66,7 @@ export default function MovieSearch({ onSubmit, className = "", label, count: re
         ? [["Búsquedas recientes", history.map((item) => ({ kind: "recent", item }))]]
         : [];
   const options = groups.flatMap(([, items]) => items);
+  const selectedIndex = activeSuggestionIndex(active, options.length);
   const searching = tmdb && query.length >= 2 && (!remote || debounced !== query);
   const expanded = open && (groups.length > 0 || searching);
 
@@ -103,13 +105,13 @@ export default function MovieSearch({ onSubmit, className = "", label, count: re
     if (event.key === "ArrowDown") {
       event.preventDefault();
       setOpen(true);
-      setActive((index) => Math.min(index + 1, options.length - 1));
+      setActive((index) => Math.min(activeSuggestionIndex(index, options.length) + 1, options.length - 1));
     } else if (event.key === "ArrowUp") {
       event.preventDefault();
-      setActive((index) => Math.max(index - 1, -1));
-    } else if (event.key === "Enter" && expanded && active >= 0) {
+      setActive((index) => Math.max(activeSuggestionIndex(index, options.length) - 1, -1));
+    } else if (event.key === "Enter" && expanded && selectedIndex >= 0) {
       event.preventDefault();
-      choose(options[active]);
+      choose(options[selectedIndex]);
     } else if (event.key === "Escape") {
       if (expanded) close();
       else inputRef.current.blur();
@@ -141,7 +143,7 @@ export default function MovieSearch({ onSubmit, className = "", label, count: re
             aria-expanded={expanded}
             aria-controls={listId}
             aria-autocomplete="list"
-            aria-activedescendant={active >= 0 ? `${listId}-${active}` : undefined}
+            aria-activedescendant={selectedIndex >= 0 ? `${listId}-${selectedIndex}` : undefined}
             placeholder={tmdb ? "🔎 Películas, series, actores, directores…" : "🔎 Avengers, Batman, Interstellar..."}
             autoComplete="off"
             value={filters.query}
@@ -171,8 +173,8 @@ export default function MovieSearch({ onSubmit, className = "", label, count: re
                           id={`${listId}-${index}`}
                           type="button"
                           role="option"
-                          aria-selected={index === active}
-                          className={`suggest-item${index === active ? " is-active" : ""}`}
+                          aria-selected={index === selectedIndex}
+                          className={`suggest-item${index === selectedIndex ? " is-active" : ""}`}
                           onClick={() => choose(option)}
                         >
                           {kind === "recent" ? (
