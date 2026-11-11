@@ -1,5 +1,5 @@
 /* Prueba REAL contra TMDB (red + token). No forma parte de `npm test`.
-   Uso: npm run test:tmdb   (lee VITE_TMDB_READ_TOKEN de .env) */
+   Uso: npm run test:tmdb   (lee TMDB_READ_TOKEN de .env) */
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { DEFAULT_DUO_SESSION, DEFAULT_PERSON } from "../src/data/duo.js";
@@ -10,7 +10,7 @@ import { checkTmdbConnection, isTmdbEnabled } from "../src/services/tmdbClient.j
 
 const search = (query, advanced = EMPTY_ADVANCED) => searchCatalog({ query, genre: "todas", sort: "default", advanced }, 1);
 
-test("TMDB real", { skip: !isTmdbEnabled() && "Falta VITE_TMDB_READ_TOKEN en .env" }, async (t) => {
+test("TMDB real", { skip: !isTmdbEnabled() && "Falta TMDB_READ_TOKEN en .env" }, async (t) => {
   await t.test("conexión y token válidos", async () => {
     const status = await checkTmdbConnection();
     assert.equal(status.state, "connected", status.message);

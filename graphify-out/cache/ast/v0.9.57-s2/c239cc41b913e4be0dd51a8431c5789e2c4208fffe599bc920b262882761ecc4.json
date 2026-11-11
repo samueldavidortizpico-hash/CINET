@@ -1,0 +1,1 @@
+{"nodes": [{"id": "$graphify-root$_supabase_migrations_20260929040000_harden_avatar_storage_sql", "label": "20260929040000_harden_avatar_storage.sql", "file_type": "code", "source_file": "supabase/migrations/20260929040000_harden_avatar_storage.sql", "source_location": null}], "edges": []}

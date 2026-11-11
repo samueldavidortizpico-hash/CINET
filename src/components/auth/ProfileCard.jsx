@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import Button from "../common/Button.jsx";
 import ProfileForm from "./ProfileForm.jsx";
 import UserAvatar from "./UserAvatar.jsx";
@@ -13,11 +14,13 @@ export default function ProfileCard() {
   const { favorites } = useFavorites();
   const { plans } = usePlans();
   const { showToast } = useToast();
+  const navigate = useNavigate();
   const ownPlans = plans.filter((plan) => plan.isOwner).length;
 
   const handleLogout = async () => {
     try {
       await logout();
+      navigate("/login", { replace: true }); // sin destino: la siguiente cuenta empieza limpia
       showToast("👋 Sesión cerrada");
     } catch (error) {
       showToast(`⚠️ ${error.message}`);
@@ -30,7 +33,7 @@ export default function ProfileCard() {
         <UserAvatar user={user} />
         <div>
           <h3>{user.name}</h3>
-          <p>{profile?.username ? `@${profile.username} · ` : ""}{user.email}</p>
+          <p>{profile?.username ? `@${profile.username} · ` : ""}{user.email ?? "Cuenta de invitado: se pierde al cerrar sesión"}</p>
         </div>
         {/* Solo lectura: el rol se asigna desde la base de datos, nunca desde aquí. */}
         <span className="profile-role" title="Tu rol en CINET">{ROLE_LABELS[user.role] ?? user.role}</span>

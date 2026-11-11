@@ -1,0 +1,233 @@
+/* =========================================================
+   Salas de Duo (/duo/sala): cada quien vota desde su teléfono.
+   Usa los tokens de .duo-page (duo.css). Pensada primero para 390 px;
+   «Pantalla grande» agranda QR y código para una TV o un computador.
+   ========================================================= */
+
+.room-page .duo-container { max-width: 980px; }
+.room-page .back-link { display: inline-block; margin-bottom: 20px; color: var(--text-muted); font-size: 0.85rem; }
+.room-page h1 { margin: 10px 0 6px; font: 600 clamp(1.8rem, 6vw, 2.6rem) / 1.1 var(--font-display); }
+.room-page h2 { margin: 0 0 10px; font: 600 1.15rem var(--font-display); }
+.room-page p { text-wrap: pretty; }
+
+.room-card {
+  margin: 0 0 18px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+}
+.room-card > p { color: var(--text-soft); line-height: 1.6; }
+
+.room-page .plan-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0 0; }
+.room-page .plan-danger-zone { justify-content: flex-end; margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--border); }
+.room-page .plan-note { margin: 0 0 18px; color: var(--text-soft); }
+.room-page .plan-mode-notice { background: var(--surface); }
+.room-page .error-message { margin: 0 0 12px; color: #ff9d9d; font-size: 0.88rem; }
+.room-page .invite-form { display: grid; gap: 4px; max-width: 420px; margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border); }
+.room-page .invite-form .btn { justify-self: start; }
+
+/* ---------- Inicio: abrir o entrar ---------- */
+
+.room-intro { margin-bottom: 26px; }
+.room-start { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); align-items: start; }
+.room-start .room-card { display: grid; gap: 10px; justify-items: start; }
+.room-code-input { text-transform: uppercase; letter-spacing: 0.3em; font-variant-numeric: tabular-nums; }
+.room-signin { max-width: 560px; }
+
+/* ---------- Cabecera y personas ---------- */
+
+.room-header { display: grid; gap: 18px; margin-bottom: 22px; }
+.room-status { margin: 0; color: var(--duo-gold); font-size: 0.9rem; }
+.room-members { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.room-members li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 6px 12px 6px 6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+}
+.room-members li > span { display: grid; font-size: 0.88rem; font-weight: 600; }
+.room-members small { color: var(--text-muted); font-size: 0.72rem; font-weight: 400; }
+.room-members .duo-link,
+.room-tallies .duo-link,
+.room-page .plan-note .duo-link { min-height: 40px; }
+
+/* ---------- Invitar: QR + código ---------- */
+
+.room-invite { display: grid; grid-template-columns: 132px 1fr; gap: 20px; align-items: center; }
+.room-qr { width: 132px; height: 132px; border-radius: 10px; }
+.room-invite p { margin: 6px 0 0; color: var(--text-muted); font-size: 0.85rem; }
+.room-invite .room-code { margin: 0; color: var(--text); font: 600 clamp(2rem, 9vw, 2.8rem) / 1 var(--font-display); letter-spacing: 0.18em; font-variant-numeric: tabular-nums; }
+.room-invite.is-big { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+.room-invite.is-big .room-qr { width: min(70vw, 360px); height: auto; }
+.room-invite.is-big .room-code { font-size: clamp(3rem, 14vw, 6rem); }
+.room-invite.is-big .plan-actions { justify-content: center; }
+
+/* ---------- Ronda ---------- */
+
+.room-progress { display: grid; gap: 8px; margin: 0 0 18px; padding: 0; list-style: none; }
+.room-progress li { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(80px, 160px) 44px; align-items: center; gap: 10px; font-size: 0.88rem; }
+.room-progress li > span:not(.seat-avatar) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.room-progress progress { width: 100%; height: 8px; accent-color: var(--duo-orange); }
+.room-progress small { color: var(--text-muted); font-variant-numeric: tabular-nums; text-align: right; }
+
+.room-deck { display: grid; gap: 12px; margin-bottom: 16px; }
+.room-title { display: grid; grid-template-columns: 76px 1fr; gap: 12px 14px; align-items: start; padding: 10px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface-2); }
+.room-title > :nth-child(n + 3) { grid-column: 1 / -1; } /* votos y acciones: debajo, a todo el ancho */
+.room-title img { width: 76px; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 8px; outline: 1px solid rgba(255, 255, 255, 0.1); outline-offset: -1px; }
+.room-title h3 { margin: 2px 0 2px; font-size: 1rem; }
+.room-title p { margin: 0 0 10px; color: var(--text-muted); font-size: 0.8rem; }
+
+.room-votes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.room-votes button[aria-pressed="true"]:last-child { border-color: #ff6b6b; background: #ff514a26; } /* veto */
+.room-votes button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 8px;
+  white-space: nowrap;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition-property: background-color, border-color, transform;
+  transition-duration: var(--fast);
+  transition-timing-function: ease-out;
+}
+.room-votes button:active { transform: var(--press); }
+.room-votes button[aria-pressed="true"] { border-color: var(--duo-orange); background: #ff9b5526; }
+.room-votes button:disabled { cursor: progress; opacity: 0.7; }
+
+/* ---------- Resultado ---------- */
+
+.room-result h2 { font-size: 1.25rem; }
+.room-result.is-match { border-color: #7fd1ae80; }
+.room-result.is-none { border-color: var(--border-strong); }
+.room-tallies { display: grid; gap: 6px; margin: 16px 0 0; padding: 0; list-style: none; }
+.room-tallies li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 14px; padding: 10px 12px; border-radius: 10px; background: var(--surface-2); font-size: 0.9rem; }
+.room-tallies li.is-winner { outline: 1px solid var(--duo-gold); }
+.room-tally-counts { color: var(--text-soft); font-variant-numeric: tabular-nums; }
+.room-result .room-title { margin-bottom: 8px; }
+
+@media (max-width: 520px) {
+  .room-votes { grid-template-columns: repeat(2, 1fr); }
+  .room-invite { grid-template-columns: 1fr; justify-items: start; }
+  .room-progress li { grid-template-columns: auto minmax(0, 1fr) 44px; row-gap: 4px; }
+  .room-progress small { grid-column: 3; grid-row: 1; }
+  .room-progress progress { grid-column: 2 / -1; grid-row: 2; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .room-votes button { transition: none; }
+  .room-votes button:active { transform: none; }
+}
+
+/* ---------- Mis gustos (perfil): tarjeta con los tokens de Duo, oscura en cualquier tema ---------- */
+
+.account-prefs {
+  --surface: #221616;
+  --border: #edb89729;
+  --border-strong: #edb89755;
+  --text: #fff6ee;
+  --text-soft: #e1c9bc;
+  --text-muted: #b99c8f;
+  --duo-orange: #ff9b55;
+  --duo-gold: #f4c36c;
+  --person-accent: #ff514a;
+  --press: scale(0.97);
+  --fast: 160ms;
+  margin: 28px 0 0;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: #181010;
+  color: var(--text);
+  color-scheme: dark;
+  text-align: left;
+}
+.account-prefs h3 { margin: 0 0 6px; color: var(--text); font: 600 1.2rem var(--font-display); }
+.account-prefs .duo-fieldset { margin-bottom: 20px; }
+.account-prefs .duo-fieldset legend { color: var(--text); }
+.account-prefs .plan-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+
+/* ---------- Importar CSV ---------- */
+
+.import-page progress { vertical-align: middle; accent-color: var(--duo-orange); }
+.import-page input[type="file"] { min-height: 48px; padding: 10px; }
+.import-choice { margin: 14px 0; }
+.import-choice legend { font-size: 0.98rem; }
+.import-review details { margin: 12px 0; color: var(--text-soft); }
+.import-review summary { min-height: 40px; cursor: pointer; }
+.import-list { margin: 8px 0 0; padding-left: 18px; color: var(--text-muted); font-size: 0.85rem; line-height: 1.7; }
+
+/* ---------- Grupos ---------- */
+
+.group-list { display: grid; gap: 10px; margin: 0 0 18px; padding: 0; list-style: none; }
+.group-card { display: grid; gap: 4px; margin: 0; color: var(--text); text-decoration: none; transition: border-color var(--fast) ease-out; }
+.group-card:hover { border-color: var(--border-strong); }
+.group-card strong { font: 600 1.1rem var(--font-display); }
+.group-card small { color: var(--text-muted); }
+.group-create { display: grid; gap: 8px; justify-items: start; max-width: 520px; }
+.group-create .duo-field { width: 100%; }
+.group-plans { margin: 6px 0 14px; padding: 0; list-style: none; display: grid; gap: 6px; }
+.group-plans li { display: grid; gap: 2px; padding: 10px 12px; border-radius: 10px; background: var(--surface-2); }
+.group-plans a { color: var(--text); font-weight: 600; }
+.group-plans small { color: var(--text-muted); }
+.groups-page .plan-member-list { margin: 0 0 8px; padding: 0; list-style: none; }
+.groups-page .plan-member-list li { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 48px; border-bottom: 1px solid var(--border); }
+.groups-page .plan-invite-link { display: grid; gap: 6px; margin: 14px 0 0; color: var(--text-muted); font-size: 0.85rem; }
+.groups-page .plan-invite-link input,
+.groups-page .invite-form input { min-height: 46px; padding: 0 12px; border: 1px solid var(--border-strong); border-radius: 10px; background: #100a0980; color: var(--text); font: inherit; }
+.groups-page .plan-invite-list { margin: 12px 0 0; padding: 0; list-style: none; }
+.groups-page .plan-invite-list li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; padding: 8px 0; color: var(--text-soft); font-size: 0.88rem; }
+
+/* ---------- Resumen del año ---------- */
+
+.recap-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: 12px; margin-bottom: 18px; }
+.recap-stats .room-card { display: grid; gap: 4px; margin: 0; text-align: center; }
+.recap-stats strong { font: 700 clamp(2rem, 8vw, 2.8rem) / 1 var(--font-display); color: var(--duo-gold); font-variant-numeric: tabular-nums; }
+.recap-stats span { color: var(--text-soft); }
+.recap-months { display: grid; grid-template-columns: repeat(12, 1fr); align-items: end; gap: 6px; height: 140px; margin: 8px 0 12px; padding: 0; list-style: none; }
+.recap-months li { display: grid; grid-template-rows: 1fr auto; height: 100%; gap: 4px; text-align: center; }
+.recap-bar { align-self: end; height: var(--h); min-height: 3px; border-radius: 6px 6px 2px 2px; background: linear-gradient(var(--duo-orange), var(--duo-red)); }
+.recap-months small { color: var(--text-muted); font-size: 0.68rem; }
+.recap-preview { padding: 12px 14px; border-left: 3px solid var(--duo-gold); background: var(--surface-2); color: var(--text); }
+
+/* ---------- Aliados ---------- */
+
+.partner-form { display: grid; gap: 10px; }
+.partner-inline { grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); align-items: end; }
+.partner-grid { display: grid; gap: 0 14px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); }
+.partner-form .btn { justify-self: start; }
+.partner-picker ul { display: flex; flex-wrap: wrap; gap: 8px; margin: -6px 0 10px; padding: 0; list-style: none; }
+.partner-picker button { min-height: 40px; padding: 0 12px; border: 1px solid var(--border-strong); border-radius: 10px; background: var(--surface-2); color: var(--text); font: inherit; font-size: 0.85rem; cursor: pointer; }
+.partner-picked { margin: 0 0 8px; color: var(--text); }
+.partner-list { display: grid; gap: 6px; margin: 12px 0; padding: 0; list-style: none; }
+.partner-list li { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 10px; background: var(--surface-2); font-size: 0.9rem; }
+.partner-list small { display: block; color: var(--text-muted); }
+.partner-audit { margin: 6px 0 0; padding-left: 18px; color: var(--text-muted); font-size: 0.82rem; line-height: 1.7; }
+
+/* CINET Plus: estado, matriz gratis/Plus y prueba de precio. La etiqueta también la usa el plan (noche fija). */
+.plus-tag { display: inline-block; margin-left: 6px; padding: 2px 8px; border: 1px solid #f4c36c55; border-radius: 999px; color: var(--duo-gold, #f4c36c); font: 600 .62rem/1.4 var(--font-body, inherit); letter-spacing: .08em; vertical-align: middle; }
+.plus-status { margin-bottom: 28px; padding: 22px; border: 1px solid var(--border); border-radius: 16px; background: #ffffff05; }
+.plus-status h2 { margin: 0 0 8px; font-size: 1.3rem; }
+.plus-status p { margin: 0 0 14px; color: var(--text-soft); line-height: 1.6; }
+.plus-matrix { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 18px; margin-bottom: 28px; }
+.plus-matrix section { padding: 22px; border: 1px solid var(--border); border-radius: 16px; }
+.plus-matrix section + section { border-color: #f4c36c40; }
+.plus-matrix h2 { margin: 0 0 12px; font-size: 1.1rem; }
+.plus-matrix ul { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.plus-matrix li { color: var(--text-soft); line-height: 1.5; text-wrap: pretty; }
+.plus-matrix small { display: block; margin-top: 4px; color: var(--text-muted); font-size: .8rem; }
+.plus-price { padding-top: 22px; border-top: 1px solid var(--border); }
+.plus-price h2 { margin: 0 0 8px; font-size: 1.2rem; }
+.plus-price p { color: var(--text-soft); line-height: 1.6; }

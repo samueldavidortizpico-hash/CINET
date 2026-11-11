@@ -1,3 +1,6 @@
+import { createHash } from "node:crypto";
+import { isIP } from "node:net";
+
 /* =========================================================
    tmdbProxy — proxy de SOLO LECTURA hacia TMDB.
    El token vive en el servidor (TMDB_READ_TOKEN); el navegador pide
@@ -7,16 +10,50 @@
      Cualquier otra ruta o parámetro → 404/400: no es un proxy abierto.
    - Solo GET. Sin hosts, URLs ni credenciales aportadas por el cliente.
    - Caché HTTP por tipo de dato (s-maxage para la CDN) y errores sin secretos.
-   - Límite de peticiones por IP EN MEMORIA de cada instancia.
-     ponytail: no es un límite global en serverless (cada instancia cuenta
-     por su lado); para uno global hace falta un almacén compartido
-     (p. ej. Upstash Redis). Ver docs/IMPLEMENTACION-CINET.md.
+   - Límite local para desarrollo/pruebas; producción debe inyectar el
+     limitador atómico compartido de Upstash Redis.
    ========================================================= */
 
 const TMDB_URL = "https://api.themoviedb.org/3";
 const MINUTE = 60;
 const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;
+const RATE_SCRIPT = `local a=redis.call('INCR',KEYS[1]); if a==1 then redis.call('PEXPIRE',KEYS[1],ARGV[1]); end; local b=redis.call('INCR',KEYS[2]); if b==1 then redis.call('PEXPIRE',KEYS[2],ARGV[1]); end; return {a,b,redis.call('PTTL',KEYS[1]),redis.call('PTTL',KEYS[2])}`;
+
+function withoutAdultContent(value) {
+  if (Array.isArray(value)) return value.map(withoutAdultContent).filter((item) => item !== null);
+  if (!value || typeof value !== "object") return value;
+  if (value.adult === true) return null;
+  return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, withoutAdultContent(item)]));
+}
+
+/** Limitador fijo y atómico compartido por instancias mediante Upstash REST/EVAL. */
+export function createUpstashRateLimiter({ url, token, fetchImpl = (...args) => fetch(...args), windowMs = 60_000, perIpMax = 600, globalMax = 12_000, now = Date.now } = {}) {
+  if (!url || !token) throw new TypeError("Se requieren UPSTASH_REDIS_REST_URL y UPSTASH_REDIS_REST_TOKEN.");
+  return async (ip) => {
+    const bucket = Math.floor(now() / windowMs);
+    const identity = createHash("sha256").update(ip || "unknown").digest("hex");
+    const keys = [`cinet:tmdb:ip:${identity}:${bucket}`, `cinet:tmdb:global:${bucket}`];
+    try {
+      const response = await fetchImpl(url, {
+        method: "POST",
+        headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+        body: JSON.stringify(["EVAL", RATE_SCRIPT, "2", ...keys, String(windowMs)]),
+        signal: AbortSignal.timeout(1500),
+      });
+      if (!response.ok) return { unavailable: true };
+      const payload = await response.json();
+      const [ipCount, globalCount, ipTtl, globalTtl] = payload.result ?? [];
+      if (![ipCount, globalCount, ipTtl, globalTtl].every(Number.isFinite)) return { unavailable: true };
+      if (ipCount > perIpMax || globalCount > globalMax) {
+        return { allowed: false, retryAfter: Math.max(1, Math.ceil(Math.max(ipCount > perIpMax ? ipTtl : 0, globalCount > globalMax ? globalTtl : 0) / 1000)) };
+      }
+      return { allowed: true };
+    } catch {
+      return { unavailable: true };
+    }
+  };
+}
 
 /** Rutas permitidas y cuánto puede cachearlas la CDN (segundos). */
 const ROUTES = [
@@ -32,6 +69,8 @@ const ROUTES = [
   { pattern: /^\/(movie|tv)\/\d{1,9}\/watch\/providers$/, ttl: 6 * HOUR },
   { pattern: /^\/watch\/providers\/(movie|tv)$/, ttl: DAY },
   { pattern: /^\/collection\/\d{1,9}$/, ttl: DAY },
+  // Importar CSV de IMDb: id tt… → título de TMDB (solo con external_source=imdb_id).
+  { pattern: /^\/find\/tt\d{7,10}$/, ttl: DAY },
 ];
 
 const APPEND = new Set(["credits", "videos", "similar", "recommendations", "keywords", "release_dates", "content_ratings"]);
@@ -42,7 +81,9 @@ const PARAMS = new Set([
   "with_original_language", "with_runtime.gte", "with_runtime.lte", "with_watch_providers",
   "with_watch_monetization_types", "with_status", "with_cast", "with_people", "with_companies",
   "vote_average.gte", "vote_count.gte", "vote_count.lte", "primary_release_date.gte", "primary_release_date.lte",
-  "first_air_date.gte", "first_air_date.lte", "release_date.gte", "release_date.lte",
+  "first_air_date.gte", "first_air_date.lte", "release_date.gte", "release_date.lte", "external_source",
+  "certification_country", "certification", // modo familia
+  "with_origin_country", // «Hecho en Colombia»
 ]);
 
 const json = (status, body, headers = {}) => ({
@@ -68,6 +109,9 @@ function validParams(query) {
       out.set(key, String(page));
     } else if (key === "include_adult") {
       out.set(key, "false"); // nunca contenido adulto, pida lo que pida el cliente
+    } else if (key === "external_source") {
+      if (value !== "imdb_id") return { error: "external_source solo admite imdb_id." };
+      out.set(key, value);
     } else if (key === "append_to_response") {
       const parts = value.split(",");
       if (parts.length > APPEND.size || parts.some((part) => !APPEND.has(part))) return { error: "append_to_response no permitido." };
@@ -92,6 +136,7 @@ export function createTmdbProxy({
   fetchImpl = (...args) => fetch(...args),
   timeoutMs = 8000,
   limit = { max: 600, windowMs: 60_000 },
+  sharedLimiter,
   now = Date.now,
 } = {}) {
   const windows = new Map(); // ip → { start, count }
@@ -102,7 +147,11 @@ export function createTmdbProxy({
     const current = windows.get(key);
     if (!current || time - current.start >= limit.windowMs) {
       windows.set(key, { start: time, count: 1 });
-      if (windows.size > 10_000) windows.clear(); // ponytail: tope de memoria simple
+      if (windows.size > 10_000) {
+        for (const [expiredKey, window] of windows) {
+          if (time - window.start >= limit.windowMs) windows.delete(expiredKey);
+        }
+      }
       return 0;
     }
     current.count += 1;
@@ -115,8 +164,14 @@ export function createTmdbProxy({
     if (!route) return fail(404, "route", "Ruta no disponible.");
     const { params, error } = validParams(query);
     if (error) return fail(400, "params", error);
-    const wait = limited(ip);
-    if (wait) return fail(429, "rate-limit", "Demasiadas consultas; intenta en unos segundos.", { "retry-after": String(wait) });
+    if (sharedLimiter) {
+      const result = await sharedLimiter(ip);
+      if (result?.unavailable) return fail(503, "rate-limit-unavailable", "El catálogo no está disponible temporalmente.");
+      if (!result?.allowed) return fail(429, "rate-limit", "Demasiadas consultas; intenta en unos segundos.", { "retry-after": String(result.retryAfter ?? 1) });
+    } else {
+      const wait = limited(ip);
+      if (wait) return fail(429, "rate-limit", "Demasiadas consultas; intenta en unos segundos.", { "retry-after": String(wait) });
+    }
     if (!token) return fail(503, "no-token", "El catálogo en vivo no está configurado en el servidor.");
 
     let response;
@@ -135,7 +190,15 @@ export function createTmdbProxy({
     // 401/403 de TMDB = problema del token del servidor: no se reenvía su detalle.
     if (!response.ok) return fail(502, "upstream", `TMDB respondió con error ${response.status}.`);
 
-    const body = await response.text();
+    let body;
+    try {
+      const raw = await response.text();
+      const data = withoutAdultContent(JSON.parse(raw));
+      if (data === null) return fail(404, "not-found", "TMDB no encontró ese recurso.");
+      body = JSON.stringify(data);
+    } catch {
+      return fail(502, "upstream-body", "TMDB devolvió una respuesta inválida o interrumpida.");
+    }
     return {
       status: 200,
       headers: {
@@ -148,16 +211,28 @@ export function createTmdbProxy({
 }
 
 /** Adaptador Node (req, res) para Vercel y el servidor de Vite. Acepta /api/tmdb/<ruta> o ?path=<ruta>. */
-export function nodeHandler(handle) {
+export function nodeHandler(handle, { trustedProxyHops = 0 } = {}) {
   return async (req, res) => {
     const url = new URL(req.url ?? "/", "http://localhost");
     const fromQuery = url.searchParams.get("path");
     url.searchParams.delete("path");
     const path = fromQuery != null ? `/${fromQuery.replace(/^\/+/, "")}` : url.pathname.replace(/^\/api\/tmdb/, "") || "/";
-    const forwarded = String(req.headers?.["x-forwarded-for"] ?? "").split(",")[0].trim();
-    const result = await handle({ method: req.method, path, query: url.searchParams, ip: forwarded || req.socket?.remoteAddress || "" });
-    res.statusCode = result.status;
-    for (const [key, value] of Object.entries(result.headers)) res.setHeader(key, value);
-    res.end(result.body);
+    const forwarded = String(req.headers?.["x-forwarded-for"] ?? "").split(",").map((part) => part.trim()).filter(Boolean);
+    const forwardedHop = Number.isInteger(trustedProxyHops) && trustedProxyHops > 0
+      ? forwarded[Math.max(0, forwarded.length - trustedProxyHops)]
+      : "";
+    const hop = forwardedHop && isIP(forwardedHop) ? forwardedHop : "";
+    try {
+      const result = await handle({ method: req.method, path, query: url.searchParams, ip: hop || req.socket?.remoteAddress || "unknown" });
+      res.statusCode = result.status;
+      for (const [key, value] of Object.entries(result.headers)) res.setHeader(key, value);
+      res.end(result.body);
+    } catch {
+      if (res.headersSent) return;
+      res.statusCode = 500;
+      res.setHeader("content-type", "application/json; charset=utf-8");
+      res.setHeader("cache-control", "no-store");
+      res.end(JSON.stringify({ error: { code: "internal", message: "No se pudo completar la consulta." } }));
+    }
   };
 }

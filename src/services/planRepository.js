@@ -7,9 +7,10 @@
    ========================================================= */
 
 import { supabase } from "./supabaseClient.js";
-import { describeStart, toStartParts } from "./planService.js";
+import { describeStart, parseBudget, toStartParts } from "./planService.js";
 
-const SELECT = "id, owner_id, name, message, mode, title_id, title, place, starts_at, time_zone, time_source, details, status, version, created_at, plan_members (user_id, role, display_name, rsvp, responded_at)";
+const SELECT = "id, owner_id, name, message, mode, title_id, title, place, starts_at, time_zone, time_source, details, status, version, created_at, updated_at, group_id, repeat_every, plan_members (user_id, role, display_name, rsvp, responded_at)";
+export { SELECT as PLAN_SELECT }; // la usa groupRepository (planes de un grupo)
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** ¿Este id puede ser un plan remoto? (los locales son "cinehub-<timestamp>"). */
@@ -17,6 +18,7 @@ export const isRemoteId = (id) => UUID.test(String(id ?? ""));
 export const remotePlansAvailable = () => Boolean(supabase);
 
 const MESSAGES = {
+  CN402: "Esta función es parte de CINET Plus.",
   CN403: "No tienes permiso para hacer esto.",
   CN404: "El plan no existe o no tienes acceso.",
   CN409: "Alguien cambió el plan mientras lo editabas. Recarga para ver la versión actual.",
@@ -72,7 +74,11 @@ export function toUiPlan(row, userId) {
     food: details.food ?? null,
     duration: details.duration ?? null,
     marathon: details.marathon ?? null,
+    budget: Number.isInteger(details.budget) ? details.budget : null,
     createdAt: row.created_at,
+    groupId: row.group_id ?? null,
+    repeatEvery: row.repeat_every ?? null, // Plus: week | 2weeks | month
+    updatedAt: row.updated_at ?? null, // cambia con respuestas, horarios y miembros: sirve para releer
     members,
     rsvp,
     myRsvp: members.find((member) => member.userId === userId)?.rsvp ?? null,
@@ -109,6 +115,7 @@ export async function createPlan({ selection, form, clientRef, displayName }) {
       title: selection.movie.title,
       year: selection.movie.year ?? "",
       duration: selection.movie.duration ?? "",
+      runtime: selection.movie.runtime ?? null, // minutos: el .ics dura lo real
       rating: selection.movie.rating ?? null,
       genres: (selection.movie.genres ?? []).slice(0, 3),
       image: selection.movie.image ?? "",
@@ -122,6 +129,7 @@ export async function createPlan({ selection, form, clientRef, displayName }) {
       ...(selection.food && { food: selection.food }),
       ...(selection.duration && { duration: selection.duration }),
       ...(selection.marathon && { marathon: selection.marathon.slice(0, 12) }),
+      ...(parseBudget(form.budget) && { budget: parseBudget(form.budget) }),
     },
     p_display_name: displayName.trim().slice(0, 40) || "Organizador",
   });
@@ -136,6 +144,38 @@ export const leavePlan = (id) => call("leave_plan", { p_plan: id });
 export const removeMember = (id, userId) => call("remove_plan_member", { p_plan: id, p_user: userId });
 
 /** Token en claro (solo existe aquí y en el enlace que se comparte). */
+/** Encuesta de horarios: opciones (con fecha legible) y quién marcó cada una. */
+export async function listTimeOptions(plan) {
+  const db = client();
+  const [options, votes] = await Promise.all([
+    db.from("plan_time_options").select("id, starts_at").eq("plan_id", plan.id).order("starts_at", { ascending: true }),
+    db.from("plan_time_votes").select("option_id, user_id").eq("plan_id", plan.id),
+  ]);
+  if (options.error || votes.error) throw toPlanError(options.error ?? votes.error);
+  return options.data.map((option) => ({
+    id: option.id,
+    startsAt: option.starts_at,
+    ...describeStart(option.starts_at, plan.timeZone),
+    voters: votes.data.filter((vote) => vote.option_id === option.id).map((vote) => vote.user_id),
+  }));
+}
+/** slots: [{ date: "2026-10-17", time: "20:30" }] (entre 2 y 5 con los que ya hay). */
+export const proposeTimes = (planId, slots, timeZone = "America/Bogota") => call("propose_plan_times", { p_plan: planId, p_slots: slots, p_time_zone: timeZone });
+export const toggleTimeVote = (optionId, available) => call("toggle_plan_time_vote", { p_option: optionId, p_available: available });
+export const chooseTime = (optionId) => call("choose_plan_time", { p_option: optionId });
+export const clearTimes = (planId) => call("clear_plan_times", { p_plan: planId });
+
+/** Suma al plan a quienes están hoy en el grupo (sin respuesta). Devuelve cuántas personas entraron. */
+export const sharePlanWithGroup = (planId, groupId) => call("share_plan_with_group", { p_plan: planId, p_group: groupId });
+
+/** Mismo plan en otra fecha: mismas personas, sin copiar confirmaciones. Idempotente con clientRef. */
+export const repeatPlan = (planId, { clientRef, dateISO, time, timeZone = "America/Bogota" }) =>
+  call("repeat_plan", { p_plan: planId, p_client_ref: clientRef, p_date: dateISO, p_time: time, p_time_zone: timeZone });
+
+// Plus («noche fija»): el servidor comprueba el derecho; aquí no se decide nada.
+export const setPlanRepeat = (planId, every) => call("set_plan_repeat", { p_plan: planId, p_every: every });
+export const scheduleNextPlan = (planId, clientRef) => call("schedule_next_plan", { p_plan: planId, p_client_ref: clientRef });
+
 export const createInvite = (id, days = 14) => call("create_plan_invite", { p_plan: id, p_days: days, p_max_uses: null });
 export const revokeInvite = (inviteId) => call("revoke_plan_invite", { p_invite: inviteId });
 
@@ -168,7 +208,7 @@ export function subscribePlan(id, onChange) {
   if (!supabase || !isRemoteId(id)) return () => {};
   const channel = supabase
     .channel(`plan-${id}`)
-    .on("postgres_changes", { event: "*", schema: "public", table: "plan_members", filter: `plan_id=eq.${id}` }, onChange)
+    // Solo `plans` se publica (filtrado por RLS); los cambios de miembros lo "tocan" (migración 20261010120000).
     .on("postgres_changes", { event: "*", schema: "public", table: "plans", filter: `id=eq.${id}` }, onChange)
     .subscribe();
   return () => supabase.removeChannel(channel);

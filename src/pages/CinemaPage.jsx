@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useAsync } from "../hooks/useAsync.js";
 import { useDocumentTitle } from "../hooks/useDocumentTitle.js";
 import { getCollection } from "../services/movieService.js";
-import { titleMeta } from "../services/recommender.js";
+import { titleMeta } from "../utils/titleMeta.js";
 import { getTmdbStatus, isTmdbEnabled } from "../services/tmdbClient.js";
 import { fallbackPoster } from "../utils/poster.js";
 

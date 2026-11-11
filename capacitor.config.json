@@ -1,0 +1,9 @@
+{
+  "appId": "com.cinet.app",
+  "appName": "Cinet",
+  "webDir": "dist",
+  "server": {
+    "url": "https://cinet.vercel.app",
+    "cleartext": false
+  }
+}

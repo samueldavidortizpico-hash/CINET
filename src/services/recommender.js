@@ -7,18 +7,25 @@
       "les gusta a todos" = la intersección · en grupos de 3 o más,
       "la mayoría" = géneros que eligió al menos la mitad.
 
-   2. FILTROS (checkTitle).
-      Duros (nunca salen): tipo (nunca se mezclan películas y series) ·
-      historial (vistas, rechazadas, "no me interesa") · quitados de la
+   2. FILTROS (checkTitle) — contrato de límites v2 (LIMITS_VERSION).
+      LÍMITES DUROS (nunca se relajan para rellenar): tipo (nunca se mezclan
+      películas y series) · historial (vistas, rechazadas, "no me interesa")
+      y vistas por TODAS las personas en su calibración · quitados de la
       sesión · sin estrenar · géneros rechazados · animación/documental si
-      nadie los eligió · ningún imprescindible · no encaja con ninguno.
-      Blandos: todos los imprescindibles · encaja con el quórum (todos en
-      solitario o pareja; 2/3 del grupo desde 3 personas) · duración
-      (hasta +NEAR_MINUTES o sin confirmar) · temporadas y estado · plataformas.
-      Tres se amplían a mano (profile.relax): +minutos, otras plataformas y
-      "encaja con uno solo". Si menos de MIN_RESULTS cumplen todo, se
-      completa con los que fallan menos filtros blandos. Esos títulos van
-      después de los estrictos y su explicación empieza por "Es una alternativa…".
+      nadie los eligió · TODOS los imprescindibles · duración máxima ·
+      temporadas y estado de serie · plataformas marcadas · modo familia
+      (en discover) · no encaja con nadie.
+      DATOS DESCONOCIDOS: con un límite activo, un dato que no se puede
+      comprobar no cumple (unknownRuntime, unknownSeasons, unknownStatus,
+      unknownPlatform). Un filtro de discover (runtimeCap, filtered.*) vale
+      como comprobación solo si se pidió con el límite original; el dato
+      exacto del detalle siempre gana.
+      PREFERENCIA FLEXIBLE: el quórum de gustos (todos en solitario o pareja;
+      2/3 del grupo desde 3 personas). Es lo único con lo que se completa la
+      lista si menos de MIN_RESULTS cumplen todo, y se marca "Es una alternativa…".
+      AMPLIACIÓN EXPLÍCITA (profile.relax, solo por acción de la persona):
+      +minutos (se muestra el excedente exacto), plataformas sin comprobar y
+      "encaja con uno solo".
       Un gusto se cumple por género o actor; el tono solo cuenta como gusto
       para quien no eligió géneros.
 
@@ -38,8 +45,10 @@
       quality     valoración bayesiana (v·R + 200·6.5) / (v + 200), 5 → 0 y 8.5 → 1
       popularity  log10(1 + popularidad TMDB) / 3 (solo desempata)
       fresh       1 si se estrenó hace menos de un año, ½ si hace menos de dos
-      feedback    parecido a lo que votaron "sí" − parecido a lo que votaron
-                  "no" en esta sesión, en [−1, 1]: el ranking aprende al votar
+      feedback    señal PERSONAL: por persona, parecido a lo que le encanta
+                  (calibración) o votó "sí" − parecido a lo que no es para ella
+                  o votó "no", en [−1, 1]; el grupo = ½ media + ½ mínimo de
+                  quienes dieron señales (un "no" no desaparece por mayoría)
       favorite    1 si alguno lo guardó en favoritos
       recent      1 si se recomendó hace poco (peso negativo: rota los títulos)
       No hay porcentajes de compatibilidad: solo motivos verificables.
@@ -47,16 +56,24 @@
    4. DIVERSIDAD Y REPARTO (diversify): reordena restando DIVERSITY_PENALTY ×
       parecido con los últimos elegidos (mismo género o misma saga) y, desde el
       2.º puesto, adelanta una opción para quien aún no tenga ninguna suya.
+      FINALISTAS (pickFinalists): hasta tres como CONJUNTO, con un papel
+      justificado o ninguno: punto de encuentro, algo para descubrir (novedad
+      trazable y distinto del primero) y otra forma de la noche (un gusto o
+      tono que los otros no cubren). No fuerza tres.
    5. DADO (rollDice): sorteo ponderado e^((score − mejor) / T) entre los
       DICE_POOL mejores que cumplen todo (alternativas solo si no queda
       ninguno), sin repetir lo que está en pantalla, lo anterior ni lo reciente.
    6. MARATÓN (buildMarathon): llena el tiempo según estilo y alcance.
    ========================================================= */
 
-import { FORMAT_GENRES, personName, SERIES_STATUS, SERIES_STATUS_LABELS, TONES } from "../data/duo.js";
+import { familyFilter, FORMAT_GENRES, personName, SERIES_STATUS, SERIES_STATUS_LABELS, TONES } from "../data/duo.js";
 import { PLATFORMS } from "../data/platforms.js";
 import { GENRES, regionName } from "../data/tmdb.js";
+import { MAX_TURN, TURN_POINTS } from "./fairness.js";
 import { asHistory, excludedIds } from "./historyService.js";
+import { formatMinutes, titleMeta } from "../utils/titleMeta.js";
+
+export { formatMinutes, titleMeta }; // las tarjetas importan de utils/titleMeta.js
 
 export const WEIGHTS = {
   genre: 30,
@@ -79,10 +96,10 @@ const DIVERSITY_PENALTY = 15;
 const DICE_TEMPERATURE = 10;
 const DICE_POOL = 15;
 const RELAXED_WEIGHT = 0.25;
-/** Resultados mínimos: si menos cumplen todo, se completa con alternativas cercanas. */
+/** Resultados mínimos: si menos cumplen todo, se completa con alternativas que solo fallan el quórum de gustos. */
 export const MIN_RESULTS = 20;
-/** Minutos de más que se aceptan en una alternativa. */
-export const NEAR_MINUTES = 30;
+/** Versión del contrato de límites (ver cabecera): límites duros, desconocidos y ampliaciones explícitas. */
+export const LIMITS_VERSION = 2;
 
 /* ---------- Utilidades ---------- */
 
@@ -100,26 +117,6 @@ export const genreName = (key) => (GENRES.find((genre) => genre.key === key)?.la
 const genreNames = (keys) => listEs(keys.map(genreName));
 const toneName = (key) => TONES.find((tone) => tone.key === key)?.label ?? key;
 
-/** 128 → "2 h 8 min" */
-export function formatMinutes(total) {
-  const minutes = Math.round(total);
-  const hours = Math.floor(minutes / 60);
-  const rest = minutes % 60;
-  if (!hours) return `${rest} min`;
-  return rest ? `${hours} h ${rest} min` : `${hours} h`;
-}
-
-/** "2014 · Película · 2 h 49 min" o "2008 · Serie · 5 temp. · episodios de 47 min" (solo datos conocidos). */
-export function titleMeta(title) {
-  const length =
-    title.type === "tv"
-      ? [title.seasons && `${title.seasons} temp.`, title.runtime && `episodios de ${title.runtime} min`].filter(Boolean).join(" · ")
-      : title.runtime
-        ? formatMinutes(title.runtime)
-        : null;
-  return [title.year, title.type === "tv" ? "Serie" : "Película", length].filter(Boolean).join(" · ");
-}
-
 /** Minutos de un título (película) o de un episodio (serie). runtimeCap: tope verificado por TMDB discover. */
 const minutesOf = (title) => title.runtime || title.runtimeCap || 0;
 
@@ -127,6 +124,9 @@ const minutesOf = (title) => title.runtime || title.runtimeCap || 0;
 
 /** Personas que deben quedar conformes para que un título cumpla todo: todas hasta 2; 2/3 desde 3. */
 export const quorum = (expressed) => (expressed <= 2 ? expressed : Math.ceil((expressed * 2) / 3));
+
+/** Respuestas de calibración de una persona con alguno de esos valores (love | nope | seen | unknown). */
+const calibrated = (person, answers) => (person.titles ?? []).filter((item) => answers.includes(item.answer) && Array.isArray(item.genreKeys));
 
 export function buildProfile(session) {
   const type = session.mode === "marathon" ? (session.marathon?.type === "tv" ? "tv" : "movie") : session.mode === "tv" ? "tv" : "movie";
@@ -139,6 +139,11 @@ export function buildProfile(session) {
     seriesStatus: person.seriesStatus ?? "any",
     tone: person.tone ?? [],
     actors: (person.actors ?? []).map((actor) => actor.name),
+    // Calibración: "me encanta" y "no es para mí" son afinidad personal; "ya la vi" (y "me encanta") solo
+    // cuentan como vistas. "No la conozco" no es nada. Ninguna veta un género ni un reparto.
+    loved: calibrated(person, ["love"]),
+    noped: calibrated(person, ["nope"]),
+    seenIds: calibrated(person, ["love", "seen"]).flatMap((item) => item.ids ?? [item.id]),
   }));
   const limit = (key) => {
     const values = answers.map((person) => Number(person[key]) || 0).filter((value) => value > 0);
@@ -159,7 +164,7 @@ export function buildProfile(session) {
     majority: people.length >= 3 ? liked.filter((key) => !shared.includes(key) && fans(key) >= Math.max(2, people.length / 2)) : [],
     must: union(...answers.map((person) => person.mustGenres ?? [])),
     rejected,
-    tone: union(...people.map((person) => person.tone)),
+    tone: union(...people.map((person) => person.tone), TONES.some((tone) => tone.key === session.mood) ? [session.mood] : []),
     actors: [...new Map(answers.flatMap((person) => person.actors ?? []).map((actor) => [actor.id, actor])).values()],
     maxRuntime: limit(type === "tv" ? "episodeMax" : "maxRuntime"),
     seasonsMax: type === "tv" ? limit("seasonsMax") : 0,
@@ -167,6 +172,7 @@ export function buildProfile(session) {
     region: session.region ?? "CO",
     providers: session.providers ?? [],
     relax: { runtime: 0, platforms: false, oneSided: false, ...session.relax },
+    family: familyFilter(session.family, session.region ?? "CO"), // null = sin modo familia
   };
 }
 
@@ -214,10 +220,21 @@ function tonesOf(title) {
   ).map((tone) => tone.key);
 }
 
+/** Película de su calibración a la que más se parece (si se parece de verdad y no más a una que no es para ella). */
+function calibrationLike(person, title) {
+  if (!person.loved?.length) return null;
+  const near = nearest(title, person.loved);
+  const far = nearest(title, person.noped ?? []);
+  return near.value >= 0.4 && near.value > far.value ? near.best : null;
+}
+
 function hitsFor(person, title, tones) {
   const genres = intersect(person.genres, title.genreKeys ?? []);
   const tone = intersect(person.tone, tones);
   const cast = intersect(person.actors, title.castMatch ?? []);
+  // Calibración: parecerse a una película que le encanta se muestra y puntúa (criterio feedback), pero no
+  // decide si "le encaja": eso sería convertir una inferencia en un gusto declarado.
+  const like = calibrationLike(person, title);
   // Quien eligió géneros queda conforme con un género o un actor suyo; el tono solo no basta.
   const pleased = genres.length + cast.length > 0 || (!person.genres.length && tone.length > 0);
   // Profundidad: cuántos de sus gustos toca (con dos ya está lleno).
@@ -228,6 +245,7 @@ function hitsFor(person, title, tones) {
     genres,
     tone,
     cast,
+    like: like?.title ?? null,
     expressed: person.genres.length + person.tone.length + person.actors.length > 0,
     pleased,
     fit: pleased ? 0.6 + 0.4 * depth : tone.length ? 0.25 : 0,
@@ -242,18 +260,18 @@ function groupFit(hits) {
 }
 
 /**
- * "ok" | "relaxed" (cabe con los minutos ampliados a mano) | "near" (hasta NEAR_MINUTES más
- * o sin confirmar: solo como alternativa) | "fail".
+ * Duración frente al límite duro: "ok" | "relaxed" (cabe solo con los minutos que la persona amplió) |
+ * "unknown" (sin duración comprobable) | "fail". La duración exacta del detalle gana a la cota de discover;
+ * una cota solo sirve si no supera el límite (decir "menos de 2 h 40" no prueba "menos de 2 h 10").
  */
 function runtimeStatus(title, profile) {
   const max = profile.maxRuntime;
   if (!max) return "ok";
-  const minutes = title.runtime || title.runtimeCap;
-  if (!minutes) return "near";
-  if (minutes <= max) return "ok";
   const extra = Number(profile.relax.runtime) || 0;
-  if (minutes <= max + extra) return "relaxed";
-  return minutes <= max + extra + NEAR_MINUTES ? "near" : "fail";
+  const fits = (minutes) => (minutes <= max ? "ok" : minutes <= max + extra ? "relaxed" : null);
+  if (title.runtime) return fits(title.runtime) ?? "fail";
+  if (title.runtimeCap) return fits(title.runtimeCap) ?? "unknown";
+  return "unknown";
 }
 
 const platformsOf = (title, profile) =>
@@ -264,6 +282,16 @@ const platformsOf = (title, profile) =>
       )
     : [];
 
+/** "ok" (comprobada) | "filtered" (discover ya filtró por sus plataformas) | "missing" (no está) | "unknown" (sin dato). */
+function platformStatus(title, profile) {
+  if (!profile.providers.length) return "ok";
+  if (Array.isArray(title.providers)) return platformsOf(title, profile).length ? "ok" : "missing";
+  return title.filtered?.providers ? "filtered" : "unknown";
+}
+
+/** Personas que ya vieron el título según su calibración (por nombre). */
+const seenBy = (title, profile) => profile.people.filter((person) => person.seenIds?.includes(title.id)).map((person) => person.name);
+
 function isUnreleased(title, now) {
   if (title.status === "PRÓXIMAMENTE") return true;
   if (!title.releaseDate) return title.type === "tv" && title.tmdbId != null; // serie de TMDB sin fecha de estreno
@@ -272,30 +300,47 @@ function isUnreleased(title, now) {
 
 /**
  * → { ok: true, relaxed: [...] } o { ok: false, reason, misses? }.
- * Con `misses` (filtros blandos que no cumple) el título puede completar la lista como alternativa.
- * reason: type | history | unreleased | rejected | format | must | taste | oneSided | runtime | seasons | status | platform
+ * Solo el quórum de gustos (preferencia flexible) devuelve `misses`: ese título puede completar la lista
+ * como alternativa. Todo lo demás es un límite duro y nunca se relaja para rellenar.
+ * reason: type | history | unreleased | rejected | format | must | taste | oneSided | runtime | seasons | status |
+ *         platform | unknownRuntime | unknownSeasons | unknownStatus | unknownPlatform
  */
 export function checkTitle(title, profile, { excluded = new Set(), now = today() } = {}) {
   const relaxed = [];
-  const misses = [];
-  let reason = null;
-  const miss = (key, why = key) => {
-    misses.push(key);
-    reason ??= why;
-  };
   const fail = (why) => ({ ok: false, reason: why });
   const genres = title.genreKeys ?? [];
 
   if ((title.type ?? "movie") !== profile.type) return fail("type");
   if (excluded.has(title.id)) return fail("history");
+  if (profile.people.length && seenBy(title, profile).length === profile.people.length) return fail("history");
   if (isUnreleased(title, now)) return fail("unreleased");
   if (genres.some((key) => profile.rejected.includes(key))) return fail("rejected");
   if (genres.some((key) => FORMAT_GENRES.includes(key) && !profile.liked.includes(key))) return fail("format");
+  // Imprescindibles: TODOS. Cumplir uno de dos no es cumplir la condición.
+  if (profile.must.some((key) => !genres.includes(key))) return fail("must");
 
-  const mustHits = intersect(profile.must, genres).length;
-  if (mustHits < profile.must.length) {
-    if (!mustHits) return fail("must");
-    miss("must");
+  const runtime = runtimeStatus(title, profile);
+  if (runtime === "fail") return fail("runtime");
+  if (runtime === "unknown") return fail("unknownRuntime");
+  if (runtime === "relaxed") relaxed.push("runtime");
+
+  if (profile.type === "tv") {
+    if (profile.seriesStatus === "conflict") return fail("status");
+    if (profile.seasonsMax) {
+      if (!title.seasons) return fail("unknownSeasons");
+      if (title.seasons > profile.seasonsMax) return fail("seasons");
+    }
+    const wanted = SERIES_STATUS[profile.seriesStatus]?.tmdb;
+    if (wanted) {
+      if (title.seriesStatus && !wanted.includes(title.seriesStatus)) return fail("status");
+      if (!title.seriesStatus && !title.filtered?.status) return fail("unknownStatus");
+    }
+  }
+
+  const platform = platformStatus(title, profile);
+  if (platform === "missing" || platform === "unknown") {
+    if (!profile.relax.platforms) return fail(platform === "missing" ? "platform" : "unknownPlatform");
+    relaxed.push("platforms");
   }
 
   const tones = tonesOf(title);
@@ -303,27 +348,10 @@ export function checkTitle(title, profile, { excluded = new Set(), now = today()
   const pleased = hits.filter((hit) => hit.pleased).length;
   if (hits.length && !pleased) return fail("taste");
   if (pleased < quorum(hits.length)) {
-    if (profile.relax.oneSided) relaxed.push("oneSided");
-    else miss("oneSided");
+    if (!profile.relax.oneSided) return { ok: false, reason: "oneSided", misses: [...relaxed, "oneSided"] };
+    relaxed.push("oneSided");
   }
-
-  const runtime = runtimeStatus(title, profile);
-  if (runtime === "fail") return fail("runtime");
-  if (runtime === "relaxed") relaxed.push("runtime");
-  if (runtime === "near") miss("runtime");
-
-  if (profile.type === "tv") {
-    if (profile.seriesStatus === "conflict") return fail("status");
-    if (profile.seasonsMax && title.seasons > profile.seasonsMax) miss("seasons");
-    const wanted = SERIES_STATUS[profile.seriesStatus]?.tmdb;
-    if (wanted && title.seriesStatus && !wanted.includes(title.seriesStatus)) miss("status");
-  }
-
-  if (profile.providers.length && Array.isArray(title.providers) && !platformsOf(title, profile).length) {
-    if (profile.relax.platforms) relaxed.push("platforms");
-    else miss("platforms", "platform");
-  }
-  return misses.length ? { ok: false, reason, misses: [...relaxed, ...misses] } : { ok: true, relaxed };
+  return { ok: true, relaxed };
 }
 
 /* ---------- 3. Puntuación y explicación ---------- */
@@ -351,28 +379,28 @@ function everyoneReason(expressed, size) {
 }
 
 function reasonsFor(title, profile, facts) {
-  const { hits, liked, toneHits, cast, relaxed, values, closest } = facts;
+  const { hits, liked, toneHits, cast, relaxed, values, signals } = facts;
   const reasons = [];
   const size = profile.people.length;
   const solo = size === 1;
   const expressed = hits.filter((hit) => hit.expressed);
   const pleasedNames = expressed.filter((hit) => hit.pleased).map((hit) => hit.name);
 
-  if (relaxed.includes("must")) {
-    const genres = title.genreKeys ?? [];
-    const has = profile.must.filter((key) => genres.includes(key));
-    reasons.push(`Es una alternativa: es de ${genreNames(has)}, pero no de ${genreNames(profile.must.filter((key) => !has.includes(key)))}.`);
-  }
   if (relaxed.includes("runtime")) {
+    const widened = solo ? "ampliaste" : "ampliaron";
     reasons.push(
-      runtimeStatus(title, profile) === "relaxed"
-        ? `Es una alternativa porque ${solo ? "ampliaste" : "ampliaron"} el rango de duración.`
-        : "Es una alternativa: dura algo más de lo que pidieron o TMDB no confirma su duración."
+      title.runtime
+        ? `Ampliado: dura ${formatMinutes(title.runtime)}, ${title.runtime - profile.maxRuntime} min más que el límite de ${formatMinutes(profile.maxRuntime)} que ${widened}.`
+        : `Ampliado: dura menos de ${formatMinutes(title.runtimeCap)}; cabe solo con los minutos que ${widened}.`
     );
   }
-  if (relaxed.includes("seasons")) reasons.push(`Es una alternativa: tiene ${title.seasons} temporadas, más de las que pidieron.`);
-  if (relaxed.includes("status")) reasons.push("Es una alternativa: su estado de emisión no es el que pidieron.");
-  if (relaxed.includes("platforms")) reasons.push("Es una alternativa: puede no estar en sus plataformas.");
+  if (relaxed.includes("platforms")) {
+    reasons.push(
+      Array.isArray(title.providers)
+        ? "Ampliado: no figura en sus plataformas; la incluimos porque lo pidieron."
+        : "Ampliado: disponibilidad sin comprobar en sus plataformas."
+    );
+  }
   if (relaxed.includes("oneSided")) {
     const others = expressed.filter((hit) => !hit.pleased).map((hit) => hit.name);
     reasons.push(`Es una alternativa: encaja con los gustos de ${listEs(pleasedNames)}, no con los de ${listEs(others)}.`);
@@ -389,7 +417,9 @@ function reasonsFor(title, profile, facts) {
     reasons.push(solo ? `Es de ${genreNames(liked)}, lo que elegiste.` : `Coincide con ${genreNames(liked)}${who.length ? `, que eligió ${listEs(who)}` : ""}.`);
   }
   if (majority.length && !shared.length) reasons.push(`A la mayoría le gusta ${genreNames(majority)}.`);
-  if (closest) reasons.push(`Se parece a «${closest.title}», que ${solo ? "te" : "les"} gustó.`);
+  reasons.push(...signalReasons(signals, solo));
+  const seers = seenBy(title, profile);
+  if (seers.length) reasons.push(solo ? "Ya la viste." : `Ya la ${seers.length === 1 ? "vio" : "vieron"} ${listEs(seers)}.`);
   if (toneHits.length) reasons.push(`Tiene un tono similar al ${solo ? "que buscas" : "seleccionado"} (${listEs(toneHits.map(toneName))}).`);
   if (cast.length) reasons.push(`Sale ${listEs(cast)}.`);
   if (values.fresh === 1) reasons.push(`Es un estreno reciente (${title.year}).`);
@@ -434,20 +464,70 @@ function freshness(title, now) {
   return days <= 365 ? 1 : days <= 730 ? 0.5 : 0;
 }
 
-/** Lo votado en la sesión → { liked, disliked } (títulos). Gana el voto más repetido; empate = neutro. */
+/**
+ * Lo votado en la sesión → { liked, disliked, people }.
+ * people[i] = { liked, disliked }: los votos de CADA persona (el aprendizaje es personal; la decisión es del grupo).
+ * liked/disliked: resumen del grupo (gana el voto más repetido; empate = neutro), solo para mostrar.
+ */
 export function feedbackFrom(votes = {}, titles = []) {
   const byId = new Map(titles.map((title) => [title.id, title]));
   const liked = [];
   const disliked = [];
+  const people = [];
   for (const [id, list] of Object.entries(votes)) {
     const title = byId.get(id);
     if (!title || !Array.isArray(list)) continue;
+    list.forEach((vote, index) => {
+      people[index] ??= { liked: [], disliked: [] };
+      if (vote === "yes") people[index].liked.push(title);
+      if (vote === "no") people[index].disliked.push(title);
+    });
     const yes = list.filter((vote) => vote === "yes").length;
     const no = list.filter((vote) => vote === "no").length;
     if (yes > no) liked.push(title);
     else if (no > yes) disliked.push(title);
   }
-  return { liked, disliked };
+  return { liked, disliked, people: Array.from(people, (entry) => entry ?? { liked: [], disliked: [] }) };
+}
+
+/**
+ * Señal personal de cada persona con datos: parecido a lo que le encanta o votó "sí" menos parecido a lo
+ * que no es para ella o votó "no". Quien no dio señales queda fuera (no responder no es aprobar).
+ */
+function personalSignals(title, profile, feedback) {
+  return profile.people.flatMap((person, index) => {
+    const liked = [...(person.loved ?? []), ...(feedback.people?.[index]?.liked ?? [])];
+    const disliked = [...(person.noped ?? []), ...(feedback.people?.[index]?.disliked ?? [])];
+    if (!liked.length && !disliked.length) return [];
+    const up = nearest(title, liked);
+    const down = nearest(title, disliked);
+    return [{ name: person.name, up, down, value: up.value - down.value }];
+  });
+}
+
+/** Grupo = ½ media + ½ mínimo: el "no" de una persona no desaparece porque otras dijeron "sí". */
+function signalValue(signals) {
+  if (!signals.length) return 0;
+  const values = signals.map((signal) => signal.value);
+  return Math.max(-1, Math.min(1, 0.5 * (values.reduce((total, value) => total + value, 0) / values.length) + 0.5 * Math.min(...values)));
+}
+
+/** "Se parece a «X», que le gustó a Ana." y "Ojo: se parece a «Y», que no es para Luis." */
+function signalReasons(signals, solo) {
+  const reasons = [];
+  const fans = signals.filter((signal) => signal.up.value >= 0.4 && signal.up.value > signal.down.value);
+  if (fans.length) {
+    const best = fans[0].up.best;
+    const names = fans.filter((signal) => signal.up.best.id === best.id).map((signal) => signal.name);
+    const who = solo ? "te gustó" : names.length === signals.length ? "les gustó" : `${names.length === 1 ? "le" : "les"} gustó a ${listEs(names)}`;
+    reasons.push(`Se parece a «${best.title}», que ${who}.`);
+  }
+  const wary = signals.filter((signal) => signal.down.value >= 0.5 && signal.down.value > signal.up.value);
+  if (wary.length) {
+    const worst = wary[0].down.best;
+    reasons.push(`Ojo: se parece a «${worst.title}», que no ${solo ? "es para ti" : `es para ${listEs(wary.filter((signal) => signal.down.best.id === worst.id).map((signal) => signal.name))}`}.`);
+  }
+  return reasons;
 }
 
 /** El más parecido de `list` (sin contar el propio título) y su parecido. */
@@ -455,7 +535,7 @@ function nearest(title, list) {
   let best = null;
   let value = 0;
   for (const other of list) {
-    if (other.id === title.id) continue;
+    if (other.id === title.id || other.ids?.includes(title.id)) continue;
     const closeness = similarity(other, title);
     if (closeness > value) {
       best = other;
@@ -470,7 +550,7 @@ function nearest(title, list) {
  * seats: por persona { name, expressed, pleased, fit, genres, tone, cast } (las butacas de la tarjeta).
  * ctx: { favorites, recent, relaxed, feedback: { liked, disliked }, now }
  */
-export function scoreTitle(title, profile, { favorites = [], recent = [], relaxed = [], feedback = {}, now = today() } = {}) {
+export function scoreTitle(title, profile, { favorites = [], recent = [], relaxed = [], feedback = {}, now = today(), turns = null } = {}) {
   const tones = tonesOf(title);
   const hits = profile.people.map((person) => hitsFor(person, title, tones));
   const expressed = hits.filter((hit) => hit.expressed);
@@ -478,8 +558,7 @@ export function scoreTitle(title, profile, { favorites = [], recent = [], relaxe
   const liked = intersect(profile.liked, genres);
   const toneHits = intersect(profile.tone, tones);
   const cast = union(...hits.map((hit) => hit.cast));
-  const likedNear = nearest(title, feedback.liked ?? []);
-  const dislikedNear = nearest(title, feedback.disliked ?? []);
+  const signals = personalSignals(title, profile, feedback);
 
   const values = {
     // Cobertura (tiene lo que piden) y foco (no trae mucho más): una aventura-comedia-familiar-fantasía
@@ -493,19 +572,27 @@ export function scoreTitle(title, profile, { favorites = [], recent = [], relaxe
     quality: quality(title),
     popularity: clamp01(Math.log10(1 + (title.popularity ?? 0)) / 3),
     fresh: freshness(title, now),
-    feedback: Math.max(-1, Math.min(1, likedNear.value - dislikedNear.value)),
+    feedback: signalValue(signals),
     favorite: favorites.includes(title.id) ? 1 : 0,
     recent: recent.includes(title.id) ? 1 : 0,
   };
   const breakdown = Object.keys(WEIGHTS)
     .filter((key) => values[key] !== 0)
     .map((key) => ({ key, points: round1(WEIGHTS[key] * values[key]) }));
-  const closest = likedNear.value >= 0.4 && likedNear.value > dislikedNear.value ? likedNear.best : null;
+  const reasons = reasonsFor(title, profile, { hits, liked, toneHits, cast, relaxed, values, signals });
+
+  // Turnos justos (opcional): solo si el grupo anotó que alguien cedió, y solo para lo que le gusta a esa persona.
+  const turnHits = turns ? hits.filter((hit) => hit.pleased && turns[hit.name] > 0) : [];
+  const turnPoints = round1(Math.min(MAX_TURN * TURN_POINTS, turnHits.reduce((total, hit) => total + turns[hit.name] * TURN_POINTS * hit.fit, 0)));
+  if (turnPoints > 0) {
+    breakdown.push({ key: "turn", points: turnPoints });
+    reasons.push(`Turno de ${listEs(turnHits.map((hit) => hit.name))}: el grupo anotó que cedió la última vez.`);
+  }
 
   return {
     score: round1(breakdown.reduce((total, item) => total + item.points, 0)),
     breakdown,
-    reasons: reasonsFor(title, profile, { hits, liked, toneHits, cast, relaxed, values, closest }),
+    reasons,
     allPleased: expressed.length >= 2 && expressed.every((hit) => hit.pleased),
     seats: hits.map((hit) => ({
       name: hit.name,
@@ -515,6 +602,7 @@ export function scoreTitle(title, profile, { favorites = [], recent = [], relaxe
       genres: hit.genres,
       tone: hit.tone,
       cast: hit.cast,
+      like: hit.like,
     })),
   };
 }
@@ -575,11 +663,11 @@ export const isStrict = (item) => !item.relaxed.length;
  * feedback: { liked, disliked } de feedbackFrom (votos de la sesión): el ranking aprende al votar.
  * → { items: [{ title, relaxed, score, breakdown, reasons, allPleased, seats }], strict, rejectedBy: { [reason]: n } }
  */
-export function rankTitles(titles, profile, { history, favorites = [], removed = [], feedback = {}, now = today() } = {}) {
+export function rankTitles(titles, profile, { history, favorites = [], removed = [], feedback = {}, now = today(), turns = null } = {}) {
   const excluded = excludedIds(history);
   removed.forEach((id) => excluded.add(id));
   const { recent } = asHistory(history);
-  const scored = (title, relaxed) => ({ title, relaxed, ...scoreTitle(title, profile, { favorites, recent, relaxed, feedback, now }) });
+  const scored = (title, relaxed) => ({ title, relaxed, ...scoreTitle(title, profile, { favorites, recent, relaxed, feedback, now, turns }) });
   const items = [];
   const near = [];
   const rejectedBy = {};
@@ -604,6 +692,108 @@ export function fillBoard(board, items, size) {
   const ids = items.map((item) => item.title.id);
   const kept = board.filter((id) => ids.includes(id));
   return [...kept, ...ids.filter((id) => !kept.includes(id))].slice(0, size);
+}
+
+/* ---------- 4b. Finalistas: hasta tres como conjunto ---------- */
+
+const FINALIST_POOL = 12; // solo entre los mejores: un papel no justifica una opción poco relevante
+const RELEVANCE_GAP = 18; // puntos por debajo de la primera que se aceptan para otro papel
+
+export const FINALIST_ROLES = {
+  meet: "Punto de encuentro",
+  mine: "La que más encaja",
+  discover: "Algo para descubrir",
+  other: "Otra forma de la noche",
+  alt: "Otra opción fuerte",
+};
+
+const languageName = (code) => {
+  try {
+    return new Intl.DisplayNames(["es"], { type: "language" }).of(code);
+  } catch {
+    return code;
+  }
+};
+const pleasedIndexes = (item) => (item.seats ?? []).flatMap((seat, index) => (seat.expressed && seat.pleased ? [index] : []));
+const sameSaga = (a, b) => a.title.collection?.id != null && a.title.collection.id === b.title.collection?.id;
+
+/** Novedad trazable frente a la primera finalista: solo datos comprobables (votos, época, idioma, estreno). */
+function noveltyOf(title, reference, now) {
+  const notes = [];
+  if (title.votes && reference.votes && title.votes * 3 <= reference.votes) {
+    notes.push(`Menos vista: ${title.votes.toLocaleString("es")} votos en TMDB frente a ${reference.votes.toLocaleString("es")}.`);
+  }
+  if (title.language && reference.language && title.language !== reference.language && title.language !== "en") {
+    notes.push(`Cine en ${languageName(title.language)}.`);
+  }
+  if (Number(title.year) && Number(reference.year) && Math.abs(Number(title.year) - Number(reference.year)) >= 10) {
+    notes.push(`De otra época: ${title.year}.`);
+  }
+  if (freshness(title, now) === 1 && freshness(reference, now) < 1) notes.push(`Estreno reciente (${title.year}).`);
+  return notes;
+}
+
+/**
+ * Hasta `max` finalistas con papeles justificados, entre los títulos válidos más relevantes
+ * (las alternativas solo si ninguno cumple todo). No fuerza papeles ni cantidad: con un solo
+ * válido hay una sola finalista. → [{ id, role, why: ["…"] }]
+ */
+export function pickFinalists(items, profile, { max = 3, now = today() } = {}) {
+  const strict = items.filter(isStrict);
+  const pool = (strict.length ? strict : items).slice(0, FINALIST_POOL);
+  if (!pool.length) return [];
+  const [first] = pool;
+  const picks = [{ item: first, role: profile.people.length > 1 ? "meet" : "mine", why: [first.reasons[0]].filter(Boolean) }];
+  const floor = first.score - RELEVANCE_GAP;
+  const open = () => pool.filter((item) => item.score >= floor && !picks.some((pick) => pick.item === item || sameSaga(pick.item, item)));
+  const closeness = (item) => Math.max(...picks.map((pick) => similarity(pick.item.title, item.title)));
+
+  // Algo para descubrir: distinto de la primera y con una novedad que se puede comprobar.
+  const discover = open()
+    .map((item) => ({ item, notes: noveltyOf(item.title, first.title, now), close: similarity(first.title, item.title) }))
+    .filter(({ notes, close }) => notes.length && close < 0.6)
+    .sort((a, b) => a.close - b.close || b.notes.length - a.notes.length || b.item.score - a.item.score)[0];
+  if (discover) picks.push({ item: discover.item, role: "discover", why: discover.notes });
+
+  // Otra forma de la noche: un gusto de alguien que las demás no cubren, o un tono distinto.
+  if (picks.length < max) {
+    const covered = new Set(picks.flatMap((pick) => pleasedIndexes(pick.item)));
+    const tonesBefore = new Set(picks.flatMap((pick) => tonesOf(pick.item.title)));
+    const other = open()
+      .map((item) => {
+        const gives = pleasedIndexes(item).filter((index) => !covered.has(index));
+        const tones = tonesOf(item.title).filter((tone) => !tonesBefore.has(tone));
+        return { item, gives, tones, close: closeness(item) };
+      })
+      .filter(({ gives, tones, close }) => gives.length || (tones.length && close < 0.5))
+      .sort((a, b) => b.gives.length - a.gives.length || a.close - b.close || b.item.score - a.item.score)[0];
+    if (other) {
+      const why = other.gives.length
+        ? other.gives.map((index) => `Toca el gusto de ${other.item.seats[index].name} (${describeHit(other.item.seats[index])}), que las otras no cubren.`)
+        : [`Cambia el tono: ${listEs(other.tones.map(toneName))}.`];
+      picks.push({ item: other.item, role: "other", why });
+    }
+  }
+
+  // Si falta «otra forma» y alguien sigue sin una opción suya: una alternativa que cumple TODOS los límites
+  // duros y solo falla el quórum de gustos (preferencia flexible). Se muestra marcada como alternativa.
+  if (strict.length && picks.length < max && !picks.some((pick) => pick.role === "other")) {
+    const covered = new Set(picks.flatMap((pick) => pleasedIndexes(pick.item)));
+    const bridge = items
+      .filter((item) => item.relaxed.length && item.relaxed.every((key) => key === "oneSided") && !picks.some((pick) => sameSaga(pick.item, item)))
+      .slice(0, FINALIST_POOL)
+      .map((item) => ({ item, gives: pleasedIndexes(item).filter((index) => !covered.has(index)) }))
+      .filter(({ gives }) => gives.length)
+      .sort((a, b) => b.gives.length - a.gives.length || b.item.score - a.item.score)[0];
+    if (bridge) picks.push({ item: bridge.item, role: "other", why: [bridge.item.reasons[0]] });
+  }
+
+  // El resto, sin papel inventado: solo si sigue siendo relevante y no repite casi lo mismo.
+  for (const item of open()) {
+    if (picks.length >= max) break;
+    if (closeness(item) < 0.8) picks.push({ item, role: "alt", why: [item.reasons[0]].filter(Boolean) });
+  }
+  return picks.slice(0, max).map(({ item, role, why }) => ({ id: item.title.id, role, why }));
 }
 
 /* ---------- 5. Dado ---------- */

@@ -12,7 +12,7 @@ import { movies as catalog } from "../data/movies.js";
 import trailerKeys from "../data/trailerKeys.json" with { type: "json" };
 import tmdbIds from "../data/tmdbIds.json" with { type: "json" };
 import { PLATFORMS } from "../data/platforms.js";
-import { CINEMAS, MONTHS, SHOW_TIMES, WEEKDAYS } from "../data/showtimes.js";
+import { MONTHS, WEEKDAYS } from "../data/showtimes.js";
 import { getHeroPreferences } from "./heroPreferences.js";
 import { clientEnv } from "../utils/env.js";
 import { GENRES, genreKeysFor, genreLabel } from "../data/tmdb.js";
@@ -135,8 +135,11 @@ const pad = (n) => String(n).padStart(2, "0");
 export const toISODate = (date) =>
   `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 
-function pickTrailer(videos) {
-  const youtube = (videos?.results ?? []).filter((video) => video.site === "YouTube");
+/** Una clave de YouTube real son 11 caracteres [A-Za-z0-9_-]; cualquier otra cosa no entra en la URL del iframe. */
+export const isYouTubeKey = (key) => typeof key === "string" && /^[A-Za-z0-9_-]{6,15}$/.test(key);
+
+export function pickTrailer(videos) {
+  const youtube = (videos?.results ?? []).filter((video) => video.site === "YouTube" && isYouTubeKey(video.key));
   const trailers = youtube.filter((video) => video.type === "Trailer");
   return (trailers.find((video) => video.official) ?? trailers[0] ?? youtube[0])?.key ?? null;
 }
@@ -198,16 +201,17 @@ export async function getMovieById(id) {
   if (local) return local;
   const match = TMDB_ID_PATTERN.exec(String(id ?? ""));
   if (!match || !isTmdbEnabled()) return null;
-  try {
-    return fromTmdb(await getTitleDetails(match[1], Number(match[2])), match[1]);
-  } catch {
-    return null;
-  }
+    try {
+      return fromTmdb(await getTitleDetails(match[1], Number(match[2])), match[1]);
+    } catch (error) {
+      if (error?.code === "not-found" || error?.status === 404) return null;
+      throw error;
+    }
 }
 
 /** Favoritos y listas guardadas pueden mezclar ids locales y de TMDB. */
 export async function getMoviesByIds(ids) {
-  const list = await Promise.all(ids.map(getMovieById));
+  const list = await Promise.all(ids.map((id) => getMovieById(id).catch(() => null)));
   return list.filter(Boolean);
 }
 
@@ -318,12 +322,16 @@ async function matchesTitleDetails(raw, type, { genre = "todas", advanced = EMPT
     if (!watch?.providers.some((provider) => platform.tmdbIds.includes(provider.id))) return false;
   }
   const companies = LEGACY_FILTERS[genre]?.companies?.split("|").map(Number);
-  if (advanced.runtimeMax || companies) {
+  if (advanced.runtimeMax || companies || advanced.person?.id) {
     const details = await getTitleDetails(type, raw.id).catch(() => null);
     if (!details) return false;
     const runtime = details.runtime ?? details.episode_run_time?.[0];
     if (advanced.runtimeMax && !(runtime && runtime <= Number(advanced.runtimeMax))) return false;
     if (companies && !details.production_companies?.some((company) => companies.includes(company.id))) return false;
+    if (advanced.person?.id) {
+      const credits = [...(details.credits?.cast ?? []), ...(details.credits?.crew ?? [])];
+      if (!credits.some((person) => String(person.id) === String(advanced.person.id))) return false;
+    }
   }
   return true;
 }
@@ -442,6 +450,14 @@ const COLLECTIONS = {
     exclude: ({ favorites = [] }) => favorites,
   },
   // Joyas poco vistas y bien valoradas; página al azar para que cambie en cada visita.
+  // Cine colombiano según TMDB (país de origen). Sin catálogo en vivo no se muestra: el local no lo distingue.
+  colombia: {
+    remote: () => [
+      discovered("movie", { with_origin_country: "CO", sort_by: "popularity.desc", "vote_count.gte": 20 }),
+      discovered("tv", { with_origin_country: "CO", sort_by: "popularity.desc", "vote_count.gte": 20 }),
+    ],
+    local: () => [],
+  },
   "discover-new": {
     remote: ({ random = Math.random }) => [
       discovered("movie", { sort_by: "vote_average.desc", "vote_count.gte": 150, "vote_count.lte": 2500 }, 1 + Math.floor(random() * 5)),
@@ -500,7 +516,7 @@ export async function getCollection(name, limit = 10, context = {}) {
  * si no hay, backdrop vacío y el carrusel muestra el póster nítido en lugar de un fondo roto.
  */
 async function withHeroBackdrop(title) {
-  if (title.backdrop) return title;
+  if (title.backdrop || title.posterFirst) return title;
   if (!title.tmdbId || !isTmdbEnabled()) return title;
   const summary = await getTitleSummary(title.type ?? "movie", title.tmdbId).catch(() => null);
   const backdrop = tmdbImage(summary?.backdrop_path, "w1280");
@@ -514,7 +530,9 @@ async function withHeroBackdrop(title) {
 export async function getHeroSlides(limit = 6, featuredIds = getHeroPreferences().featuredIds) {
   const { titles } = await getCollection("trending", 16);
   const byId = new Map([...MOVIES, ...titles].map((title) => [title.id, title]));
-  const pinned = (await Promise.all(featuredIds.map(async (id) => byId.get(id) ?? (await getMovieById(id))))).filter(Boolean);
+  // Fijadas de TMDB: la portada oficial a máxima resolución (/original) como imagen principal, sin backdrop.
+  const hd = (title) => (title.id.startsWith("tmdb-") && title.poster ? { ...title, poster: title.poster.replace("/w500/", "/original/"), backdrop: "", posterFirst: true } : title);
+  const pinned = (await Promise.all(featuredIds.map(async (id) => byId.get(id) ?? (await getMovieById(id))))).filter(Boolean).map(hd);
   const rest = titles.filter((title) => title.status !== "PRÓXIMAMENTE" && !featuredIds.includes(title.id));
   const slides = [...pinned, ...rest].filter((title) => title.backdrop || title.poster).slice(0, Math.max(limit, pinned.length));
   return Promise.all(slides.map(withHeroBackdrop));
@@ -626,7 +644,7 @@ export async function getTitleExtras(movie, region = "CO") {
   };
 }
 
-/** Cines, próximos `days` días y horarios para elegir una función. */
+/** Próximos `days` días para proponer la fecha de un plan. */
 export function getShowtimes(from = new Date(), days = 4) {
   const dates = Array.from({ length: days }, (_, i) => {
     const date = new Date(from.getFullYear(), from.getMonth(), from.getDate() + i);
@@ -640,5 +658,5 @@ export function getShowtimes(from = new Date(), days = 4) {
       label: `${weekday} ${date.getDate()} de ${month}`,
     };
   });
-  return { cinemas: CINEMAS, dates, times: SHOW_TIMES };
+  return { dates };
 }

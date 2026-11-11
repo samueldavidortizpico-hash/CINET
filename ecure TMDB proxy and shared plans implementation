@@ -1,0 +1,162 @@
+ .env.example                                       |    24 [32m+[m[31m-[m
+ .vscode/images/SOURCES.md                          |    11 [31m-[m
+ .vscode/images/alien.jpg                           |   Bin [31m29186[m -> [32m0[m bytes
+ .vscode/images/aquaman.jpg                         |   Bin [31m52615[m -> [32m0[m bytes
+ .vscode/images/arrival.jpg                         |   Bin [31m39361[m -> [32m0[m bytes
+ .vscode/images/avatar-way-of-water.jpg             |   Bin [31m42666[m -> [32m0[m bytes
+ .vscode/images/avatar.jpg                          |   Bin [31m12916[m -> [32m0[m bytes
+ .vscode/images/avengers-doomsday.jpg               |   Bin [31m30201[m -> [32m0[m bytes
+ .vscode/images/avengers-endgame.jpg                |   Bin [31m84180[m -> [32m0[m bytes
+ .vscode/images/avengers-infinity-war.jpg           |   Bin [31m81264[m -> [32m0[m bytes
+ .vscode/images/batman-begins.jpg                   |   Bin [31m25262[m -> [32m0[m bytes
+ .vscode/images/batman-v-superman.jpg               |   Bin [31m41744[m -> [32m0[m bytes
+ .vscode/images/batman.jpg                          |   Bin [31m19436[m -> [32m0[m bytes
+ .vscode/images/black-panther.jpg                   |   Bin [31m85356[m -> [32m0[m bytes
+ .vscode/images/black-widow.jpg                     |   Bin [31m74667[m -> [32m0[m bytes
+ .vscode/images/blade-runner-2049.jpg               |   Bin [31m52990[m -> [32m0[m bytes
+ .vscode/images/captain-america-civil-war.jpg       |   Bin [31m21854[m -> [32m0[m bytes
+ .vscode/images/captain-america-first-avenger.jpg   |   Bin [31m57660[m -> [32m0[m bytes
+ .vscode/images/captain-america-winter-soldier.jpg  |   Bin [31m10356[m -> [32m0[m bytes
+ .vscode/images/captain-marvel.jpg                  |   Bin [31m59842[m -> [32m0[m bytes
+ .vscode/images/cinehub-background.jpg              |   Bin [31m111437[m -> [32m0[m bytes
+ .vscode/images/coco.jpg                            |   Bin [31m63414[m -> [32m0[m bytes
+ .vscode/images/dark-knight-rises.jpg               |   Bin [31m61323[m -> [32m0[m bytes
+ .vscode/images/doctor-strange-multiverse.jpg       |   Bin [31m66726[m -> [32m0[m bytes
+ .vscode/images/doctor-strange.jpg                  |   Bin [31m12745[m -> [32m0[m bytes
+ .vscode/images/dune-part-two.jpg                   |   Bin [31m46496[m -> [32m0[m bytes
+ .vscode/images/dune.jpg                            |   Bin [31m14666[m -> [32m0[m bytes
+ .vscode/images/eternals.jpg                        |   Bin [31m37295[m -> [32m0[m bytes
+ .vscode/images/fight-club.jpg                      |   Bin [31m50856[m -> [32m0[m bytes
+ .vscode/images/finding-nemo.jpg                    |   Bin [31m35979[m -> [32m0[m bytes
+ .vscode/images/forrest-gump.jpg                    |   Bin [31m12405[m -> [32m0[m bytes
+ .vscode/images/goodfellas.jpg                      |   Bin [31m44704[m -> [32m0[m bytes
+ .vscode/images/guardians-of-the-galaxy-vol-2.jpg   |   Bin [31m52594[m -> [32m0[m bytes
+ .vscode/images/guardians-of-the-galaxy-vol-3.jpg   |   Bin [31m64432[m -> [32m0[m bytes
+ .vscode/images/guardians-of-the-galaxy.jpg         |   Bin [31m66432[m -> [32m0[m bytes
+ .vscode/images/inception.jpg                       |   Bin [31m84784[m -> [32m0[m bytes
+ .vscode/images/interstellar.jpg                    |   Bin [31m79845[m -> [32m0[m bytes
+ .vscode/images/iron-man-2.jpg                      |   Bin [31m10752[m -> [32m0[m bytes
+ .vscode/images/iron-man-3.jpg                      |   Bin [31m54698[m -> [32m0[m bytes
+ .vscode/images/iron-man.jpg                        |   Bin [31m14987[m -> [32m0[m bytes
+ .vscode/images/john-wick-chapter-4.jpg             |   Bin [31m14055[m -> [32m0[m bytes
+ .vscode/images/john-wick.jpg                       |   Bin [31m43754[m -> [32m0[m bytes
+ .vscode/images/joker-folie-a-deux.jpg              |   Bin [31m27161[m -> [32m0[m bytes
+ .vscode/images/joker.jpg                           |   Bin [31m31007[m -> [32m0[m bytes
+ .vscode/images/man-of-steel.jpg                    |   Bin [31m34524[m -> [32m0[m bytes
+ .vscode/images/michael.jpg                         |   Bin [31m678020[m -> [32m0[m bytes
+ .vscode/images/mission-impossible-fallout.jpg      |   Bin [31m56169[m -> [32m0[m bytes
+ .vscode/images/odisea.jpg                          |   Bin [31m93683[m -> [32m0[m bytes
+ .vscode/images/oppenheimer.jpg                     |   Bin [31m21123[m -> [32m0[m bytes
+ .vscode/images/pulp-fiction.jpg                    |   Bin [31m37103[m -> [32m0[m bytes
+ .vscode/images/schindlers-list.jpg                 |   Bin [31m68952[m -> [32m0[m bytes
+ .vscode/images/shang-chi.jpg                       |   Bin [31m59284[m -> [32m0[m bytes
+ .vscode/images/spider-man-far-from-home.jpg        |   Bin [31m53917[m -> [32m0[m bytes
+ .vscode/images/spider-man-homecoming.jpg           |   Bin [31m65793[m -> [32m0[m bytes
+ .vscode/images/spider-man-no-way-home.jpg          |   Bin [31m82679[m -> [32m0[m bytes
+ .vscode/images/spiderman.jpg                       |   Bin [31m168281[m -> [32m0[m bytes
+ .vscode/images/tenet.jpg                           |   Bin [31m55261[m -> [32m0[m bytes
+ .vscode/images/the-batman.jpg                      |   Bin [31m27089[m -> [32m0[m bytes
+ .vscode/images/the-dark-knight-rises.jpg           |   Bin [31m15558[m -> [32m0[m bytes
+ .vscode/images/the-dark-knight.jpg                 |   Bin [31m53779[m -> [32m0[m bytes
+ .vscode/images/the-godfather-part-ii.jpg           |   Bin [31m23050[m -> [32m0[m bytes
+ .vscode/images/the-godfather.jpg                   |   Bin [31m31923[m -> [32m0[m bytes
+ .vscode/images/the-matrix.jpg                      |   Bin [31m62747[m -> [32m0[m bytes
+ .vscode/images/the-shawshank-redemption.jpg        |   Bin [31m8928[m -> [32m0[m bytes
+ .vscode/images/the-silence-of-the-lambs.jpg        |   Bin [31m46773[m -> [32m0[m bytes
+ .vscode/images/thor-dark-world.jpg                 |   Bin [31m10975[m -> [32m0[m bytes
+ .vscode/images/thor-ragnarok.jpg                   |   Bin [31m79729[m -> [32m0[m bytes
+ .vscode/images/thor.jpg                            |   Bin [31m47003[m -> [32m0[m bytes
+ .vscode/images/top-gun-maverick.jpg                |   Bin [31m41012[m -> [32m0[m bytes
+ .vscode/images/top-gun.jpg                         |   Bin [31m29440[m -> [32m0[m bytes
+ .vscode/images/toy-story.jpg                       |   Bin [31m51055[m -> [32m0[m bytes
+ .vscode/images/wonder-woman.jpg                    |   Bin [31m35154[m -> [32m0[m bytes
+ AI-LOG.md                                          |    44 [32m+[m
+ README.md                                          |    61 [32m+[m[31m-[m
+ api/tmdb.js                                        |     5 [32m+[m
+ docs/CINET-ESTRATEGIA-2026-10-09.md                |   135 [32m+[m
+ docs/IMPLEMENTACION-CINET.md                       |   103 [32m+[m
+ docs/PROMPT-CODEX-CINET.md                         |   183 [32m+[m
+ eslint.config.js                                   |     5 [32m+[m
+ graphify-out/.graphify_labels.json                 |    25 [32m+[m[31m-[m
+ graphify-out/.graphify_labels.json.sig             |     2 [32m+[m[31m-[m
+ graphify-out/2026-09-29/.graphify_labels.json      |    25 [32m+[m
+ graphify-out/2026-09-29/GRAPH_REPORT.md            |   172 [32m+[m
+ graphify-out/2026-09-29/graph.json                 | 35181 [32m++++++++++++++++++[m
+ graphify-out/2026-09-29/manifest.json              |  1574 [32m+[m
+ graphify-out/2026-10-09/.graphify_labels.json      |    25 [32m+[m
+ graphify-out/2026-10-09/GRAPH_REPORT.md            |   168 [32m+[m
+ graphify-out/2026-10-09/graph.json                 | 35479 [32m+++++++++++++++++++[m
+ graphify-out/2026-10-09/manifest.json              |  1574 [32m+[m
+ graphify-out/GRAPH_REPORT.md                       |   175 [32m+[m[31m-[m
+ ...2db05623db0fe5eaf6bf5cc60eebe15bd8342429a4.json |     1 [32m+[m
+ ...c9b7190c59174fc68027a9af895cd4dee612f06d50.json |     1 [32m+[m
+ ...666ebf8abd67d00a30f538324fecf72a792ebfb505.json |     1 [32m+[m
+ graphify-out/cache/last_query_stamp                |     2 [32m+[m[31m-[m
+ graphify-out/cache/stat-index.json                 |     2 [32m+[m[31m-[m
+ graphify-out/graph.html                            |     8 [32m+[m[31m-[m
+ graphify-out/graph.json                            |  9798 [32m+++[m[31m--[m
+ graphify-out/manifest.json                         |   644 [32m+[m[31m-[m
+ images/cinet-logo.png                              |   Bin [31m639793[m -> [32m0[m bytes
+ package-lock.json                                  |     8 [32m+[m
+ package.json                                       |     1 [32m+[m
+ scripts/check-avatar-policies.mjs                  |   127 [32m+[m
+ server/tmdbProxy.js                                |   163 [32m+[m
+ server/tmdbProxy.test.js                           |    80 [32m+[m
+ src/app/router.jsx                                 |    30 [32m+[m[31m-[m
+ src/assets/cinet-header-bg.png                     |   Bin [31m1604881[m -> [32m0[m bytes
+ src/components/auth/ProfileCard.jsx                |     2 [32m+[m[31m-[m
+ src/components/common/EmptyState.jsx               |     5 [32m+[m[31m-[m
+ src/components/common/TmdbStatus.jsx               |     2 [32m+[m[31m-[m
+ src/components/duo/DuoCommonStep.jsx               |    77 [32m+[m[31m-[m
+ src/components/duo/DuoEmptyState.jsx               |    13 [32m+[m[31m-[m
+ src/components/duo/DuoFinal.jsx                    |    54 [32m+[m[31m-[m
+ src/components/duo/DuoIntro.jsx                    |    14 [32m+[m[31m-[m
+ src/components/duo/DuoModeStep.jsx                 |    72 [32m+[m[31m-[m
+ src/components/duo/DuoPersonStep.jsx               |    29 [32m+[m[31m-[m
+ src/components/duo/DuoProgress.jsx                 |    47 [32m+[m[31m-[m
+ src/components/duo/DuoRecommendationCard.jsx       |   173 [32m+[m[31m-[m
+ src/components/duo/DuoResults.jsx                  |    63 [32m+[m[31m-[m
+ src/components/duo/DuoSeats.jsx                    |   111 [32m+[m
+ src/components/duo/DuoSeenStep.jsx                 |    10 [32m+[m[31m-[m
+ src/components/duo/DuoSummary.jsx                  |    14 [32m+[m[31m-[m
+ src/components/duo/DuoVoteRound.jsx                |   190 [32m+[m
+ src/components/home/HomeExperiences.jsx            |     8 [32m+[m[31m-[m
+ src/components/layout/Layout.jsx                   |     6 [32m+[m[31m-[m
+ src/components/plans/PlanCard.jsx                  |     9 [32m+[m[31m-[m
+ src/components/plans/RsvpPanel.jsx                 |     2 [32m+[m[31m-[m
+ src/context/PlanContext.jsx                        |   129 [32m+[m[31m-[m
+ src/data/duo.js                                    |    36 [32m+[m[31m-[m
+ src/hooks/useDuoSession.js                         |    10 [32m+[m[31m-[m
+ src/pages/CinemaPage.jsx                           |     2 [32m+[m[31m-[m
+ src/pages/CreatePlanPage.jsx                       |    41 [32m+[m[31m-[m
+ src/pages/DashboardPage.jsx                        |     2 [32m+[m[31m-[m
+ src/pages/DuoPage.jsx                              |    78 [32m+[m[31m-[m
+ src/pages/NotFoundPage.jsx                         |     2 [32m+[m[31m-[m
+ src/pages/PlanPage.jsx                             |    13 [32m+[m[31m-[m
+ src/services/analytics.js                          |    89 [32m+[m
+ src/services/analytics.test.js                     |    35 [32m+[m
+ src/services/duoService.js                         |    54 [32m+[m[31m-[m
+ src/services/heroPreferences.js                    |     6 [32m+[m[31m-[m
+ src/services/historyService.js                     |     4 [32m+[m[31m-[m
+ src/services/movieService.js                       |     3 [32m+[m[31m-[m
+ src/services/planRepository.js                     |   175 [32m+[m
+ src/services/planService.js                        |    33 [32m+[m
+ src/services/recommender.js                        |   213 [32m+[m[31m-[m
+ src/services/recommender.test.js                   |   100 [32m+[m[31m-[m
+ src/services/services.test.js                      |    29 [32m+[m[31m-[m
+ src/services/supabaseClient.js                     |     9 [32m+[m[31m-[m
+ src/services/tmdbClient.js                         |    31 [32m+[m[31m-[m
+ src/services/tmdbClient.test.js                    |    13 [32m+[m[31m-[m
+ src/styles/components/app.css                      |     4 [32m+[m
+ src/styles/design.css                              |     2 [32m+[m[31m-[m
+ src/styles/index.css                               |     3 [32m+[m[31m-[m
+ src/styles/pages/duo-immersive.css                 |   225 [31m-[m
+ src/styles/pages/duo.css                           |  1290 [32m+[m[31m-[m
+ src/utils/env.js                                   |    19 [32m+[m
+ supabase/AVATARS.md                                |   121 [32m+[m
+ .../migrations/20261009120000_shared_plans.sql     |   467 [32m+[m
+ supabase/tests/db.js                               |    98 [32m+[m
+ supabase/tests/plans.test.js                       |   156 [32m+[m
+ vercel.json                                        |     5 [32m+[m[31m-[m
+ vite.config.js                                     |    58 [32m+[m[31m-[m
+ 161 files changed, 84660 insertions(+), 5633 deletions(-)

@@ -39,6 +39,28 @@ const connect = (routes) => {
 
 const page = (results, totalPages = 3, number = 1) => ({ page: number, results, total_pages: totalPages, total_results: results.length });
 
+test("tmdb respeta Retry-After en segundos y fecha HTTP, con tope de espera", async () => {
+  for (const [retryAfter, now, expected] of [["3", 1_000, 3_000], [new Date(5_000).toUTCString(), 1_000, 4_000], ["999", 0, 30_000]]) {
+    let calls = 0;
+    const waits = [];
+    let clock = now;
+    configureTmdb({
+      token: "t",
+      now: () => clock,
+      wait: async (ms) => { waits.push(ms); clock += ms; },
+      fetch: async () => {
+        calls += 1;
+        return calls === 1
+          ? { ok: false, status: 429, headers: { get: () => retryAfter } }
+          : { ok: true, status: 200, json: async () => ({ ok: true }) };
+      },
+    });
+    assert.deepEqual(await tmdbRequest(`/retry-${calls}-${expected}`, {}, 0), { ok: true });
+    assert.deepEqual(waits, [expected]);
+    assert.equal(calls, 2);
+  }
+});
+
 test("Doomsday fijada en el carrusel pide su fondo y no se confunde con Thunderbolts", async () => {
   const api = connect({
     "/movie/1003596": () => ({ id: 1003596, title: "Avengers: Doomsday", backdrop_path: "/doomsday.jpg" }),
@@ -166,6 +188,30 @@ test("tmdb: búsqueda + filtros (Batman, Netflix, 2020+, rating > 7, acción)", 
   assert.equal(providerCalls, 2, "solo consulta plataforma de los que pasan los demás filtros");
 });
 
+test("FE03: búsqueda por texto aplica también el filtro de actor", async () => {
+  connect({
+    "/search/movie": () => page([
+      { id: 801, title: "Dune actor", release_date: "2024-01-01", genre_ids: [], vote_average: 8 },
+      { id: 802, title: "Dune sin actor", release_date: "2024-01-01", genre_ids: [], vote_average: 8 },
+    ]),
+    "/movie/801": () => ({ credits: { cast: [{ id: 77 }] } }),
+    "/movie/802": () => ({ credits: { cast: [{ id: 88 }] } }),
+  });
+  const result = await searchCatalog({ query: "Dune", genre: "todas", sort: "default", advanced: { ...EMPTY_ADVANCED, person: { id: 77, name: "Actor" } } });
+  assert.deepEqual(result.titles.map((title) => title.tmdbId), [801]);
+});
+
+test("FE10: película inexistente y error transitorio tienen resultados distintos", async () => {
+  configureTmdb({
+    token: "t",
+    fetch: async (url) => url.pathname.endsWith("990001")
+      ? { ok: false, status: 404 }
+      : { ok: false, status: 503, json: async () => ({ error: { code: "upstream" } }) },
+  });
+  assert.equal(await getMovieById("tmdb-movie-990001"), null);
+  await assert.rejects(getMovieById("tmdb-movie-990002"), (error) => error.code === "http" && error.status === 503);
+});
+
 test("tmdb: filtros avanzados → discover", () => {
   const params = toDiscoverParams({
     genre: "marvel",
@@ -230,12 +276,16 @@ test("tmdb: Duo pide solo el tipo elegido, con los filtros obligatorios en el se
     people: [{ ...DEFAULT_PERSON, genres: ["science-fiction"] }, { ...DEFAULT_PERSON, rejectedGenres: ["horror"], maxRuntime: 160 }],
   };
   const profile = buildProfile(session);
-  const { source, titles } = await getDuoCandidates(profile);
+  const { source, titles, stats } = await getDuoCandidates(profile);
   assert.equal(source, "tmdb");
   assert.ok(!api.calls.some((url) => url.pathname.endsWith("/discover/tv")), "no mezcla series");
   const discover = api.calls.filter((url) => url.pathname.endsWith("/discover/movie"));
-  // Primera ronda (tope pedido: 130 min); con menos de MIN_RESULTS válidos, segunda ronda con +30 min.
-  const first = discover.filter((url) => url.searchParams.get("with_runtime.lte") === "130");
+  // Con menos de MIN_RESULTS válidos hay segunda ronda: MÁS PÁGINAS con los MISMOS límites (nunca +minutos).
+  assert.ok(discover.every((url) => url.searchParams.get("with_runtime.lte") === "130"), "los límites no se amplían para rellenar");
+  const param = (url, key) => url.searchParams.get(key);
+  const isWide = (url) =>
+    (param(url, "sort_by") === "popularity.desc" && ["4", "5", "6"].includes(param(url, "page"))) || param(url, "vote_count.gte") === "500" || (param(url, "vote_count.lte") === "2500" && param(url, "page") === "2");
+  const first = discover.filter((url) => !isWide(url));
   const tag = (url) => (url.searchParams.get("with_original_language") ? "+intl" : url.searchParams.get("primary_release_date.gte") ? "+fresh" : "");
   const origins = first.map((url) => url.searchParams.get("sort_by") + tag(url));
   assert.deepEqual(origins.sort(), [
@@ -247,8 +297,9 @@ test("tmdb: Duo pide solo el tipo elegido, con los filtros obligatorios en el se
     "vote_average.desc",
     "vote_average.desc+intl",
   ]);
-  const wide = discover.filter((url) => url.searchParams.get("with_runtime.lte") === "160");
-  assert.ok(wide.length > 0 && wide.length + first.length === discover.length, "segunda ronda más amplia");
+  assert.ok(discover.some(isWide), "segunda ronda: más páginas");
+  assert.deepEqual([stats.discovered, stats.enriched], [3, 3], "se mide cuánto se revisó y comprobó");
+  assert.ok(stats.requests > 0 && Number.isFinite(stats.ms));
   const params = first[0].searchParams;
   assert.equal(params.get("with_genres"), "878");
   assert.equal(params.get("without_genres"), "16|27|99", "rechazado (terror) + animación y documental, que nadie eligió");
@@ -261,10 +312,9 @@ test("tmdb: Duo pide solo el tipo elegido, con los filtros obligatorios en el se
 
   const history = addToHistory(EMPTY_HISTORY, "rejected", ["tmdb-movie-3"]);
   const { items, strict, rejectedBy } = rankTitles(titles, profile, { history });
-  assert.deepEqual(items.map((item) => item.title.id), ["tmdb-movie-1", "tmdb-movie-2"]);
+  assert.deepEqual(items.map((item) => item.title.id), ["tmdb-movie-1"], "la de Netflix no completa: la plataforma marcada es un límite");
   assert.equal(strict, 1);
   assert.deepEqual(rejectedBy, { platform: 1, history: 1 }, "fuera la que no está en Prime y la rechazada");
-  assert.equal(items[1].reasons[0], "Es una alternativa: puede no estar en sus plataformas.", "la de Netflix solo completa, marcada");
   assert.deepEqual(items[0].reasons, [
     "Coincide con ciencia ficción, que eligió Persona 1.",
     "Está dentro del límite de duración: 1 h 58 min de 2 h 10 min como máximo.",

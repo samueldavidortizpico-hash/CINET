@@ -58,6 +58,7 @@ export default function CreatePlanPage() {
           <PlanSummary selection={selection} />
           <PlanForm
             initialValues={{ organizer: user?.name ?? "" }}
+            withBudget
             onSubmit={handleSubmit}
             disabled={!selection || state.saving}
             submitLabel={state.saving ? "Creando…" : undefined}

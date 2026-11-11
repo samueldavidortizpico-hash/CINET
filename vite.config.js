@@ -1,4 +1,5 @@
-import { copyFileSync, existsSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { copyFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
@@ -34,7 +35,32 @@ function tmdbDevProxy(token) {
   return { name: "tmdb-dev-proxy", configureServer: mount, configurePreviewServer: mount };
 }
 
+/** Versiona public/sw.js con los nombres (con hash) del build: cada despliegue nuevo invalida las cachés viejas. */
+function swVersion() {
+  let version = "";
+  return {
+    name: "sw-version",
+    apply: "build",
+    generateBundle(_options, bundle) {
+      version = createHash("sha256").update(Object.keys(bundle).sort().join("|")).digest("hex").slice(0, 12);
+    },
+    writeBundle({ dir }) {
+      const file = resolve(dir, "sw.js");
+      if (existsSync(file)) writeFileSync(file, readFileSync(file, "utf8").replaceAll("__CINET_BUILD__", version));
+    },
+  };
+}
+
 /** El build falla si un secreto del servidor aparece en el JavaScript o CSS generado. */
+/** Secretos de webhook de aliados ({"org": "secreto"}) para el guardián del build. */
+function partnerSecrets(raw) {
+  try {
+    return Object.values(JSON.parse(raw || "{}"));
+  } catch {
+    return [];
+  }
+}
+
 function secretGuard(secrets) {
   const values = secrets.filter((value) => value && value.length >= 12);
   return {
@@ -59,8 +85,16 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       spaFallback(),
+      swVersion(),
       tmdbDevProxy(env.TMDB_READ_TOKEN || env.VITE_TMDB_READ_TOKEN),
-      secretGuard([env.TMDB_READ_TOKEN, env.VITE_TMDB_READ_TOKEN, env.SUPABASE_SERVICE_ROLE_KEY, env.SUPABASE_SECRET_KEY]),
+      secretGuard([
+        env.TMDB_READ_TOKEN,
+        env.VITE_TMDB_READ_TOKEN,
+        env.SUPABASE_SERVICE_ROLE_KEY,
+        env.SUPABASE_SECRET_KEY,
+        ...partnerSecrets(env.PARTNER_WEBHOOK_SECRETS),
+        env.BILLING_WEBHOOK_SECRET,
+      ]),
     ],
     // `npm run dev` / `npm run preview` abren el navegador directo en la URL correcta.
     server: { open: true },

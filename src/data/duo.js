@@ -41,9 +41,38 @@ export const DEFAULT_PERSON = {
   episodeMax: 0, // series: duración máxima por episodio
   seasonsMax: 0, // series: máximo de temporadas
   seriesStatus: "any", // any | ended | ongoing
+  // Calibración por pósteres: [{ id, ids, title, year, poster, genreKeys, answer }] con answer
+  // love ("Me encanta") | nope ("No es para mí") | seen ("Ya la vi") | unknown ("No la conozco").
+  titles: [],
 };
 
+/**
+ * Películas para calibrar gustos (catálogo local de CINET: siempre disponible, con póster propio).
+ * Mezclan géneros, épocas y popularidad; ninguna es "la buena respuesta".
+ */
+export const CALIBRATION_IDS = ["interstellar", "the-hangover", "coco", "a-quiet-place", "forrest-gump", "john-wick", "the-godfather", "lord-of-the-rings-fellowship"];
+
+export const CALIBRATION_ANSWERS = [
+  { key: "love", icon: "♥", label: "Me encanta" },
+  { key: "nope", icon: "✕", label: "No es para mí" },
+  { key: "seen", icon: "👁", label: "Ya la vi" },
+  { key: "unknown", icon: "?", label: "No la conozco" },
+];
+
+/** Las seis escenas de Duo. Cada paso de la sesión pertenece a una. */
+export const DUO_SCENES = [
+  { key: "setup", label: "Preparar la noche", short: "Noche" },
+  { key: "taste", label: "Mostrar gustos", short: "Gustos" },
+  { key: "match", label: "Encontrar coincidencias", short: "Coincidencias" },
+  { key: "compare", label: "Comparar finalistas", short: "Finalistas" },
+  { key: "decide", label: "Decidir juntos", short: "Decidir" },
+  { key: "plan", label: "Organizar", short: "Plan" },
+];
+export const sceneOf = (step, roundOpen = false) =>
+  step === "mode" ? "setup" : step.startsWith("person-") || step === "seen" ? "taste" : step === "common" ? "match" : step === "final" ? "plan" : roundOpen ? "decide" : "compare";
+
 export const DEFAULT_MARATHON = { type: "movie", maxMinutes: 360, count: 3, style: "balanced", scope: "mix" };
+export const MARATHON_COUNTS = { movie: [2, 3, 4, 5, 6], tv: [2, 4, 6, 8, 10, 12] };
 
 /**
  * Sesión persistida (una recarga retoma el mismo paso y los mismos resultados).
@@ -55,6 +84,9 @@ export const DEFAULT_DUO_SESSION = {
   step: "mode",
   reached: 0,
   mode: "movie",
+  occasion: null,
+  mood: null, // ánimo de esta sesión; no se atribuye a ninguna persona
+  resultView: "shortlist",
   marathon: DEFAULT_MARATHON,
   region: "CO",
   providers: [],
@@ -65,7 +97,35 @@ export const DEFAULT_DUO_SESSION = {
   marathonPlan: null,
   final: null,
   votes: {},
+  family: "off", // modo familia (FAMILY_LEVELS)
+  // Finalistas fijadas para esta tanda: [{ id, role, why }]. Solo cambian con "Generar otra tanda" o al cambiar preferencias.
+  finalists: [],
+  batch: 1,
+  // Ronda de votación persistida (una recarga la retoma; una nueva ronda empieza sin votos):
+  // { id, deck: [ids], size, person, card, phase: handoff | vote | reveal | results, votes: { [id]: [...] }, result }
+  round: null,
 };
+
+/**
+ * Modo familia: filtra por clasificación por edad de TMDB con una lista EXACTA de clasificaciones
+ * (con «hasta PG» TMDB deja pasar títulos sin clasificar). TMDB no tiene sistema colombiano: fuera de
+ * México se usa el de EE. UU. como referencia, y la interfaz lo dice. Sin clasificación = no apto.
+ */
+export const FAMILY_LEVELS = [
+  { key: "off", label: "No" },
+  { key: "all", label: "Todo público" },
+  { key: "kids", label: "Niñas y niños" },
+  { key: "teens", label: "Desde 13 años" },
+];
+export const FAMILY_CERTS = {
+  US: { system: "EE. UU. (MPA)", all: ["G"], kids: ["G", "PG"], teens: ["G", "PG", "PG-13"] },
+  MX: { system: "México (RTC)", all: ["AA", "A"], kids: ["AA", "A"], teens: ["AA", "A", "B"] },
+};
+export function familyFilter(level, region) {
+  if (!FAMILY_LEVELS.some((item) => item.key === level) || level === "off") return null;
+  const country = FAMILY_CERTS[region] ? region : "US";
+  return { level, country, system: FAMILY_CERTS[country].system, certifications: FAMILY_CERTS[country][level], fallback: country !== region };
+}
 
 /** Pasos de una sesión: uno por persona entre "Plan" y "Ya vistas". */
 export const stepsFor = (count) => [

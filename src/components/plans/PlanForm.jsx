@@ -13,6 +13,7 @@ export default function PlanForm({
   disabled = false,
   notice = null,
   organizerReadOnly = false,
+  withBudget = false,
 }) {
   const [values, setValues] = useState({ ...EMPTY, ...initialValues });
   const [error, setError] = useState(null);
@@ -51,6 +52,14 @@ export default function PlanForm({
         <label htmlFor="plan-description">Mensaje para tus amigos</label>
         <textarea id="plan-description" name="message" placeholder="¿Quién se apunta? Vamos a ver la película y después podemos comer algo..." maxLength={300} value={values.message} onChange={handleChange} />
       </div>
+
+      {withBudget && (
+        <div className="form-group">
+          <label htmlFor="plan-budget">Presupuesto aproximado por persona (opcional)</label>
+          <input id="plan-budget" name="budget" type="text" inputMode="numeric" placeholder="Ej. 45.000" maxLength={12} value={values.budget ?? ""} onChange={handleChange} aria-describedby="plan-budget-hint" />
+          <small id="plan-budget-hint" className="form-hint">Es tu estimación (boleta, comida, transporte); no es un precio verificado del cine.</small>
+        </div>
+      )}
 
       {message && (
         <div id="create-plan-error" className="error-message" role="alert">

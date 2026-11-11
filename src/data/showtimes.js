@@ -1,12 +1,5 @@
-/* Cines y horarios disponibles para crear un plan (antes fijos en funciones.html). */
-
-export const CINEMAS = [
-  { name: "Cine Colombia", location: "Centro Chía", icon: "🎬" },
-  { name: "Cinemark", location: "Fontanar", icon: "🎞️" },
-  { name: "Procinal", location: "Unicentro", icon: "🍿" },
-];
-
-export const SHOW_TIMES = ["2:30 PM", "5:15 PM", "8:00 PM", "10:30 PM"];
+/* Fechas y cadenas de cine para proponer una salida. CINET no inventa funciones:
+   la hora la propone quien organiza y la cartelera real está en el sitio de cada cadena. */
 
 export const WEEKDAYS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 

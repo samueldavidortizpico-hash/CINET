@@ -45,6 +45,7 @@ html:not(.dark) [data-page="home"] { --landing-accent: #bf1931; }
 [data-page="home"] .hero-image { object-position: center 30%; }
 [data-page="home"] .hero-ambient { filter: blur(32px) saturate(1.15) brightness(0.65); transform: scale(1.12); }
 [data-page="home"] .hero-poster { z-index: -2; top: 46%; right: 12%; width: clamp(220px, 23vw, 340px); border-radius: 14px; transform: translateY(-50%) rotate(5deg); }
+[data-page="home"] .hero-poster.is-hd { top: 50%; width: clamp(260px, 30vw, 460px); }
 [data-page="home"] .hero-shade {
   background: linear-gradient(90deg, #08090eef 0%, #08090eb3 30%, #08090e38 65%, #08090e08 100%), linear-gradient(0deg, #08090e 0%, #08090eaa 15%, transparent 55%), linear-gradient(180deg, #08090e55, transparent 25%);
 }

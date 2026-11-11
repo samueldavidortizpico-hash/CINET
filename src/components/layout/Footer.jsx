@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import AnalyticsConsent from "../common/AnalyticsConsent.jsx";
 import TmdbStatus from "../common/TmdbStatus.jsx";
 import BrandLogo from "../common/BrandLogo.jsx";
 
@@ -12,12 +13,14 @@ export default function Footer() {
       </div>
 
       <div className="footer-links">
-        <Link to="/about">Acerca de</Link>
         <Link to="/movies">Películas</Link>
         <Link to="/my-plans">Mis planes</Link>
+        <Link to="/legal">Legal y privacidad</Link>
+        <Link to="/legal/creditos">Créditos y fuentes</Link>
       </div>
 
       <TmdbStatus className="footer-tmdb" />
+      <AnalyticsConsent />
 
       <p className="footer-copy">© {new Date().getFullYear()} CINET</p>
     </footer>

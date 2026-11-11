@@ -1,0 +1,1018 @@
+{
+  "generatedAt": "2026-10-10T15:01:43.281Z",
+  "source": "TMDB",
+  "attribution": "This product uses the TMDB API but is not endorsed or certified by TMDB.",
+  "notice": "Respaldo de metadatos fechado. No es cartelera, clasificación ni disponibilidad actual.",
+  "collections": {
+    "trending": [
+      {
+        "id": "tmdb-movie-1148365",
+        "tmdbId": 1148365,
+        "type": "movie",
+        "title": "Matchbox: La película",
+        "year": "2026",
+        "genreKeys": [
+          "action",
+          "adventure",
+          "comedy"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/ev2GnYar3LUyui8sOu4gqeMXvLi.jpg"
+      },
+      {
+        "id": "tmdb-movie-1236045",
+        "tmdbId": 1236045,
+        "type": "movie",
+        "title": "Animales",
+        "year": "2026",
+        "genreKeys": [
+          "drama",
+          "thriller"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/hhycOr6ji35RMGHnstHN4UKAvR4.jpg"
+      },
+      {
+        "id": "tmdb-tv-123542",
+        "tmdbId": 123542,
+        "type": "tv",
+        "title": "LINK CLICK",
+        "year": "2021",
+        "genreKeys": [
+          "animation",
+          "drama",
+          "science-fiction",
+          "fantasy",
+          "mystery"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/8uBae3fsFRhYNrNBxuWJCXlBFKE.jpg"
+      },
+      {
+        "id": "tmdb-movie-969681",
+        "tmdbId": 969681,
+        "type": "movie",
+        "title": "Spider-Man: Un nuevo día",
+        "year": "2026",
+        "genreKeys": [
+          "action",
+          "adventure",
+          "science-fiction"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/fBFjaDWfNslvrs6bJjknmG27wOS.jpg"
+      },
+      {
+        "id": "tmdb-tv-288673",
+        "tmdbId": 288673,
+        "type": "tv",
+        "title": "Carrie",
+        "year": "2026",
+        "genreKeys": [
+          "drama",
+          "science-fiction",
+          "fantasy",
+          "mystery"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/eXjk4W4robXs7l1YXwaXMv4f2qb.jpg"
+      },
+      {
+        "id": "tmdb-tv-285322",
+        "tmdbId": 285322,
+        "type": "tv",
+        "title": "Bajo la superficie",
+        "year": "2026",
+        "genreKeys": [
+          "drama",
+          "mystery"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/mieCT53TaHGVVRdeq8Bx3VwtgIW.jpg"
+      },
+      {
+        "id": "tmdb-tv-293610",
+        "tmdbId": 293610,
+        "type": "tv",
+        "title": "닥터X: 하얀 마피아의 시대",
+        "year": "2026",
+        "genreKeys": [
+          "drama",
+          "crime",
+          "mystery"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/yIJO1M4sbYLa1HlmurXikO9TQm2.jpg"
+      },
+      {
+        "id": "tmdb-tv-284833",
+        "tmdbId": 284833,
+        "type": "tv",
+        "title": "Avatar: Los Siete Refugios",
+        "year": "2026",
+        "genreKeys": [
+          "action",
+          "adventure",
+          "animation",
+          "science-fiction",
+          "fantasy",
+          "family"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/iMs2rnOGZm37pdGkWGbEtNewvJv.jpg"
+      },
+      {
+        "id": "tmdb-tv-289423",
+        "tmdbId": 289423,
+        "type": "tv",
+        "title": "La chispa del amor",
+        "year": "2026",
+        "genreKeys": [
+          "comedy",
+          "science-fiction",
+          "fantasy"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/2KLblBXNDX05ZqLwubCyjeokGvZ.jpg"
+      },
+      {
+        "id": "tmdb-tv-95350",
+        "tmdbId": 95350,
+        "type": "tv",
+        "title": "Linternas",
+        "year": "2026",
+        "genreKeys": [
+          "drama",
+          "science-fiction",
+          "fantasy",
+          "mystery"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/t6Ub9GTbw6uwphRZQQiQlKim0vO.jpg"
+      },
+      {
+        "id": "tmdb-tv-284580",
+        "tmdbId": 284580,
+        "type": "tv",
+        "title": "とある暗部の少女共棲",
+        "year": "2026",
+        "genreKeys": [
+          "action",
+          "adventure",
+          "animation",
+          "science-fiction",
+          "fantasy",
+          "mystery"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/4xlLvgDOumCt0ejdfEiZiTqD6Ma.jpg"
+      },
+      {
+        "id": "tmdb-movie-1400837",
+        "tmdbId": 1400837,
+        "type": "movie",
+        "title": "Madre siniestra",
+        "year": "2026",
+        "genreKeys": [
+          "horror"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/5yUwsjgWlYCIF5ck1NaUr5zEGg7.jpg"
+      },
+      {
+        "id": "tmdb-movie-1101412",
+        "tmdbId": 1101412,
+        "type": "movie",
+        "title": "Vértigo 2: Punto muerto",
+        "year": "2026",
+        "genreKeys": [
+          "thriller"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/xQlESgkDM7rczAWySdB0WBomh39.jpg"
+      },
+      {
+        "id": "tmdb-movie-1291595",
+        "tmdbId": 1291595,
+        "type": "movie",
+        "title": "La noche del demonio: Están entre nosotros",
+        "year": "2026",
+        "genreKeys": [
+          "horror",
+          "thriller"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/icc5Tjg14CZH94b0CDBQ2PP8YjH.jpg"
+      },
+      {
+        "id": "tmdb-movie-1742441",
+        "tmdbId": 1742441,
+        "type": "movie",
+        "title": "V/H/S/Mixtape",
+        "year": "2026",
+        "genreKeys": [
+          "horror",
+          "thriller"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/uS8yoiA6NfsuYeOTbVfpem8Ib9.jpg"
+      },
+      {
+        "id": "tmdb-movie-1248832",
+        "tmdbId": 1248832,
+        "type": "movie",
+        "title": "Digger",
+        "year": "2026",
+        "genreKeys": [
+          "comedy",
+          "drama"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/txe65aR0g5JiYnHKPjX3E49M5td.jpg"
+      },
+      {
+        "id": "tmdb-movie-1423191",
+        "tmdbId": 1423191,
+        "type": "movie",
+        "title": "Resident Evil: Noche cero",
+        "year": "2026",
+        "genreKeys": [
+          "adventure",
+          "science-fiction",
+          "horror"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/ntmaNFJ7O60n45E1E6HZlXeSV5e.jpg"
+      },
+      {
+        "id": "tmdb-tv-255752",
+        "tmdbId": 255752,
+        "type": "tv",
+        "title": "El hotel embrujado",
+        "year": "2025",
+        "genreKeys": [
+          "animation",
+          "comedy"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/fnMLrknppEITHf6in7vW4ryDG9C.jpg"
+      },
+      {
+        "id": "tmdb-tv-220542",
+        "tmdbId": 220542,
+        "type": "tv",
+        "title": "Los diarios de la boticaria",
+        "year": "2023",
+        "genreKeys": [
+          "animation",
+          "drama",
+          "mystery"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/bYPACmBf5Nomw3I2IEGGTNwgvWj.jpg"
+      },
+      {
+        "id": "tmdb-tv-247718",
+        "tmdbId": 247718,
+        "type": "tv",
+        "title": "Tierra de Mafia",
+        "year": "2025",
+        "genreKeys": [
+          "drama",
+          "crime"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/s7ye2BFq4HjGMi0dGkzGu5c2fyz.jpg"
+      }
+    ],
+    "top-rated": [
+      {
+        "id": "the-shawshank-redemption",
+        "tmdbId": 278,
+        "type": "movie",
+        "title": "The Shawshank Redemption",
+        "year": "1994",
+        "genreKeys": [
+          "drama"
+        ],
+        "poster": "/images/shawshank-redemption.jpg"
+      },
+      {
+        "id": "tmdb-tv-1396",
+        "tmdbId": 1396,
+        "type": "tv",
+        "title": "Breaking Bad",
+        "year": "2008",
+        "genreKeys": [
+          "drama",
+          "crime"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/anFx9aTOOYqgS3v7x3R84Kz67ly.jpg"
+      },
+      {
+        "id": "the-godfather",
+        "tmdbId": 238,
+        "type": "movie",
+        "title": "The Godfather",
+        "year": "1972",
+        "genreKeys": [
+          "drama",
+          "crime"
+        ],
+        "poster": "/images/the-godfather.jpg"
+      },
+      {
+        "id": "tmdb-tv-246",
+        "tmdbId": 246,
+        "type": "tv",
+        "title": "Avatar: La leyenda de Aang",
+        "year": "2005",
+        "genreKeys": [
+          "action",
+          "adventure",
+          "animation",
+          "science-fiction",
+          "fantasy"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/ucNtkZfpZ6KgxqPo039nN4LAyFR.jpg"
+      },
+      {
+        "id": "tmdb-movie-687163",
+        "tmdbId": 687163,
+        "type": "movie",
+        "title": "Proyecto Fin del Mundo",
+        "year": "2026",
+        "genreKeys": [
+          "adventure",
+          "science-fiction"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/cWpvRQcppLnXD0Kno4OZUzkA05R.jpg"
+      },
+      {
+        "id": "tmdb-tv-37854",
+        "tmdbId": 37854,
+        "type": "tv",
+        "title": "One Piece",
+        "year": "1999",
+        "genreKeys": [
+          "action",
+          "adventure",
+          "animation",
+          "comedy"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/8f33Q5AuM2G5ZqFeusbIqDjr3cI.jpg"
+      },
+      {
+        "id": "tmdb-movie-936075",
+        "tmdbId": 936075,
+        "type": "movie",
+        "title": "Michael",
+        "year": "2026",
+        "genreKeys": [
+          "drama"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/zm0KAbOjlt9eR5y7vDiL2dEOwMl.jpg"
+      },
+      {
+        "id": "tmdb-tv-94605",
+        "tmdbId": 94605,
+        "type": "tv",
+        "title": "Arcane",
+        "year": "2021",
+        "genreKeys": [
+          "action",
+          "adventure",
+          "animation",
+          "science-fiction",
+          "fantasy"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/fqldf2t8ztc9aiwn3k6mlX3tvRT.jpg"
+      },
+      {
+        "id": "tmdb-movie-389",
+        "tmdbId": 389,
+        "type": "movie",
+        "title": "12 Hombres en Pugna",
+        "year": "1957",
+        "genreKeys": [
+          "drama"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/andXPjcmwHstD4zFccFlOKMgoBh.jpg"
+      },
+      {
+        "id": "tmdb-tv-87108",
+        "tmdbId": 87108,
+        "type": "tv",
+        "title": "Chernobyl",
+        "year": "2019",
+        "genreKeys": [
+          "drama"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/hlLXt2tOPT6RRnjiUmoxyG1LTFi.jpg"
+      },
+      {
+        "id": "tmdb-movie-240",
+        "tmdbId": 240,
+        "type": "movie",
+        "title": "El Padrino II",
+        "year": "1974",
+        "genreKeys": [
+          "drama",
+          "crime"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/nitJxV5GfaOB44VVOpVx2fOxnuT.jpg"
+      },
+      {
+        "id": "tmdb-tv-60059",
+        "tmdbId": 60059,
+        "type": "tv",
+        "title": "Better Call Saul",
+        "year": "2015",
+        "genreKeys": [
+          "drama",
+          "crime"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/fC2HDm5t0kHl7mTm7jxMR31b7by.jpg"
+      },
+      {
+        "id": "tmdb-movie-424",
+        "tmdbId": 424,
+        "type": "movie",
+        "title": "La Lista de Schindler",
+        "year": "1993",
+        "genreKeys": [
+          "drama"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/3Ho0pXsnMxpGJWqdOi0KDNdaTkT.jpg"
+      },
+      {
+        "id": "tmdb-tv-31911",
+        "tmdbId": 31911,
+        "type": "tv",
+        "title": "Fullmetal Alchemist: Brotherhood",
+        "year": "2009",
+        "genreKeys": [
+          "action",
+          "adventure",
+          "animation",
+          "drama",
+          "science-fiction",
+          "fantasy"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/vIkH7fUQf8Olo8Apq56FQLGDXOo.jpg"
+      },
+      {
+        "id": "the-dark-knight",
+        "tmdbId": 155,
+        "type": "movie",
+        "title": "The Dark Knight",
+        "year": "2008",
+        "genreKeys": [
+          "action",
+          "crime"
+        ],
+        "poster": "/images/the-dark-knight.jpg"
+      },
+      {
+        "id": "tmdb-tv-1429",
+        "tmdbId": 1429,
+        "type": "tv",
+        "title": "Attack on Titan",
+        "year": "2013",
+        "genreKeys": [
+          "action",
+          "adventure",
+          "animation",
+          "science-fiction",
+          "fantasy"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/yFPQ4JhhirnCVe2UIKGMYX7TOGZ.jpg"
+      },
+      {
+        "id": "tmdb-movie-129",
+        "tmdbId": 129,
+        "type": "movie",
+        "title": "El viaje de Chihiro",
+        "year": "2001",
+        "genreKeys": [
+          "animation",
+          "fantasy",
+          "family"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/2RcxjDykOssx4SfqshewyI9vfSl.jpg"
+      },
+      {
+        "id": "tmdb-tv-127532",
+        "tmdbId": 127532,
+        "type": "tv",
+        "title": "Solo Leveling",
+        "year": "2024",
+        "genreKeys": [
+          "action",
+          "adventure",
+          "animation",
+          "science-fiction",
+          "fantasy"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/eCD7WS9h4lCT8N4Xavc9u8R1IGk.jpg"
+      },
+      {
+        "id": "tmdb-movie-497",
+        "tmdbId": 497,
+        "type": "movie",
+        "title": "Milagros Inesperados",
+        "year": "1999",
+        "genreKeys": [
+          "drama",
+          "fantasy",
+          "crime"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/7ezlnHDn6clFku58TmFmpKUQUqf.jpg"
+      },
+      {
+        "id": "tmdb-tv-60625",
+        "tmdbId": 60625,
+        "type": "tv",
+        "title": "Rick y Morty",
+        "year": "2013",
+        "genreKeys": [
+          "action",
+          "adventure",
+          "animation",
+          "comedy",
+          "science-fiction",
+          "fantasy"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/arSWOHGl9uQvhDrWjgyl3aaypca.jpg"
+      }
+    ],
+    "colombia": [
+      {
+        "id": "tmdb-movie-107748",
+        "tmdbId": 107748,
+        "type": "movie",
+        "title": "Sin Tetas no hay Paraíso",
+        "year": "2010",
+        "genreKeys": [
+          "drama",
+          "crime"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/zwRsLnKOdWeoBCoCTkJGI6WBDtl.jpg"
+      },
+      {
+        "id": "tmdb-tv-67335",
+        "tmdbId": 67335,
+        "type": "tv",
+        "title": "Sin senos sí hay paraíso",
+        "year": "2016",
+        "genreKeys": [
+          "action",
+          "adventure",
+          "drama",
+          "crime",
+          "mystery"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/7lBJ6lOS0uQqsH13U9iMTikawQS.jpg"
+      },
+      {
+        "id": "tmdb-movie-436",
+        "tmdbId": 436,
+        "type": "movie",
+        "title": "Maria llena eres de gracia",
+        "year": "2004",
+        "genreKeys": [
+          "drama",
+          "thriller",
+          "crime"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/ygSWLfwtvLt7BarnQGnuU0zXjOn.jpg"
+      },
+      {
+        "id": "tmdb-tv-284792",
+        "tmdbId": 284792,
+        "type": "tv",
+        "title": "Medusa",
+        "year": "2025",
+        "genreKeys": [
+          "drama"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/mFsjwJdNBKDRYLqPdBFaoVCKXLq.jpg"
+      },
+      {
+        "id": "tmdb-movie-1372665",
+        "tmdbId": 1372665,
+        "type": "movie",
+        "title": "Los niños perdidos",
+        "year": "2024",
+        "genreKeys": [
+          "documentary"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/tqhUcnw1vPxYfpGKccDvIv0Ss03.jpg"
+      },
+      {
+        "id": "tmdb-tv-43348",
+        "tmdbId": 43348,
+        "type": "tv",
+        "title": "Pablo Escobar: El Patrón del Mal",
+        "year": "2012",
+        "genreKeys": [
+          "drama",
+          "crime"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/jZqm7HFuxfH9P0LFjQZ8nzrCUHP.jpg"
+      },
+      {
+        "id": "tmdb-movie-1465563",
+        "tmdbId": 1465563,
+        "type": "movie",
+        "title": "Un poeta",
+        "year": "2025",
+        "genreKeys": [
+          "comedy",
+          "drama"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/lg2p2GCrkwF5Ueh6Dj8ECQNhBUz.jpg"
+      },
+      {
+        "id": "tmdb-tv-19505",
+        "tmdbId": 19505,
+        "type": "tv",
+        "title": "Los Reyes",
+        "year": "2005",
+        "genreKeys": [
+          "family"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/gVadEZSakesdGRJzq7HbQh7yKyS.jpg"
+      },
+      {
+        "id": "tmdb-movie-336808",
+        "tmdbId": 336808,
+        "type": "movie",
+        "title": "El abrazo de la serpiente",
+        "year": "2015",
+        "genreKeys": [
+          "adventure",
+          "drama"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/iLcCVKuePGh7mgUndk59VUyctKJ.jpg"
+      },
+      {
+        "id": "tmdb-tv-207333",
+        "tmdbId": 207333,
+        "type": "tv",
+        "title": "Cien años de soledad",
+        "year": "2024",
+        "genreKeys": [
+          "drama",
+          "science-fiction",
+          "fantasy"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/3VRa9ZM0wq2vhdMGZ1Z3UpZDkXm.jpg"
+      },
+      {
+        "id": "tmdb-movie-44321",
+        "tmdbId": 44321,
+        "type": "movie",
+        "title": "La virgen de los sicarios",
+        "year": "2000",
+        "genreKeys": [
+          "drama",
+          "crime",
+          "romance"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/dA3ihogQs7Ty50ulSYwxzDDdnmt.jpg"
+      },
+      {
+        "id": "tmdb-tv-80240",
+        "tmdbId": 80240,
+        "type": "tv",
+        "title": "La Reina del Flow",
+        "year": "2018",
+        "genreKeys": [
+          "drama",
+          "crime"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/fuVuDYrs8sxvEolnYr0wCSvtyTi.jpg"
+      },
+      {
+        "id": "tmdb-movie-417466",
+        "tmdbId": 417466,
+        "type": "movie",
+        "title": "Monos",
+        "year": "2019",
+        "genreKeys": [
+          "drama",
+          "thriller",
+          "crime"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/bkt5H7qH4zwMzBxnQLFR0PByU81.jpg"
+      },
+      {
+        "id": "tmdb-tv-16286",
+        "tmdbId": 16286,
+        "type": "tv",
+        "title": "Yo soy Betty, la fea",
+        "year": "1999",
+        "genreKeys": [
+          "comedy",
+          "drama"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/iEBOiXiDGaxVR6w8aKgG5MEusuO.jpg"
+      },
+      {
+        "id": "tmdb-movie-437311",
+        "tmdbId": 437311,
+        "type": "movie",
+        "title": "Orbita 9",
+        "year": "2017",
+        "genreKeys": [
+          "drama",
+          "science-fiction",
+          "romance"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/77XZdVMnUAlQtYWiDetX1k37L9K.jpg"
+      },
+      {
+        "id": "tmdb-tv-122623",
+        "tmdbId": 122623,
+        "type": "tv",
+        "title": "Enfermeras",
+        "year": "2019",
+        "genreKeys": [
+          "drama"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/HhpjvtQT6tMzbZWcSZK4Ejn36T.jpg"
+      },
+      {
+        "id": "tmdb-movie-511819",
+        "tmdbId": 511819,
+        "type": "movie",
+        "title": "Memoria",
+        "year": "2021",
+        "genreKeys": [
+          "drama",
+          "science-fiction",
+          "mystery"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/fjHHXOxYZL22UYkUfnQqZzuHMfc.jpg"
+      },
+      {
+        "id": "tmdb-tv-227371",
+        "tmdbId": 227371,
+        "type": "tv",
+        "title": "Perfil falso",
+        "year": "2023",
+        "genreKeys": [
+          "drama"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/jscEj5F2tEwWHZm7NVNfbdTJg22.jpg"
+      },
+      {
+        "id": "tmdb-movie-1333099",
+        "tmdbId": 1333099,
+        "type": "movie",
+        "title": "Dalia y el libro rojo",
+        "year": "2024",
+        "genreKeys": [
+          "adventure",
+          "animation",
+          "drama",
+          "fantasy"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/oyGyAQZOj7NzyLxCZX7FHKYELP1.jpg"
+      },
+      {
+        "id": "tmdb-tv-31268",
+        "tmdbId": 31268,
+        "type": "tv",
+        "title": "El Capo",
+        "year": "2009",
+        "genreKeys": [
+          "drama",
+          "crime"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/hTwfFidPtRU3BUH8mK90jWyPyBr.jpg"
+      }
+    ],
+    "popular-tv": [
+      {
+        "id": "tmdb-tv-91759",
+        "tmdbId": 91759,
+        "type": "tv",
+        "title": "愛·回家之開心速遞",
+        "year": "2017",
+        "genreKeys": [
+          "comedy",
+          "drama",
+          "family"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/lgD4j9gUGmMckZpWWRJjorWqGVT.jpg"
+      },
+      {
+        "id": "tmdb-tv-22980",
+        "tmdbId": 22980,
+        "type": "tv",
+        "title": "Watch What Happens Live with Andy Cohen",
+        "year": "2009",
+        "genreKeys": [
+          "comedy"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/onSD9UXfJwrMXWhq7UY7hGF2S1h.jpg"
+      },
+      {
+        "id": "tmdb-tv-2261",
+        "tmdbId": 2261,
+        "type": "tv",
+        "title": "The Tonight Show Starring Johnny Carson",
+        "year": "1962",
+        "genreKeys": [],
+        "poster": "https://image.tmdb.org/t/p/w500/uSvET5YUvHNDIeoCpErrbSmasFb.jpg"
+      },
+      {
+        "id": "tmdb-tv-70998",
+        "tmdbId": 70998,
+        "type": "tv",
+        "title": "Perdóname, que he pecado",
+        "year": "2017",
+        "genreKeys": [
+          "animation",
+          "drama"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/nX6G2UWqGqBNU1hOA1yOLB1APTi.jpg"
+      },
+      {
+        "id": "tmdb-tv-59941",
+        "tmdbId": 59941,
+        "type": "tv",
+        "title": "The Tonight Show Starring Jimmy Fallon",
+        "year": "2014",
+        "genreKeys": [
+          "comedy"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/1N4o5PmmqhlVDrcdJ2RlCFWbLGX.jpg"
+      },
+      {
+        "id": "tmdb-tv-108978",
+        "tmdbId": 108978,
+        "type": "tv",
+        "title": "Reacher",
+        "year": "2022",
+        "genreKeys": [
+          "action",
+          "adventure",
+          "crime"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/puKRIbG2asaTFHIjJS5sydIW1zB.jpg"
+      },
+      {
+        "id": "tmdb-tv-2734",
+        "tmdbId": 2734,
+        "type": "tv",
+        "title": "La Ley y el Orden: Unidad de Víctimas Especiales",
+        "year": "1999",
+        "genreKeys": [
+          "drama",
+          "crime",
+          "mystery"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/2RW2SQQSaCMGwAk5sfvfOisQV4s.jpg"
+      },
+      {
+        "id": "tmdb-tv-33238",
+        "tmdbId": 33238,
+        "type": "tv",
+        "title": "런닝맨",
+        "year": "2010",
+        "genreKeys": [
+          "comedy"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/15SMnscZqd7HZ0bzruatOcKUlOV.jpg"
+      },
+      {
+        "id": "tmdb-tv-63770",
+        "tmdbId": 63770,
+        "type": "tv",
+        "title": "The Late Show with Stephen Colbert",
+        "year": "2015",
+        "genreKeys": [
+          "comedy"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/9jkThAGYj2yp8jsS6Nriy5mzKFT.jpg"
+      },
+      {
+        "id": "tmdb-tv-5920",
+        "tmdbId": 5920,
+        "type": "tv",
+        "title": "El Mentalista",
+        "year": "2008",
+        "genreKeys": [
+          "drama",
+          "crime",
+          "mystery"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/f3F6NA7A8TY8EjdIiGyYqoo38ug.jpg"
+      },
+      {
+        "id": "tmdb-tv-2316",
+        "tmdbId": 2316,
+        "type": "tv",
+        "title": "La Oficina",
+        "year": "2005",
+        "genreKeys": [
+          "comedy"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/mZMmfkTDiXgdKADBykhEFDp940V.jpg"
+      },
+      {
+        "id": "tmdb-tv-61818",
+        "tmdbId": 61818,
+        "type": "tv",
+        "title": "Late Night with Seth Meyers",
+        "year": "2014",
+        "genreKeys": [
+          "comedy"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/u0ttHM5ZQCvnfL0lkueEgS4h2nI.jpg"
+      },
+      {
+        "id": "tmdb-tv-549",
+        "tmdbId": 549,
+        "type": "tv",
+        "title": "La Ley y el Orden",
+        "year": "1990",
+        "genreKeys": [
+          "drama",
+          "crime"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/bvy6AowxJp5jGhEMlpwesFFYXBL.jpg"
+      },
+      {
+        "id": "tmdb-tv-456",
+        "tmdbId": 456,
+        "type": "tv",
+        "title": "Los Simpson",
+        "year": "1989",
+        "genreKeys": [
+          "animation",
+          "comedy"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/mpizUstxJmMbgMwc8MDEXQ6kXTP.jpg"
+      },
+      {
+        "id": "tmdb-tv-1416",
+        "tmdbId": 1416,
+        "type": "tv",
+        "title": "Anatomía según Grey",
+        "year": "2005",
+        "genreKeys": [
+          "drama"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/iSQ0s4XsprwuBXz6RYMhcSuPX1O.jpg"
+      },
+      {
+        "id": "tmdb-tv-2224",
+        "tmdbId": 2224,
+        "type": "tv",
+        "title": "The Daily Show",
+        "year": "1996",
+        "genreKeys": [
+          "comedy"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/ixcfyK7it6FjRM36Te4OdblAq4X.jpg"
+      },
+      {
+        "id": "tmdb-tv-247718",
+        "tmdbId": 247718,
+        "type": "tv",
+        "title": "Tierra de Mafia",
+        "year": "2025",
+        "genreKeys": [
+          "drama",
+          "crime"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/s7ye2BFq4HjGMi0dGkzGu5c2fyz.jpg"
+      },
+      {
+        "id": "tmdb-tv-15226",
+        "tmdbId": 15226,
+        "type": "tv",
+        "title": "C.I.D",
+        "year": "1998",
+        "genreKeys": [
+          "action",
+          "adventure",
+          "drama",
+          "crime",
+          "mystery"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/3UymnlLfLMKxG8OcFhSnAlnhQfZ.jpg"
+      },
+      {
+        "id": "tmdb-tv-4614",
+        "tmdbId": 4614,
+        "type": "tv",
+        "title": "NCIS: Criminología Naval",
+        "year": "2003",
+        "genreKeys": [
+          "action",
+          "adventure",
+          "drama",
+          "crime"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/i5dZG5SJ7NuApNneDDeJdz3k0Dl.jpg"
+      },
+      {
+        "id": "tmdb-tv-14424",
+        "tmdbId": 14424,
+        "type": "tv",
+        "title": "Malhação",
+        "year": "1995",
+        "genreKeys": [
+          "comedy",
+          "drama"
+        ],
+        "poster": "https://image.tmdb.org/t/p/w500/bF24r2FxsjzgkJcrbBU8RC9JVoU.jpg"
+      }
+    ]
+  }
+}

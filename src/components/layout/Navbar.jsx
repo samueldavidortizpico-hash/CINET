@@ -1,18 +1,15 @@
 import { NavLink } from "react-router-dom";
-import { useAuth } from "../../hooks/useAuth.js";
 
+// Descubrimiento y Duo. Cuenta, dashboard, ajustes, legal y administración viven en el panel del avatar (UserMenu).
 const LINKS = [
   { to: "/home", label: "Inicio" },
   { to: "/movies", label: "Películas" },
   { to: "/cine", label: "Cine", className: "nav-cine" },
   { to: "/duo", label: "Duo", className: "nav-duo" },
   { to: "/my-plans", label: "Mis planes" },
-  { to: "/dashboard", label: "Dashboard" },
 ];
 
 export default function Navbar() {
-  const { user } = useAuth();
-
   return (
     <nav aria-label="Navegación principal">
       <ul className="nav-list">
@@ -23,15 +20,6 @@ export default function Navbar() {
             </NavLink>
           </li>
         ))}
-        {/* Con sesión, el perfil vive en el menú del avatar (UserMenu). */}
-        {!user && (
-          <li>
-            <NavLink to="/profile">Registro</NavLink>
-          </li>
-        )}
-        <li>
-          <NavLink to="/about">Acerca de</NavLink>
-        </li>
       </ul>
     </nav>
   );

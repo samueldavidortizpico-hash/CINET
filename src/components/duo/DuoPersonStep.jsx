@@ -1,7 +1,9 @@
 import { useState } from "react";
 import Button from "../common/Button.jsx";
 import PosterImage from "../common/PosterImage.jsx";
+import DuoCalibration from "./DuoCalibration.jsx";
 import { ChoiceChips, Chip, Question } from "./DuoFields.jsx";
+import { SeatAvatar } from "./DuoSeats.jsx";
 import { EPISODE_OPTIONS, personName, RUNTIME_OPTIONS, SEASON_OPTIONS, seatColor, SERIES_STATUS_OPTIONS, TONES } from "../../data/duo.js";
 import { GENRES } from "../../data/tmdb.js";
 import { useAsync } from "../../hooks/useAsync.js";
@@ -87,10 +89,9 @@ function ActorPicker({ actors, onChange }) {
   );
 }
 
-/** Un paso por persona: sus preferencias, con el color de su butaca. */
-export default function DuoPersonStep({ index, size, person, type, nextName, onChange, onBack, onNext }) {
+/** Géneros (me gusta / imprescindible / evitar), tono y actores: el editor completo, siempre disponible. */
+function GenreEditor({ person, index, size, type, onChange }) {
   const [genreIntent, setGenreIntent] = useState("like");
-  const name = personName(person, index);
   const set = (patch) => onChange({ ...person, ...patch });
   const toggleTone = (key) => set({ tone: person.tone.includes(key) ? person.tone.filter((item) => item !== key) : [...person.tone, key] });
   // TMDB no clasifica series como terror, suspenso ni romance.
@@ -103,48 +104,12 @@ export default function DuoPersonStep({ index, size, person, type, nextName, onC
     byState("reject").length && `no quieres ${listEs(byState("reject"))}`,
   ].filter(Boolean);
 
-  const submit = (event) => {
-    event.preventDefault();
-    onNext();
-  };
-
   return (
-    <form className="duo-step duo-person-form" style={{ "--person-accent": seatColor(index) }} aria-labelledby={`duo-person-${index}-title`} onSubmit={submit}>
-      <p className="duo-overline">{size > 1 ? `BUTACA ${index + 1} DE ${size}` : "UN ESPACIO PARA TU UNIVERSO"}</p>
-      <h2 id={`duo-person-${index}-title`}>
-        {size > 1 ? (
-          <>
-            Turno de <span className="duo-accent">{name}</span>
-          </>
-        ) : (
-          "¿Qué te apetece hoy?"
-        )}
-      </h2>
-      <p className="duo-lead">
-        {size > 1
-          ? `Responde solo por ti; al final buscamos lo que encaja con ${size === 2 ? "los dos" : "todo el grupo"}.`
-          : "Cuéntanos qué te gusta y qué prefieres evitar. Lo demás corre por nuestra cuenta."}
-      </p>
-
-      <label className="duo-field duo-field-inline">
-        <span>Nombre</span>
-        <input
-          type="text"
-          maxLength={20}
-          autoComplete="off"
-          placeholder={`Ej. ${PLACEHOLDERS[index % PLACEHOLDERS.length]}`}
-          value={person.name}
-          onChange={(event) => set({ name: event.target.value })}
-        />
-      </label>
-
-      <Question
-        title="¿Qué historias van contigo?"
-        hint="Elige cómo quieres marcar los géneros y después selecciónalos. Vuelve a tocar uno con el mismo estado para quitarlo."
-      >
+    <>
+      <Question title="¿Qué historias van contigo?" hint="Elige cómo marcar y toca los géneros. Vuelve a tocar uno con el mismo estado para quitarlo.">
         <div className="duo-genre-intent" role="group" aria-label="Cómo marcar los géneros">
           <ChoiceChips name={`genre-intent-${index}`} options={GENRE_INTENTS} value={genreIntent} onChange={setGenreIntent} />
-          <p>{genreIntent === "like" ? "Suma los géneros que disfrutas." : genreIntent === "must" ? "Cada recomendación deberá incluir estos géneros." : "Estos géneros quedarán fuera de las recomendaciones."}</p>
+          <p>{genreIntent === "like" ? "Suma los géneros que disfrutas: es una preferencia." : genreIntent === "must" ? "Límite: cada recomendación deberá tener TODOS estos géneros." : "Límite: estos géneros nunca aparecerán."}</p>
         </div>
         <div className="duo-genres">
           {genres.map(({ key, label }) => {
@@ -162,7 +127,7 @@ export default function DuoPersonStep({ index, size, person, type, nextName, onC
                 <span className="duo-genre-mark" aria-hidden="true">
                   {STATE_MARK[state]}
                 </span>
-                <span>{label}<small>{state === "none" ? "Sin preferencia" : STATE_TEXT[state]}</small></span>
+                <span>{label}</span>
               </button>
             );
           })}
@@ -173,7 +138,7 @@ export default function DuoPersonStep({ index, size, person, type, nextName, onC
         {hidden.length > 0 && <p className="duo-fineprint">En series, TMDB no usa {listEs(hidden)} como géneros.</p>}
       </Question>
 
-      <Question title="¿Cómo quieres sentirte?" hint="Pueden ser varias opciones. También puedes dejarlo abierto.">
+      <Question title="¿Cómo quieres sentirte?" hint="Opcional. El tono se deduce de géneros y palabras clave de TMDB: orienta, no certifica.">
         <div className="duo-chips">
           {TONES.map(({ key, label, icon }) => (
             <Chip key={key} checked={person.tone.includes(key)} onChange={() => toggleTone(key)}>
@@ -183,35 +148,97 @@ export default function DuoPersonStep({ index, size, person, type, nextName, onC
         </div>
       </Question>
 
+      {type !== "tv" && (
+        <Question title="Actores o actrices favoritos (opcional)">
+          <ActorPicker actors={person.actors} onChange={(actors) => set({ actors })} />
+        </Question>
+      )}
+    </>
+  );
+}
+
+/** Límites de la persona: se cumplen siempre (contrato de límites del motor). */
+function Limits({ person, index, type, onChange }) {
+  const set = (patch) => onChange({ ...person, ...patch });
+  return (
+    <div className="duo-limits-box">
+      <p className="duo-limits-title">
+        <span aria-hidden="true">⛨</span> Límites: se cumplen siempre
+      </p>
       {type === "tv" ? (
         <>
           <Question title="Duración de cada episodio">
             <ChoiceChips name={`duo-episode-${index}`} options={EPISODE_OPTIONS} value={person.episodeMax} onChange={(episodeMax) => set({ episodeMax })} />
           </Question>
-          <Question title="Número de temporadas" hint="Solo se aplica cuando TMDB conoce el dato.">
+          <Question title="Número de temporadas" hint="Si TMDB no conoce el dato, la serie no se da por válida.">
             <ChoiceChips name={`duo-seasons-${index}`} options={SEASON_OPTIONS} value={person.seasonsMax} onChange={(seasonsMax) => set({ seasonsMax })} />
           </Question>
           <Question title="Estado de la serie">
-            <ChoiceChips
-              name={`duo-status-${index}`}
-              options={SERIES_STATUS_OPTIONS}
-              value={person.seriesStatus}
-              onChange={(seriesStatus) => set({ seriesStatus })}
-            />
+            <ChoiceChips name={`duo-status-${index}`} options={SERIES_STATUS_OPTIONS} value={person.seriesStatus} onChange={(seriesStatus) => set({ seriesStatus })} />
           </Question>
         </>
       ) : (
-        <>
-          <Question title="Duración máxima de la película">
-            <ChoiceChips name={`duo-runtime-${index}`} options={RUNTIME_OPTIONS} value={person.maxRuntime} onChange={(maxRuntime) => set({ maxRuntime })} />
-          </Question>
-          <Question title="Actores o actrices favoritos (opcional)">
-            <ActorPicker actors={person.actors} onChange={(actors) => set({ actors })} />
-          </Question>
-        </>
+        <Question title="Duración máxima de la película" hint="Una película sin duración confirmada no se da por válida.">
+          <ChoiceChips name={`duo-runtime-${index}`} options={RUNTIME_OPTIONS} value={person.maxRuntime} onChange={(maxRuntime) => set({ maxRuntime })} />
+        </Question>
       )}
+    </div>
+  );
+}
 
-      <div className="duo-actions">
+/** Escena 2 · Mostrar gustos: una butaca por persona, con películas o con géneros, y sus límites. */
+export default function DuoPersonStep({ index, size, person, type, nextName, onChange, onBack, onNext }) {
+  const declared = person.genres.length + person.mustGenres.length + person.rejectedGenres.length + person.actors.length > 0;
+  const [way, setWay] = useState(declared && !person.titles.length ? "genres" : "posters");
+  const name = personName(person, index);
+  const solo = size === 1;
+
+  const submit = (event) => {
+    event.preventDefault();
+    onNext();
+  };
+
+  return (
+    <form className="duo-step duo-scene duo-scene-taste" style={{ "--person-accent": seatColor(index) }} aria-labelledby={`duo-person-${index}-title`} onSubmit={submit}>
+      <header className="duo-taste-head">
+        <SeatAvatar index={index} name={name} className="is-lg" />
+        <div>
+          <p className="duo-overline">{solo ? "TU BUTACA" : `BUTACA ${index + 1} DE ${size}`}</p>
+          <h2 id={`duo-person-${index}-title`}>
+            {solo ? (
+              "Muéstranos tus gustos"
+            ) : (
+              <>
+                Turno de <span className="duo-accent">{name}</span>
+              </>
+            )}
+          </h2>
+          <p className="duo-lead">{solo ? "Con películas que conoces o con géneros. Puedes saltarlo." : `Responde solo por ti; al final buscamos lo que encaja con ${size === 2 ? "los dos" : "todo el grupo"}.`}</p>
+        </div>
+        <label className="duo-field duo-name-field">
+          <span>Nombre</span>
+          <input type="text" maxLength={20} autoComplete="off" placeholder={`Ej. ${PLACEHOLDERS[index % PLACEHOLDERS.length]}`} value={person.name} onChange={(event) => onChange({ ...person, name: event.target.value })} />
+        </label>
+      </header>
+
+      <div className="duo-ways" role="group" aria-label="Cómo mostrar tus gustos">
+        <button type="button" aria-pressed={way === "posters"} onClick={() => setWay("posters")}>
+          <strong>Con películas</strong>
+          <small>{person.titles.length ? `${person.titles.length} respondidas` : "Responde pósteres"}</small>
+        </button>
+        <button type="button" aria-pressed={way === "genres"} onClick={() => setWay("genres")}>
+          <strong>Géneros y actores</strong>
+          <small>{declared ? "Con selección" : "El editor completo"}</small>
+        </button>
+      </div>
+
+      <div className="duo-way-panel" key={way}>
+        {way === "posters" ? <DuoCalibration person={person} onChange={onChange} solo={solo} /> : <GenreEditor person={person} index={index} size={size} type={type} onChange={onChange} />}
+      </div>
+
+      <Limits person={person} index={index} type={type} onChange={onChange} />
+
+      <div className="duo-actions duo-scene-cta">
         <Button variant="secondary" onClick={onBack}>
           ← Atrás
         </Button>

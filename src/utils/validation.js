@@ -12,7 +12,7 @@ function validateName(name) {
 }
 
 
-function validateEmail(email) {
+export function validateEmail(email) {
 
   if (email.trim() === "") {
     return "El correo electrónico es obligatorio.";
@@ -76,6 +76,16 @@ export function validateLogin(
 
 }
 
+
+export function validateConfirm(password, confirm) {
+  if (confirm === "") return "Repite la contraseña.";
+  return confirm === password ? "" : "Las contraseñas no coinciden.";
+}
+
+/** Contraseña nueva (recuperación): mismas reglas que el registro. */
+export function validateNewPassword(password, confirm) {
+  return { password: validatePassword(password), confirm: validateConfirm(password, confirm) };
+}
 
 export function hasErrors(errors) {
   return Object.values(errors).some(Boolean);

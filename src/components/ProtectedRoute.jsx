@@ -14,7 +14,7 @@ export default function ProtectedRoute({ roles }) {
   // Al recargar, espera a que Supabase restaure la sesión (y el perfil, si hay roles) antes de decidir.
   if (loading || (roles && profileLoading)) return <Loading label="Comprobando sesión" />;
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+    return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
   }
   if (roles && !roles.includes(user.role)) return <Navigate to="/dashboard" replace />;
   return <Outlet />;

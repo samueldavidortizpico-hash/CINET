@@ -17,8 +17,7 @@ import {
   findConflicts,
   findSimilar,
   isStrict,
-  MIN_RESULTS,
-  NEAR_MINUTES,
+  pickFinalists,
   quorum,
   removeFromMarathon,
   rankTitles,
@@ -77,7 +76,7 @@ test("animación y documental solo salen si alguien los elige; el tono no los cu
   assert.ok(chosen.items.some(({ title }) => title.genreKeys.includes("animation")));
 });
 
-test("muchos filtros: nunca vacío, mínimo MIN_RESULTS, alternativas con motivo y después", () => {
+test("muchos filtros: los límites duros nunca se relajan para rellenar", () => {
   const genres = [["drama"], ["drama", "crime"], ["drama", "thriller"], ["crime", "thriller"], ["comedy"], ["romance", "drama"]];
   const pool = Array.from({ length: 90 }, (_, index) => ({
     id: `t${index}`,
@@ -93,15 +92,110 @@ test("muchos filtros: nunca vacío, mínimo MIN_RESULTS, alternativas con motivo
     { mustGenres: ["drama", "crime", "thriller"], maxRuntime: 100 },
     { genres: ["romance"], rejectedGenres: ["comedy"], maxRuntime: 100 }
   );
-  const { items, strict } = rank(picky, {}, pool);
+  const { items, strict, rejectedBy } = rank(picky, {}, pool);
   assert.equal(strict, 0, "ninguno cumple los tres imprescindibles");
-  assert.ok(items.length >= MIN_RESULTS, `mínimo ${MIN_RESULTS}, hay ${items.length}`);
-  assert.ok(items.every(({ title }) => !title.genreKeys.includes("comedy")), "un rechazado nunca se cuela");
-  assert.ok(items.every(({ title }) => ["drama", "crime", "thriller"].some((key) => title.genreKeys.includes(key))), "al menos un imprescindible");
-  assert.ok(items.every(({ title }) => title.runtime <= 100 + NEAR_MINUTES), "la duración no se dispara");
-  assert.ok(items.every((item) => item.reasons[0].startsWith("Es una alternativa")));
-  const misses = items.map((item) => item.relaxed.length);
-  assert.deepEqual(misses, [...misses].sort((a, b) => a - b), "las que fallan menos filtros, primero");
+  assert.deepEqual(items, [], "cero es una respuesta válida: no se rellena con imprescindibles parciales ni duraciones de más");
+  assert.ok(rejectedBy.must > 0, "el motivo queda contado para explicarlo");
+
+  // Con un solo imprescindible y gustos distintos, lo que completa solo falla la preferencia (quórum).
+  const loose = rank(session({ mustGenres: ["drama"], maxRuntime: 100 }, { genres: ["romance"], maxRuntime: 100 }), {}, pool);
+  assert.ok(loose.items.length > 0);
+  assert.ok(loose.items.every(({ title }) => title.genreKeys.includes("drama") && title.runtime <= 100), "límites duros en todas");
+  assert.ok(loose.items.every((item) => item.relaxed.every((key) => key === "oneSided")), "solo la preferencia flexible se completa");
+});
+
+test("contrato de límites: imprescindibles parciales, +1 minuto, datos desconocidos y metadatos contradictorios", () => {
+  const profile = buildProfile(session({ mustGenres: ["drama", "crime"], maxRuntime: 130 }, { maxRuntime: 0 }));
+  const check = (patch) => rankTitles([film("x", ["drama", "crime"], patch)], profile, { history: EMPTY_HISTORY });
+  assert.equal(rankTitles([film("x", ["drama"])], profile, { history: EMPTY_HISTORY }).rejectedBy.must, 1, "uno de dos imprescindibles no cumple");
+  assert.equal(check({ runtime: 130 }).strict, 1, "justo en el límite: cumple");
+  assert.equal(check({ runtime: 131 }).rejectedBy.runtime, 1, "+1 minuto sobre un máximo duro: fuera");
+  assert.equal(check({ runtime: null }).rejectedBy.unknownRuntime, 1, "sin duración: desconocida, no verificada");
+  assert.equal(check({ runtime: null, runtimeCap: 130 }).strict, 1, "la cota de discover con el límite pedido sirve");
+  assert.equal(check({ runtime: null, runtimeCap: 160 }).rejectedBy.unknownRuntime, 1, "una cota más amplia no prueba el límite");
+  assert.equal(check({ runtime: 150, runtimeCap: 130 }).rejectedBy.runtime, 1, "el dato exacto del detalle gana a la cota");
+
+  const widened = buildProfile({ ...session({ mustGenres: ["drama", "crime"], maxRuntime: 130 }, {}), relax: { runtime: 30 } });
+  const extra = rankTitles([film("x", ["drama", "crime"], { runtime: 145 })], widened, { history: EMPTY_HISTORY }).items[0];
+  assert.deepEqual(extra.relaxed, ["runtime"]);
+  assert.equal(extra.reasons[0], "Ampliado: dura 2 h 25 min, 15 min más que el límite de 2 h 10 min que ampliaron.", "excedente exacto");
+
+  const dupes = rankTitles([film("d", ["drama", "crime"]), film("d", ["drama", "crime"])], profile, { history: EMPTY_HISTORY });
+  assert.equal(dupes.items.length, 1, "sin duplicados");
+});
+
+test("plataformas: disponibilidad nula, vacía, filtrada por discover y ampliada a mano", () => {
+  const base = session({ genres: ["drama"] }, {}, { providers: ["netflix"] });
+  const netflix = { id: 8, name: "Netflix" };
+  const titles = [
+    film("ok", ["drama"], { providers: [netflix] }),
+    film("empty", ["drama"], { providers: [] }),
+    film("unknown", ["drama"], { providers: null }),
+    film("filtered", ["drama"], { filtered: { providers: true } }),
+  ];
+  const strict = rankTitles(titles, buildProfile(base), { history: EMPTY_HISTORY });
+  assert.deepEqual(ids(strict.items).sort(), ["filtered", "ok"]);
+  assert.deepEqual([strict.rejectedBy.platform, strict.rejectedBy.unknownPlatform], [1, 1], "no está ≠ no sabemos");
+  const relaxed = rankTitles(titles, buildProfile({ ...base, relax: { platforms: true } }), { history: EMPTY_HISTORY });
+  const unknown = relaxed.items.find((item) => item.title.id === "unknown");
+  assert.deepEqual(unknown.relaxed, ["platforms"]);
+  assert.ok(unknown.reasons.includes("Ampliado: disponibilidad sin comprobar en sus plataformas."));
+});
+
+test("calibración: visto no es gustado, desconocido no es rechazo, un 'no' no veta el género", () => {
+  const snap = (id, genreKeys, answer) => ({ id, ids: [id], title: id, genreKeys, answer });
+  const titles = [film("space-1", ["science-fiction", "drama"]), film("space-2", ["science-fiction"]), film("laugh", ["comedy"]), film("seen", ["drama"])];
+  const ana = { titles: [snap("interstellar", ["science-fiction", "drama"], "love"), snap("seen", ["drama"], "seen"), snap("hangover", ["comedy"], "nope")] };
+  const solo = buildProfile(group({ ...ana }));
+  const result = rankTitles(titles, solo, { history: EMPTY_HISTORY });
+  assert.ok(!ids(result.items).includes("seen"), "visto por todas las personas: no se recomienda");
+  assert.equal(result.items[0].title.id, "space-1", "se parece a lo que le encanta");
+  assert.equal(result.items.at(-1).title.id, "laugh", "se parece a lo que no es para ella: baja, pero no desaparece");
+  assert.ok(result.items[0].reasons.includes("Se parece a «interstellar», que te gustó."));
+  const comedyFan = buildProfile(group({ genres: ["comedy"], titles: [snap("hangover", ["comedy"], "nope")] }));
+  assert.equal(rankTitles([film("laugh", ["comedy"])], comedyFan, { history: EMPTY_HISTORY }).strict, 1, "un 'no es para mí' no veta su género");
+
+  const pair = buildProfile(group({ ...ana }, { titles: [snap("unknown", ["horror"], "unknown")] }));
+  const shared = rankTitles(titles, pair, { history: EMPTY_HISTORY });
+  const seen = shared.items.find((item) => item.title.id === "seen");
+  assert.ok(seen && seen.reasons.includes("Ya la vio P1."), "visto por una sola persona: se queda, con aviso");
+  assert.equal(pair.people[1].loved.length + pair.people[1].noped.length, 0, "'no la conozco' no es una señal");
+});
+
+test("aprendizaje personal: el 'no' de una persona no desaparece por mayoría", () => {
+  const profile = buildProfile(group({ genres: ["action"] }, { genres: ["action"] }, { genres: ["action"] }));
+  const titles = [film("a", ["action"]), film("a2", ["action"]), film("b", ["comedy", "action"])];
+  const majority = feedbackFrom({ a: ["yes", "yes", "no"] }, titles);
+  assert.deepEqual(majority.liked.map((t) => t.id), ["a"], "resumen del grupo: ganó el sí");
+  assert.deepEqual(majority.people[2].disliked.map((t) => t.id), ["a"], "pero P3 dijo que no, y se conserva");
+  const allYes = feedbackFrom({ a: ["yes", "yes", "yes"] }, titles);
+  const scoreOf = (feedback) => rankTitles(titles, profile, { history: EMPTY_HISTORY, feedback }).items.find((item) => item.title.id === "a2").score;
+  assert.ok(scoreOf(majority) < scoreOf(allYes), "con un 'no', la parecida sube menos que con unanimidad");
+});
+
+test("finalistas: conjunto diverso con papeles justificados y sin forzar tres", () => {
+  const profile = buildProfile(group({ genres: ["comedy", "horror"] }, { genres: ["comedy"] }, { genres: ["comedy", "horror"] }));
+  const titles = [
+    film("c1", ["comedy"], { rating: 8, votes: 20000, year: "2015" }),
+    film("c2", ["comedy"], { rating: 7.9, votes: 18000, year: "2016", collection: { id: 9 } }),
+    film("c3", ["comedy"], { rating: 7.8, votes: 15000, year: "2017", collection: { id: 9 } }),
+    film("old", ["comedy"], { rating: 8.4, votes: 900, year: "1994" }),
+    film("scary", ["comedy", "horror"], { rating: 7, votes: 5000, year: "2014" }),
+  ];
+  const { items } = rankTitles(titles, profile, { history: EMPTY_HISTORY });
+  const finalists = pickFinalists(items, profile);
+  assert.equal(finalists.length, 3);
+  assert.equal(finalists[0].role, "meet");
+  assert.ok(new Set(finalists.map((pick) => pick.id)).size === 3, "sin repetir");
+  assert.ok(!(finalists.some((pick) => pick.id === "c2") && finalists.some((pick) => pick.id === "c3")), "no dos de la misma saga");
+  const discover = finalists.find((pick) => pick.role === "discover");
+  assert.ok(discover && discover.why.length && discover.why.every((why) => !why.includes("%")), "la novedad se explica con datos");
+
+  const one = rankTitles([film("solo", ["comedy"])], profile, { history: EMPTY_HISTORY }).items;
+  assert.deepEqual(pickFinalists(one, profile).map((pick) => pick.id), ["solo"], "con una válida, una finalista");
+  assert.deepEqual(pickFinalists([], profile), [], "sin válidas, ninguna");
+  const mixed = [{ title: { id: "alt" }, score: 99, relaxed: ["oneSided"], reasons: [], seats: [] }, { title: { id: "ok" }, score: 10, relaxed: [], reasons: [], seats: [] }];
+  assert.deepEqual(pickFinalists(mixed, profile).map((pick) => pick.id), ["ok"], "si hay válidas, nunca una alternativa");
 });
 
 test("foco de género: una comedia pura gana a una aventura-comedia-familiar-fantasía", () => {
@@ -164,8 +258,9 @@ test("modo serie: duración de episodio, temporadas y estado", () => {
   const { items, rejectedBy } = rank(s, {}, [...SERIES, ...catalog]);
   assert.deepEqual(ids(items.filter(isStrict)).sort(), ["tmdb-tv-1", "tmdb-tv-5"]);
   assert.deepEqual(rejectedBy, { type: catalog.length, seasons: 1, status: 1, runtime: 1, unreleased: 1 });
-  assert.deepEqual(ids(items.filter((item) => !isStrict(item))).sort(), ["tmdb-tv-2", "tmdb-tv-3", "tmdb-tv-4"], "las casi válidas completan, marcadas");
-  assert.ok(items.find(({ title }) => title.id === "tmdb-tv-2").reasons.includes("Es una alternativa: tiene 6 temporadas, más de las que pidieron."));
+  assert.deepEqual(ids(items.filter((item) => !isStrict(item))), [], "temporadas, estado y duración son límites: no completan");
+  const unknown = rank(s, {}, [tv(7, { seasons: null, seriesStatus: null })]).rejectedBy;
+  assert.deepEqual(unknown, { unknownSeasons: 1 }, "sin dato de temporadas: desconocido, no válido");
   const first = items.find(({ title }) => title.id === "tmdb-tv-1");
   assert.ok(first.reasons.includes("Sus episodios duran unos 45 min, dentro del límite."));
   assert.ok(first.reasons.includes("Tiene 2 temporadas."));
@@ -173,18 +268,16 @@ test("modo serie: duración de episodio, temporadas y estado", () => {
   assert.equal(findConflicts(buildProfile({ ...s, people: [s.people[0], person({ seriesStatus: "ongoing" })] }))[0].blocking, true);
 });
 
-test("duración máxima muy corta: explicada; ampliar marca la alternativa", () => {
+test("duración máxima muy corta: explicada; solo una ampliación explícita la mueve", () => {
   const short = session({ maxRuntime: 60, genres: ["animation"] }, { maxRuntime: 100 }); // las cortas del catálogo son animadas
   const strict = rank(short);
   assert.equal(strict.strict, 0);
   assert.ok(strict.rejectedBy.runtime > 0);
-  assert.ok(strict.items.every(({ title }) => title.runtime <= 60 + NEAR_MINUTES), "solo las que se pasan poco");
+  assert.deepEqual(strict.items, [], "nada que se pase del máximo aparece por su cuenta");
 
   const widened = rank({ ...short, relax: { runtime: 30 } });
-  const fits = widened.items.slice(0, widened.strict);
-  assert.ok(fits.length > 0 && fits.every(({ title }) => title.runtime <= 90), "ampliado a mano: hasta 60 + 30");
-  assert.ok(widened.items.every(({ title }) => title.runtime <= 90 + NEAR_MINUTES), "las que completan se pasan poco");
-  assert.equal(widened.items[0].reasons[0], "Es una alternativa porque ampliaron el rango de duración.");
+  assert.ok(widened.items.length > 0 && widened.items.every(({ title }) => title.runtime <= 90), "ampliado a mano: hasta 60 + 30, nunca más");
+  assert.match(widened.items[0].reasons[0], /^Ampliado: dura 1 h \d+ min, \d+ min más que el límite de 1 h que ampliaron\.$/);
 });
 
 test("puntuación: fórmula documentada, sin porcentajes", () => {
@@ -459,4 +552,14 @@ test("reparto justo: desde el 2.º puesto, quien aún no tiene una opción suya 
   const strict = rankTitles(titles, { ...profile, relax: { ...profile.relax, oneSided: true } }, { history: EMPTY_HISTORY }).items;
   assert.equal(strict[0].title.id.startsWith("c"), true, "la mejor sigue primero");
   assert.equal(strict[1].title.id, "h1", "después, algo para P4 (terror) antes que otra comedia");
+});
+
+test("finalistas: si alguien sigue sin opción, la «otra forma» puede ser una alternativa que solo falla un gusto", () => {
+  const profile = buildProfile(group({ genres: ["comedy"] }, { genres: ["comedy"] }, { genres: ["comedy"] }, { genres: ["horror"] }));
+  const titles = [film("risa", ["comedy"], { rating: 8 }), film("susto", ["horror"], { rating: 7 }), film("larga", ["horror"], { runtime: 200 })];
+  const { items } = rankTitles(titles, profile, { history: EMPTY_HISTORY });
+  const picks = pickFinalists(items, profile);
+  assert.deepEqual(picks.map((pick) => [pick.id, pick.role]), [["risa", "meet"], ["susto", "other"]]);
+  assert.match(picks[1].why[0], /^Es una alternativa: encaja con los gustos de P4/, "se dice que es una alternativa");
+  assert.ok(!picks.some((pick) => pick.id === "larga"), "un límite duro (duración) nunca entra, ni como puente");
 });

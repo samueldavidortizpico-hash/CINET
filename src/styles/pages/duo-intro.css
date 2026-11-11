@@ -26,7 +26,7 @@
 .duo-premiere-note > span { padding-right: 13px; border-right: 1px solid #d3ab8938; color: #ecb57f; font-size: 0.7rem; letter-spacing: 0.09em; }
 
 /* Cuatro historias, dos gustos y una entrada compartida. */
-.duo-poster-stage { position: relative; min-width: 0; height: 590px; perspective: 1100px; }
+.duo-poster-stage { position: relative; min-width: 0; height: 530px; perspective: 1100px; }
 .duo-stage-word { position: absolute; top: 0; left: 50%; translate: -50% 0; color: transparent; -webkit-text-stroke: 1px #f7b67826; font: 800 clamp(7rem, 16vw, 16rem)/1 var(--font-display); letter-spacing: -0.09em; user-select: none; }
 .duo-stage-orbit { position: absolute; top: 46%; left: 50%; width: 520px; height: 420px; border: 1px solid #ff9c551a; border-radius: 50%; transform: translate(-50%, -50%) rotate(-20deg); }
 .duo-stage-orbit-small { width: 380px; height: 290px; border-color: #ee5b4726; transform: translate(-50%, -50%) rotate(30deg); }
@@ -100,7 +100,7 @@
   .duo-premiere-copy { padding: 40px 0 10px; }
   .duo-premiere-copy h1 { font-size: clamp(3.7rem, 12vw, 5.8rem); }
   .duo-page .duo-premiere-copy .duo-lead { max-width: 41ch; margin-top: 23px; font-size: 0.9rem; }
-  .duo-poster-stage { height: 560px; scale: 0.88; margin-top: -10px; margin-bottom: -40px; }
+  .duo-poster-stage { height: 530px; scale: 0.78; margin-top: -25px; margin-bottom: -60px; }
   .duo-premiere-chapters { grid-template-columns: 1fr; }
   .duo-premiere-chapters li, .duo-premiere-chapters li:first-child, .duo-premiere-chapters li:last-child { gap: 22px; padding: 24px 0; border-right: 0; border-bottom: 1px solid #f4caa31a; }
   .duo-premiere-chapters li > div { position: relative; padding-left: 35px; }

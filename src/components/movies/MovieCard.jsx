@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import MoviePoster from "./MoviePoster.jsx";
-import { titleMeta } from "../../services/recommender.js";
+import { titleMeta } from "../../utils/titleMeta.js";
 
 /**
  * Tarjeta del catálogo: toda la tarjeta abre el detalle (clic, Enter o Espacio).

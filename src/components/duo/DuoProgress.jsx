@@ -1,35 +1,59 @@
 import { SeatAvatar } from "./DuoSeats.jsx";
+import { DUO_SCENES, sceneOf } from "../../data/duo.js";
 
-/** Indicador de progreso: cada paso ya alcanzado se puede volver a editar. Las personas son butacas de color. */
-export default function DuoProgress({ steps, current, reached, names, onGo }) {
-  const people = names.length;
-  const chapter = current < 1 ? "01 · Preparen el plan" : current <= people + 1 ? "02 · Conozcamos sus gustos" : "03 · Encuentren su historia";
+/**
+ * Las seis escenas de la noche. Cada una alcanzada se puede volver a abrir; dentro de «Gustos»,
+ * cada persona es su butaca de color. «Decidir» abre la ronda guardada y «Plan» la elección.
+ */
+export default function DuoProgress({ step, steps, reached, names, roundOpen, hasRound, hasFinal, onGo, onDecide }) {
+  const current = sceneOf(step, roundOpen);
+  const reachedStep = (key) => steps.findIndex((item) => item.key === key) <= reached;
+  const target = { setup: "mode", taste: "person-0", match: "common", compare: "results", plan: "final" };
+  const available = (key) => (key === "decide" ? hasRound : key === "plan" ? hasFinal : reachedStep(target[key]));
+  const index = DUO_SCENES.findIndex((scene) => scene.key === current);
+  const personIndex = step.startsWith("person-") ? Number(step.slice(7)) : null;
+
   return (
-    <nav className={`duo-progress${people > 2 ? " is-crowded" : ""}`} aria-label="Progreso de la sesión">
-      <p className="duo-progress-count">
-        <span>{chapter}</span>
-        <span>
-          Paso {current + 1} de {steps.length}
-        </span>
-      </p>
-      <div className="duo-progress-track" role="progressbar" aria-label="Avance de la sesión" aria-valuemin={1} aria-valuemax={steps.length} aria-valuenow={current + 1}>
-        <span style={{ "--progress": (current + 1) / steps.length }} />
+    <nav className="duo-scenes" aria-label="Escenas de la noche">
+      <div className="duo-progress-track" role="progressbar" aria-label="Avance de la noche" aria-valuemin={1} aria-valuemax={DUO_SCENES.length} aria-valuenow={index + 1} aria-valuetext={`Escena ${index + 1} de ${DUO_SCENES.length}: ${DUO_SCENES[index].label}`}>
+        <span style={{ "--progress": (index + 1) / DUO_SCENES.length }} />
       </div>
       <ol>
-        {steps.map(({ key, label }, index) => {
-          const person = key.startsWith("person-") ? Number(key.slice(7)) : null;
+        {DUO_SCENES.map((scene, position) => {
+          const state = position < index ? "done" : position === index ? "current" : "next";
           return (
-            <li key={key} className={[index < current ? "is-done" : index === current ? "is-current" : "", person !== null && "is-person"].filter(Boolean).join(" ") || undefined}>
-              <button type="button" aria-current={index === current ? "step" : undefined} disabled={index > reached} onClick={() => onGo(key)}>
-                {person !== null ? (
-                  <SeatAvatar index={person} name={names[person]} className="duo-progress-dot" />
-                ) : (
-                  <span className="duo-progress-dot" aria-hidden="true">
-                    {index < current ? "✓" : index + 1}
-                  </span>
-                )}
-                <span className="duo-progress-label">{person !== null ? names[person] : label}</span>
+            <li key={scene.key} data-state={state}>
+              <button
+                type="button"
+                aria-current={state === "current" ? "step" : undefined}
+                aria-label={`${position + 1}. ${scene.label}`}
+                disabled={state !== "current" && !available(scene.key)}
+                onClick={() => (scene.key === "decide" ? onDecide() : onGo(target[scene.key]))}
+              >
+                <span className="duo-scene-dot" aria-hidden="true">
+                  {state === "done" ? "✓" : position + 1}
+                </span>
+                <span className="duo-scene-label" aria-hidden="true">
+                  {scene.short}
+                </span>
               </button>
+              {scene.key === "taste" && state === "current" && names.length > 1 && (
+                <span className="duo-scene-seats" role="group" aria-label="Butacas">
+                  {names.map((name, person) => (
+                    <button
+                      key={person}
+                      type="button"
+                      className={personIndex === person ? "is-current" : undefined}
+                      aria-current={personIndex === person ? "step" : undefined}
+                      aria-label={`Gustos de ${name}`}
+                      disabled={!reachedStep(`person-${person}`)}
+                      onClick={() => onGo(`person-${person}`)}
+                    >
+                      <SeatAvatar index={person} name={name} />
+                    </button>
+                  ))}
+                </span>
+              )}
             </li>
           );
         })}

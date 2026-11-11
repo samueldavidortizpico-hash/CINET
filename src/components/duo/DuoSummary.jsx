@@ -3,6 +3,7 @@ import { PLATFORMS } from "../../data/platforms.js";
 import { GENRES, regionName } from "../../data/tmdb.js";
 import { EXCLUDING } from "../../services/historyService.js";
 import { formatMinutes } from "../../services/recommender.js";
+import { moodLabel } from "../../services/duoExperience.js";
 import Icon from "../common/Icon.jsx";
 import { SeatAvatar } from "./DuoSeats.jsx";
 
@@ -36,6 +37,8 @@ function PersonChips({ person, type }) {
     ...person.tone.map((key) => ["tone", `${TONES.find((tone) => tone.key === key)?.icon ?? ""} ${label(TONES, key)}`]),
     ...person.actors.map((actor) => ["actor", `🎭 ${actor.name}`]),
   ];
+  const loved = person.titles.filter((item) => item.answer === "love").length;
+  if (person.titles.length) chips.push(["films", `🎞 ${person.titles.length} películas${loved ? ` · ♥ ${loved}` : ""}`]);
   const limit =
     type === "tv"
       ? [person.episodeMax && `Episodios ≤ ${person.episodeMax} min`, person.seasonsMax && `≤ ${person.seasonsMax} temp.`, person.seriesStatus !== "any" && label(SERIES_STATUS_OPTIONS, person.seriesStatus, "value")]
@@ -59,7 +62,8 @@ function PersonChips({ person, type }) {
 }
 
 /** Resumen siempre visible de la sesión, con acceso directo para editar cada paso. */
-export default function DuoSummary({ session, profile, history, onEdit, onOpenHistory }) {
+/** open: en móvil el resumen es un panel que se abre desde la cabecera; en escritorio está siempre al lado. */
+export default function DuoSummary({ session, profile, history, onEdit, onOpenHistory, open = false }) {
   const mode = MODES.find((item) => item.key === session.mode);
   const { marathon } = session;
   const excluded = EXCLUDING.reduce((total, list) => total + history[list].length, 0);
@@ -67,10 +71,10 @@ export default function DuoSummary({ session, profile, history, onEdit, onOpenHi
   const size = session.people.length;
 
   return (
-    <aside className="duo-summary" aria-labelledby="duo-summary-title">
+    <aside id="duo-summary" className={`duo-summary${open ? " is-open" : ""}`} aria-labelledby="duo-summary-title">
       <div className="duo-pass-heading"><Icon name="ticket" /><span>{size === 1 ? "FUNCIÓN PRIVADA" : size === 2 ? "FUNCIÓN PARA DOS" : `FUNCIÓN PARA ${size}`}</span></div>
       <h2 id="duo-summary-title">{size === 1 ? "Tu pase de cine" : "Su pase de cine"}</h2>
-      <p className="duo-fineprint">El plan toma forma con cada elección.</p>
+      <p className="duo-fineprint">Resumen de la sesión. No es una boleta ni una reserva.</p>
 
       <Section title="Modo" onEdit={() => onEdit("mode")} editLabel="Editar modo y plataformas">
         <p>
@@ -86,6 +90,7 @@ export default function DuoSummary({ session, profile, history, onEdit, onOpenHi
         <p className="duo-fineprint">
           {regionName(session.region)} · {platforms.length ? platforms.join(", ") : "cualquier plataforma"}
         </p>
+        {session.mood && <p className="duo-fineprint">Hoy buscan algo {moodLabel(session.mood)}.</p>}
       </Section>
 
       {session.people.map((person, index) => (

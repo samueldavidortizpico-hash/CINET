@@ -1,5 +1,7 @@
 # CineHub (marca visible: CINET)
 
+La experiencia nueva de Duo (ocasiones, comparación breve y preparación de casa/cine) y su evidencia local se describen en [docs/DUO-EXPERIENCIA-2026-10-09.md](docs/DUO-EXPERIENCIA-2026-10-09.md).
+
 > La marca visible de la app es **CINET** (logo vectorial en `components/common/BrandLogo.jsx`). CineHub se conserva como nombre
 > del proyecto académico, del paquete y de las claves de `localStorage`.
 
@@ -132,9 +134,16 @@ npm run dev       # desarrollo → http://localhost:5173/
 npm run build     # build de producción en dist/ (incluye 404.html para GitHub Pages)
 npm run preview   # sirve el build localmente
 npm run lint      # ESLint (reglas de hooks de React)
-npm test          # pruebas de la lógica pura (node:test): catálogo, planes, TMDB simulado y algoritmo Duo
-npm run test:tmdb # prueba REAL contra TMDB (necesita VITE_TMDB_READ_TOKEN en .env)
+npm test          # node:test: lógica, algoritmo Duo, proxy TMDB, analítica y permisos SQL de planes (PGlite)
+npm run test:e2e  # Playwright (Chromium): modo local + cuentas en navegadores separados (salas y plan compartido)
+                  # contra la SQL real en PGlite (e2e/support/fake-supabase.mjs); sin secretos ni servicios externos
+npm run test:tmdb # prueba REAL contra TMDB (necesita TMDB_READ_TOKEN en .env)
+npm run catalog:snapshot # respaldo fechado de metadatos de TMDB en snapshots/ (no es cartelera; ver docs/COSTOS-Y-MERCADO.md)
 ```
+
+Variables: ver `.env.example`. `TMDB_READ_TOKEN` es **solo de servidor** (lo usa el proxy `/api/tmdb`, en dev y en
+Vercel); el navegador nunca recibe el token y el build falla si un secreto llega al bundle. Sin token, la app usa el
+catálogo local. CI: `.github/workflows/ci.yml` (lint, pruebas, build y E2E en cada push y pull request).
 
 ### Rutas
 
@@ -145,16 +154,26 @@ npm run test:tmdb # prueba REAL contra TMDB (necesita VITE_TMDB_READ_TOKEN en .e
 | `/duo` | `DuoPage` | CineHub Duo: película, serie o maratón para 1 a 8 personas (`?from=id` parte de un título) |
 | `/movies` | `MoviesPage` | Catálogo con búsqueda, filtros por género y orden |
 | `/movie/:id` | `MovieDetailPage` | **Ruta dinámica** (`useParams`) · tráiler · plataformas · favoritos · compartir |
-| `/functions?movie=id` | `FunctionsPage` | Elegir cine, fecha y hora (`useSearchParams`) |
-| `/create-plan` | `CreatePlanPage` | Formulario del plan con la función elegida |
-| `/plan/:id` | `PlanPage` | **Ruta dinámica** · responder Sí / Tal vez / No · editar (organizador) |
-| `/my-plans` | `MyPlansPage` | Estadísticas, filtro próximos/anteriores, compartir y eliminar |
-| `/profile` | `ProfilePage` | **Login + registro + perfil** en una sola pantalla (según haya sesión) |
-| `/login` | — | Alias: redirige a `/profile` (no hay pantalla de login aparte) |
+| `/functions?movie=id` | `FunctionsPage` | Proponer cadena oficial, sede, fecha y hora (no son funciones confirmadas) |
+| `/create-plan` | `CreatePlanPage` | Formulario del plan con la propuesta elegida (con cuenta se guarda en Supabase) |
+| `/plan/:id` | `PlanPage` | **Ruta dinámica** · plan compartido: invitar con enlace, RSVP de cada cuenta, editar/cancelar (organizador) |
+| `/invite/:token` | `InvitePage` | Unirse a un plan con un enlace de invitación (pide iniciar sesión) |
+| `/duo/sala` · `/duo/sala/:code` | `DuoRoomPage` | Sala de Duo: cada quien vota desde su teléfono (código, enlace o QR; invitados sin email si Supabase lo permite) |
+| `/grupos` · `/grupos/:id` · `/grupos/unirse/:token` | `GroupsPage` | Grupos guardados: invitar con enlace, sumar a un plan, ver sus planes |
+| `/importar` | `ImportPage` | Importar historial CSV (Letterboxd/IMDb) sin duplicar ni inventar coincidencias |
+| `/resumen` | `RecapPage` | Resumen de lo visto y de los planes |
+| `/aliados` | `PartnerPage` | Panel de cines y organizadores verificados: sedes, funciones, ofertas y equipo |
+| `/plus` | `PlusPage` | CINET Plus: qué es gratis, qué es Plus, prueba sin cobro (si el sandbox está encendido) y prueba de precio |
+| `/my-plans` | `MyPlansPage` | Estadísticas, filtro, importar planes locales a la cuenta, eliminar |
+| `/` | `AuthPage` | Entrada: bienvenida animada (una vez por sesión) → acceso. Con sesión va directo a `/home` o al destino pendiente |
+| `/login` · `/register` | `AuthPage` | Iniciar sesión / crear cuenta en la misma pantalla (vuelven a la página de origen) |
+| `/recuperar` · `/nueva-contrasena` | `AuthPage` | Pedir enlace de recuperación / crear contraseña nueva desde el enlace del correo |
+| `/profile` | `ProfilePage` | Perfil y ajustes de la cuenta (sin sesión lleva a `/login` y vuelve) |
+| `/legal` · `/legal/:doc` | `LegalPage` | Legal y privacidad (públicas): términos, privacidad, cancelaciones y créditos. **Borradores** (ver `docs/LEGAL-PENDIENTES.md`) |
 | `/plans` | — | Alias: redirige a `/my-plans` |
 | `/cine` · `/cine/:id` | `CinemaPage` · `CinemaTicketsPage` | Cartelera TMDB (región CO) y enlace a la página oficial de cada cadena |
-| `/dashboard` | `DashboardPage` | **Ruta protegida** (`ProtectedRoute`): sin sesión redirige a `/profile` |
-| `/about` | `AboutPage` | Proyecto y equipo |
+| `/dashboard` | `DashboardPage` | **Ruta protegida** (`ProtectedRoute`): sin sesión redirige a `/login` y vuelve. Se abre desde el panel del avatar |
+| `/about` | — | Retirada: redirige a `/legal/creditos` (atribuciones de TMDB y JustWatch) |
 | `*` | `NotFoundPage` | Ruta inexistente |
 
 ### Arquitectura
@@ -203,10 +222,13 @@ delegan acciones; ninguno accede a `localStorage` directamente.
   y respuestas asíncronas ignoradas si el componente se desmonta (`useMovie`, `MovieContext`).
 - **Servicios con Promises:** `getMovies()` y `getMovieById()` devuelven Promises aunque los datos son
   locales, para cambiar a la API del backend (M3) sin tocar los componentes.
-- **Autenticación local:** `authService` registra usuarios en `localStorage` con la contraseña en hash
-  SHA-256 (nunca en texto plano). Es un mock hasta tener backend.
-- **Roles del M1:** quien crea un plan (con sesión) es su organizador; solo él ve *Editar* y *Eliminar*.
-  Los planes creados sin sesión o con el prototipo anterior los puede gestionar cualquiera.
+- **Cuentas con Supabase Auth:** `authService` usa Supabase (perfiles, roles y avatares). Sin Supabase
+  configurado, la app funciona sin cuentas y lo dice.
+- **Planes compartidos con permisos reales:** con sesión, los planes viven en Supabase
+  (`supabase/migrations/20261009120000_shared_plans.sql`): las tablas solo se leen si eres miembro (RLS) y toda
+  escritura pasa por funciones RPC que comprueban quién eres. Cada persona confirma con su cuenta (nadie responde
+  por otra), las invitaciones son enlaces con caducidad, usos y revocación, y la edición usa versión para no pisar
+  cambios. Sin sesión, los planes se guardan solo en el navegador (y se pueden pasar a la cuenta después).
 - **Capa de diseño.** `design.css` va la última en la cascada: tokens (neutros cálidos + un acento rojo),
   Outfit para títulos e Inter para leer, foco visible, botones, carrusel, tarjetas y dado. Las hojas de cada
   página siguen encapsuladas con `:where([data-page="…"])`. El CSS sin uso del prototipo se eliminó.
@@ -220,7 +242,7 @@ delegan acciones; ninguno accede a `localStorage` directamente.
 - `tmdbClient.js` guarda cada respuesta correcta de TMDB en `localStorage` (`cinehub-tmdb:<url>`, vía `utils/storage.js`,
   que tolera JSON dañado, caché inexistente y almacenamiento bloqueado). Si TMDB falla por red, timeout, 5xx o 429,
   devuelve la copia guardada y el estado muestra **«Showing saved data»**.
-- Tres situaciones distintas y visibles: **catálogo local** (falta `VITE_TMDB_READ_TOKEN`), **datos guardados de TMDB**
+- Tres situaciones distintas y visibles: **catálogo local** (el servidor no tiene `TMDB_READ_TOKEN`), **datos guardados de TMDB**
   (error de red con caché) y **error sin datos** (error de red sin caché; en `/cine` se muestra un mensaje de error).
 - Límite: no hay service worker, así que recargar la página sin internet no carga la app; la caché cubre caídas de TMDB
   y pérdidas de red con la app ya abierta.
@@ -229,17 +251,24 @@ delegan acciones; ninguno accede a `localStorage` directamente.
 
 TMDB aporta títulos, imágenes, metadatos y fechas (región CO). CINET **no conoce horarios reales**: no existe una API
 oficial de las cadenas. Cine Colombia, Cinemark, Cinépolis, Royal Films y Procinal solo se enlazan a su página oficial;
-no hay integración API con ellas. La autenticación es **local y demostrativa** (sin backend).
+no hay integración API con ellas. Al planear una salida, la hora la **propone** quien organiza y el plan enlaza a la
+cartelera oficial de la cadena para confirmar función y precio.
 
 ### Vercel
 
 - `vite.config.js` define `base: "/"` y el router usa ese `basename` (`import.meta.env.BASE_URL`).
-- **Refresh en rutas profundas:** `vercel.json` reescribe cualquier ruta que no sea un archivo a `index.html`,
-  así `/movie/dune` carga la SPA y React Router resuelve la ruta.
+- **Refresh en rutas profundas:** `vercel.json` envía `/api/tmdb/*` a la función `api/tmdb.js` y reescribe el
+  resto de rutas a `index.html`, así `/movie/dune` carga la SPA y React Router resuelve la ruta.
 - **Deploy:** Vercel detecta Vite (`npm run build`, salida `dist/`) y publica cada push a `main`.
-  Variables en *Project → Settings → Environment Variables*: `VITE_TMDB_READ_TOKEN` (obligatoria) y
-  `VITE_TMDB_API_URL` (opcional, por defecto `https://api.themoviedb.org/3`). Tras cambiarlas, hacer Redeploy:
-  Vite las incluye en el build y el token queda visible en el bundle.
+  Variables en *Project → Settings → Environment Variables*: `TMDB_READ_TOKEN` (solo servidor; la usa la función
+  `api/tmdb.js`), `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY` (públicas por diseño) y, opcional,
+  `VITE_ANALYTICS_ENDPOINT`. **No definir `VITE_TMDB_READ_TOKEN`**: todo `VITE_*` llega al navegador (si existía,
+  borrarla y rotar el token en TMDB).
+- **Funciones y variables de servidor:** `api/og.js` (vista previa de enlaces; `APP_ORIGIN`), `api/partner-webhook.js`
+  (`PARTNER_WEBHOOK_SECRETS`) y `api/billing-webhook.js` (`BILLING_WEBHOOK_SECRET`; no hay pasarela conectada); los
+  webhooks usan `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` y responden 503 si faltan. Ver `.env.example`.
+- **PWA:** `public/manifest.webmanifest` y `public/sw.js` (solo en producción; guarda únicamente archivos públicos del
+  sitio, nunca `/api` ni Supabase; cada build cambia su versión y `vercel.json` lo sirve con `no-cache`).
 - La rama `gh-pages` (GitHub Pages en `/CINET/`) ya no se actualiza: con `base: "/"` ese build no funciona allí.
 
 ### CineHub Duo

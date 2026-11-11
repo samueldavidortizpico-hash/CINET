@@ -5,19 +5,42 @@ import { replaceAvatar } from "../services/avatarService.js";
 
 export const AuthContext = createContext(null);
 
+const RESTORE_ERROR = "No pudimos comprobar tu sesión. Revisa tu conexión y vuelve a intentarlo.";
+const RESTORE_SLOW = "Comprobar tu sesión está tardando más de lo normal.";
+
 /** Usuario actual y login/registro/logout. Supabase persiste la sesión entre recargas. */
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(Boolean(supabase));
+  const [restoreError, setRestoreError] = useState("");
 
   useEffect(() => {
     if (!supabase) return undefined;
+    // Aviso (con reintento) si la comprobación inicial no responde: sin red, Supabase puede tardar mucho.
+    const slow = setTimeout(() => setRestoreError((current) => current || RESTORE_SLOW), 10_000);
     // Emite INITIAL_SESSION al suscribirse (sesión guardada) y luego cada login/logout/refresco.
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      clearTimeout(slow);
       setUser(authService.toAppUser(session?.user ?? null));
       setLoading(false);
+      if (session) setRestoreError("");
     });
-    return () => data.subscription.unsubscribe();
+    // Si había sesión guardada pero no se pudo renovar (sin red, servidor caído), el listener emite null:
+    // se avisa con un error recuperable en vez de tratarlo como "nunca hubo sesión".
+    supabase.auth.getSession().then(({ error }) => error && setRestoreError(RESTORE_ERROR));
+    return () => {
+      clearTimeout(slow);
+      data.subscription.unsubscribe();
+    };
+  }, []);
+
+  const retryRestore = useCallback(async () => {
+    setRestoreError("");
+    setLoading(true);
+    const { data, error } = await supabase.auth.getSession();
+    if (error) setRestoreError(RESTORE_ERROR);
+    else setUser(authService.toAppUser(data.session?.user ?? null));
+    setLoading(false);
   }, []);
 
   // Perfil (role incluido) aparte del listener: Supabase desaconseja pedir datos dentro de él.
@@ -70,11 +93,17 @@ export function AuthProvider({ children }) {
       saveAvatar,
       isAuthenticated: Boolean(user),
       loading,
+      restoreError: user ? "" : restoreError,
+      retryRestore,
+      accountsAvailable: Boolean(supabase),
       login: authService.login,
       register: authService.register,
+      requestPasswordReset: authService.requestPasswordReset,
+      updatePassword: authService.updatePassword,
+      continueAsGuest: authService.continueAsGuest,
       logout: authService.logout,
     };
-  }, [user, userId, loaded, loading, saveProfile, saveAvatar]);
+  }, [user, userId, loaded, loading, restoreError, retryRestore, saveProfile, saveAvatar]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

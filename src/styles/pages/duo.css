@@ -29,7 +29,7 @@
   position: relative;
   isolation: isolate;
   min-height: 80vh;
-  padding: 48px 5% 90px;
+  padding: 24px 5% 90px;
   color: var(--text);
   color-scheme: dark;
   background: radial-gradient(ellipse at 5% 0%, #e036322b, transparent 42%), radial-gradient(ellipse at 96% 12%, #e884241c, transparent 36%), var(--bg);
@@ -99,34 +99,8 @@
 
 /* ---------- Cabecera y progreso ---------- */
 
-.duo-header { margin-bottom: 32px; }
-.duo-session-heading { display: flex; justify-content: space-between; align-items: center; gap: 24px; margin-bottom: 30px; }
-.duo-header h1 { margin: 14px 0 0; font: 500 clamp(1.7rem, 3.1vw, 2.5rem) var(--font-display); letter-spacing: -0.04em; }
-.duo-progress-count { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin: 0 0 12px; color: var(--text-muted); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; font-variant-numeric: tabular-nums; }
-.duo-progress-count > span:first-child { color: #f2c0b8; }
 .duo-progress-track { overflow: hidden; height: 3px; margin-bottom: 16px; border-radius: 4px; background: #ffd0b515; }
 .duo-progress-track > span { display: block; width: 100%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #ed3841, #ff8d40, #f4c36c); transform: scaleX(var(--progress, 0)); transform-origin: left; transition: transform 700ms var(--ease-out); }
-.duo-progress ol { display: flex; gap: 6px; margin: 0; padding: 3px 3px 8px; overflow-x: auto; list-style: none; scrollbar-width: none; }
-/* relative: las etiquetas ocultas (absolute) quedan dentro de la lista con scroll y no ensanchan la página. */
-.duo-progress li { position: relative; flex: 1 0 auto; }
-.duo-progress button { display: flex; align-items: center; gap: 9px; width: 100%; min-height: 44px; padding: 6px 12px 6px 7px; border: 1px solid transparent; border-radius: 10px; background: transparent; color: var(--text-muted); font: inherit; font-size: 0.74rem; font-weight: 500; white-space: nowrap; cursor: pointer; transition: border-color var(--fast) ease-out, background-color var(--fast) ease-out, color var(--fast) ease-out; }
-.duo-progress button:disabled { cursor: not-allowed; opacity: 0.45; }
-.duo-progress button:not(:disabled):hover { border-color: #ff655a55; background: #ffffff08; color: var(--text); }
-.duo-progress-dot:not(.seat-avatar) { display: grid; place-items: center; flex: none; width: 28px; height: 28px; border-radius: 50%; background: #e4c6b411; color: #ccb7ab; font-size: 0.72rem; font-weight: 600; }
-.duo-progress .seat-avatar { width: 28px; height: 28px; font-size: 0.72rem; }
-.duo-progress .is-current button { border-color: #ff655a45; background: #ff655a10; color: var(--text); }
-.duo-progress .is-current .duo-progress-dot:not(.seat-avatar) { background: #ff8d75; color: #2d1e15; }
-.duo-progress .is-current .seat-avatar { box-shadow: 0 0 0 3px color-mix(in srgb, var(--seat) 35%, transparent); }
-.duo-progress .is-done button { color: var(--text-soft); }
-.duo-progress .is-done .duo-progress-dot:not(.seat-avatar) { background: #ff9b5516; color: #ff9b55; }
-/* Con 3 o más personas, las butacas sin nombre (salvo la actual) para que quepa el recorrido. */
-.duo-progress.is-crowded li.is-person { flex: 0 0 auto; }
-.duo-progress.is-crowded li.is-person:not(.is-current) .duo-progress-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-.duo-progress.is-crowded li.is-person:not(.is-current) button { padding: 6px; }
-.duo-session-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; }
-.duo-session-tools .duo-link { display: inline-flex; align-items: center; gap: 8px; }
-.duo-session-tools .ui-icon { width: 16px; height: 16px; }
-.duo-restart { color: var(--text-muted); font-size: 0.72rem; }
 
 /* ---------- Diseño: paso + pase de cine ---------- */
 
@@ -180,7 +154,6 @@
 .duo-genres { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: 10px; }
 .duo-genre { display: inline-flex; align-items: center; justify-content: flex-start; gap: 10px; min-height: 64px; padding: 11px 13px; border: 1px solid var(--border); border-radius: 12px; background: #1a100f; color: var(--text-soft); font: inherit; font-size: 0.84rem; font-weight: 500; text-align: left; cursor: pointer; transition-property: border-color, background-color, transform; transition-duration: 200ms; transition-timing-function: ease-out; }
 .duo-genre > span:last-child { display: grid; gap: 4px; }
-.duo-genre small { color: var(--text-muted); font-size: 0.62rem; font-weight: 400; }
 .duo-genre:hover { border-color: var(--person-accent); }
 .duo-genre:active { transform: var(--press); }
 .duo-genre-mark { display: grid; place-items: center; flex: 0 0 25px; width: 25px; height: 25px; border-radius: 50%; background: #ffffff10; font-size: 0.72rem; transition: background-color 200ms ease-out, color 200ms ease-out; }
@@ -200,41 +173,9 @@
 .duo-actor-photo { display: grid; place-items: center; width: 34px; height: 34px; overflow: hidden; border-radius: 50%; background: var(--surface-3); }
 .duo-actor-photo img { width: 100%; height: 100%; object-fit: cover; }
 
-/* ---------- Tarjetas de opción (grupo, modo, estilo): radio nativo, marcado con :has() ---------- */
 
-.duo-modes, .duo-styles, .duo-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); gap: 12px; }
-.duo-modes { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
-.duo-mode-card { position: relative; display: grid; align-content: start; gap: 8px; padding: 18px; overflow: hidden; border: 1px solid var(--border); border-radius: 16px; background: #160e0d; cursor: pointer; transition-property: transform, border-color, background-color, box-shadow; transition-duration: 280ms; transition-timing-function: var(--ease-out); }
-.duo-mode-card input { position: absolute; opacity: 0; pointer-events: none; }
-.duo-mode-card:hover { transform: translateY(-3px); border-color: #ff655a70; }
-.duo-mode-card:active { transform: var(--press); }
-.duo-mode-card:has(input:checked) { border-color: #ff655a; background: #ff655a0d; box-shadow: inset 0 0 0 1px #ff655a40, 0 10px 36px #ba655812; }
-.duo-mode-card:has(input:focus-visible) { outline: 2px solid var(--duo-orange); outline-offset: 2px; }
-.duo-mode-card strong { font: 500 1.1rem var(--font-display); }
-.duo-mode-card small { color: var(--text-muted); font-size: 0.76rem; line-height: 1.6; }
-.duo-mode-icon { font-size: 1.6rem; }
-.duo-style-card { padding: 14px 16px; }
-.duo-mode-selected { position: absolute; top: 13px; right: 13px; display: grid; place-items: center; width: 23px; height: 23px; border: 1px solid #ff655a30; border-radius: 50%; color: transparent; transition: background-color 200ms ease-out, color 200ms ease-out; }
-.duo-mode-selected .ui-icon { width: 14px; height: 14px; }
-.duo-mode-card:has(input:checked) .duo-mode-selected { color: #2a1d16; background: #ff8d75; }
 
-.duo-mode-art { position: relative; display: grid; place-items: center; height: 100px; margin: 4px 0 8px; }
-.duo-mode-art > span { position: absolute; width: 76px; height: 55px; border: 1px solid #ff655a66; border-radius: 7px; background: linear-gradient(130deg, #9b3531, #301314); box-shadow: 0 12px 25px #00000030; transform: rotate(-12deg) translate(-7px, 4px); transition: transform 500ms var(--ease-out); }
-.duo-mode-art > span:nth-child(2) { background: linear-gradient(130deg, #cc5145, #52201b); transform: rotate(8deg) translate(7px, -4px); }
-.duo-mode-art .ui-icon { position: relative; width: 30px; height: 30px; color: #ffe1dc; transition: transform 500ms var(--ease-out); }
-.duo-format-tv .duo-mode-art > span { width: 89px; height: 56px; border-color: #ff9b557a; background: linear-gradient(130deg, #ab602b, #32170f); }
-.duo-format-tv .duo-mode-art > span:first-child { transform: rotate(-5deg) translate(0, 7px); }
-.duo-format-tv .duo-mode-art > span:nth-child(2) { transform: rotate(0deg); }
-.duo-format-marathon .duo-mode-art > span { border-color: #f4c36c70; background: linear-gradient(130deg, #967135, #342411); }
-.duo-mode-card:is(:hover, :has(input:checked)) .duo-mode-art > span:first-child { transform: rotate(-18deg) translate(-15px, 4px); }
-.duo-mode-card:is(:hover, :has(input:checked)) .duo-mode-art > span:nth-child(2) { transform: rotate(12deg) translate(10px, -9px); }
-.duo-mode-card:is(:hover, :has(input:checked)) .duo-mode-art .ui-icon { transform: translateY(-5px) rotate(-4deg); }
 
-/* ¿Quiénes ven? — butacas en miniatura que se encienden al elegir. */
-.duo-group-seats { display: flex; justify-content: center; align-items: flex-end; gap: 6px; height: 64px; margin-bottom: 6px; }
-.duo-group-seats > span { width: 26px; height: 32px; border: 1px solid #ff9b5566; border-radius: 9px 9px 5px 5px; background: linear-gradient(180deg, #5a2a22, #2a1513); transition-property: transform, background-color, box-shadow; transition-duration: 320ms; transition-timing-function: var(--ease-out); transition-delay: calc(var(--n) * 40ms); }
-.duo-group-card:is(:hover, :has(input:checked)) .duo-group-seats > span { transform: translateY(-6px); background: linear-gradient(180deg, #ff6a50, #a8322a); box-shadow: 0 8px 22px #ff5a4f45; }
-.duo-group-group .duo-group-seats > span:nth-child(odd) { height: 28px; }
 .duo-stepper { display: inline-flex; align-items: center; gap: 4px; margin-top: 14px; padding: 4px; border: 1px solid var(--border); border-radius: 14px; background: #110a09; }
 .duo-stepper button { display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 10px; background: #ffffff0a; color: var(--text); font-size: 1.3rem; cursor: pointer; transition: background-color var(--fast) ease-out, transform var(--fast) ease-out; }
 .duo-stepper button:hover:not(:disabled) { background: #ff655a26; }
@@ -272,14 +213,6 @@
 
 /* ---------- En común ---------- */
 
-.duo-common { display: grid; margin: 0 0 16px; }
-.duo-common-row { display: grid; grid-template-columns: 170px 1fr; gap: 14px; padding: 18px 0; border-top: 1px solid var(--border); }
-.duo-common-row dt { color: var(--text-muted); font-size: 0.68rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; }
-.duo-common-row dd { margin: 0; font-size: 0.92rem; line-height: 1.55; }
-.duo-common-row:first-child dd { color: #ffc783; }
-.duo-common-people { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
-.duo-common-people li { display: flex; align-items: center; gap: 10px; }
-.duo-common-people .seat-avatar { width: 26px; height: 26px; font-size: 0.7rem; }
 .duo-conflicts { margin: 0 0 20px; padding: 16px 18px; border: 1px solid #ffd16666; border-radius: 14px; background: #ffd16614; }
 .duo-conflicts.is-blocking { border-color: #ff5d7399; background: #ff5d731a; }
 .duo-conflicts ul { margin: 8px 0 0; padding-left: 20px; line-height: 1.5; }
@@ -289,7 +222,7 @@
 
 /* ---------- Resultados ---------- */
 
-.duo-results-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
+.duo-results-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px 24px; margin-bottom: 18px; }
 .duo-results-head h2 { margin: 0 0 4px; font: 500 clamp(1.8rem, 3vw, 2.4rem) var(--font-display); letter-spacing: -0.04em; }
 .duo-results-head p { margin: 0 0 8px; color: var(--text-soft); font-variant-numeric: tabular-nums; }
 .duo-results-head .duo-actions { margin-top: 0; }
@@ -534,7 +467,6 @@
 @keyframes duo-pop { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: no-preference) {
   .duo-main { animation: duo-enter 420ms var(--ease-out) both; }
-  .duo-mode-card, .duo-seat-row li { animation: duo-enter 420ms var(--ease-out) backwards; animation-delay: calc(var(--n, 0) * 40ms); }
   .duo-card { animation: duo-enter 420ms var(--ease-out) backwards; animation-delay: calc(var(--i, 0) * 45ms); }
   .duo-together, .duo-round-winner, .duo-ticket { animation: duo-pop 360ms var(--ease-out) backwards; }
   .duo-round-card:not([data-leaving]) { animation: duo-pop 260ms cubic-bezier(0.22, 1, 0.36, 1); }
@@ -549,29 +481,12 @@
 
 @media (max-width: 1080px) {
   .duo-layout { grid-template-columns: minmax(0, 1fr); }
-  .duo-summary { position: static; max-height: none; }
-  .duo-session-heading { align-items: flex-start; }
   .duo-participants { max-width: 300px; }
 }
 @media (max-width: 760px) {
   .duo-page { padding: 28px 16px 60px; }
-  .duo-session-heading { flex-direction: column; gap: 18px; }
   .duo-participants { justify-content: flex-start; max-width: none; }
-  .duo-header { margin-bottom: 24px; }
-  .duo-progress li { flex: 0 0 auto; }
-  .duo-progress li:not(.is-current) .duo-progress-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-  .duo-progress li:not(.is-current) button { padding: 6px; }
   .duo-step { padding: 24px 18px; border-radius: 18px; }
-  .duo-modes { grid-template-columns: 1fr; gap: 12px; }
-  .duo-modes > .duo-mode-card { grid-template-columns: 88px minmax(0, 1fr); gap: 3px 18px; align-items: center; padding: 16px 36px 16px 12px; }
-  .duo-modes .duo-mode-art { grid-row: 1 / 3; height: 76px; margin: 0; }
-  .duo-groups { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-  .duo-group-card { padding: 14px 10px; text-align: center; }
-  .duo-group-card small { display: none; }
-  .duo-group-seats { height: 48px; gap: 4px; margin-top: 12px; }
-  .duo-group-card .duo-mode-selected { top: 8px; right: 8px; }
-  .duo-group-seats > span { width: 18px; height: 24px; }
-  .duo-common-row { grid-template-columns: 1fr; gap: 4px; }
   .duo-card-featured { grid-template-columns: 110px minmax(0, 1fr); gap: 18px; padding: 18px; }
   .duo-card-featured .duo-card-body h3 { font-size: 1.6rem; }
   .duo-results-head .duo-actions { width: 100%; }
@@ -590,7 +505,6 @@
   .duo-step { padding: 22px 14px; }
   .duo-genres { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .duo-genre { padding: 10px 8px; font-size: 0.76rem; gap: 6px; }
-  .duo-genre small { font-size: 0.58rem; }
   .duo-genre-intent .duo-chips { display: grid; grid-template-columns: 1fr; }
   .duo-genre-intent .duo-chip > span { width: 100%; }
   .duo-card-featured { grid-template-columns: minmax(0, 1fr); }

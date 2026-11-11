@@ -18,7 +18,6 @@
 @import "./pages/functions.css";
 @import "./pages/create-plan.css";
 @import "./pages/plan.css";
-@import "./pages/about.css";
 @import "./pages/cine.css";
 
 /* Capa de diseño: tokens, tipografía y componentes compartidos (gana por orden). */
@@ -26,3 +25,8 @@
 @import "./pages/landing.css";
 @import "./pages/duo.css";
 @import "./pages/duo-intro.css";
+@import "./pages/duo-experience.css";
+@import "./pages/duo-scenes.css";
+@import "./pages/duo-room.css";
+@import "./pages/auth.css";
+@import "./pages/legal.css";

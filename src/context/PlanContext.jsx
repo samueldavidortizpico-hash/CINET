@@ -3,11 +3,11 @@ import { useAuth } from "../hooks/useAuth.js";
 import { useLocalStorage } from "../hooks/useLocalStorage.js";
 import * as repo from "../services/planRepository.js";
 import { buildPlan, canManagePlan, setRsvp } from "../services/planService.js";
+import { importsForAccount, mergeAccountImports } from "../services/accountScopedImports.js";
 
 export const PlanContext = createContext(null);
 
 const asList = (value) => (Array.isArray(value) ? value : []);
-const asMap = (value) => (value && typeof value === "object" && !Array.isArray(value) ? value : {});
 
 /**
  * Planes en dos modos:
@@ -20,9 +20,10 @@ export function PlanProvider({ children }) {
   const { user, loading: authLoading } = useAuth();
   const [storedPlans, setPlans] = useLocalStorage("cinehub-plans", []);
   const [selection, setSelection] = useLocalStorage("cinehub-selection", null);
-  const [imported, setImported] = useLocalStorage("cinet-imported-plans", {}); // { idLocal: idRemoto }
+  const [importedByUser, setImportedByUser] = useLocalStorage("cinet-imported-plans", {}); // { userUuid: { idLocal: idRemoto } }
   const userId = user?.id ?? null;
   const remote = repo.remotePlansAvailable() && Boolean(userId);
+  const imported = importsForAccount(importedByUser, userId);
 
   // userId marca de qué cuenta es la lista: al cambiar de sesión no se mezclan planes.
   const [remoteState, setRemoteState] = useState({ userId: null, plans: [], error: null });
@@ -46,7 +47,8 @@ export function PlanProvider({ children }) {
     [storedPlans, user]
   );
   const current = remote && remoteState.userId === userId ? remoteState : null;
-  const plans = remote ? (current?.plans ?? []) : localPlans;
+  const remotePlans = current?.plans;
+  const plans = useMemo(() => (remote ? (remotePlans ?? []) : localPlans), [remote, remotePlans, localPlans]);
 
   /** clientRef: un id por intento de creación; repetir el envío no duplica el plan. */
   const createPlan = useCallback(
@@ -101,7 +103,7 @@ export function PlanProvider({ children }) {
   );
 
   const pendingImports = useMemo(
-    () => (remote ? localPlans.filter((plan) => !asMap(imported)[plan.id] && plan.movie) : []),
+    () => (remote ? localPlans.filter((plan) => !imported[plan.id] && plan.movie) : []),
     [remote, localPlans, imported]
   );
 
@@ -117,11 +119,11 @@ export function PlanProvider({ children }) {
           displayName: displayName || plan.organizer || "Organizador",
         });
       }
-      setImported((map) => ({ ...asMap(map), ...done }));
+      setImportedByUser((accounts) => mergeAccountImports(accounts, userId, done));
       refresh();
       return Object.keys(done).length;
     },
-    [setImported, refresh]
+    [setImportedByUser, refresh, userId]
   );
 
   const value = useMemo(

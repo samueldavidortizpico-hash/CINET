@@ -8,13 +8,17 @@ const REASONS = {
   unreleased: (n) => `${n} aún no se estrenan`,
   rejected: (n) => `${n} tienen un género que rechazaron`,
   format: (n) => `${n} son animación o documental y ninguno los eligió`,
-  must: (n) => `${n} no tienen los géneros imprescindibles`,
+  must: (n) => `${n} no tienen todos los géneros imprescindibles`,
   taste: (n) => `${n} no encajan con los gustos de nadie`,
   oneSided: (n, size) => (size === 2 ? `${n} solo encajan con una persona` : `${n} encajan con muy poca gente del grupo`),
-  runtime: (n) => `${n} superan la duración máxima (o TMDB no la confirma)`,
+  runtime: (n) => `${n} superan la duración máxima`,
+  unknownRuntime: (n) => `${n} no tienen una duración que podamos comprobar`,
   seasons: (n) => `${n} tienen más temporadas de las que quieren`,
+  unknownSeasons: (n) => `${n} no tienen número de temporadas comprobable`,
   status: (n) => `${n} no tienen el estado de serie que pidieron`,
+  unknownStatus: (n) => `${n} no tienen un estado de emisión comprobable`,
   platform: (n) => `${n} no están en sus plataformas`,
+  unknownPlatform: (n) => `de ${n} no pudimos comprobar si están en sus plataformas`,
 };
 
 const MAX_EXTRA_MINUTES = 60;
@@ -34,6 +38,7 @@ export default function DuoEmptyState({ ranked, profile, source, few = false, on
   const noLocalSeries = source === "local" && profile.type === "tv";
   const conflicts = findConflicts(profile).filter((conflict) => conflict.blocking);
 
+  // Solo ampliaciones explícitas: cambian un límite porque la persona lo pide, y lo ampliado queda marcado.
   const options = [
     profile.maxRuntime > 0 &&
       rejectedBy.runtime > 0 &&
@@ -41,7 +46,9 @@ export default function DuoEmptyState({ ranked, profile, source, few = false, on
         label: `Ampliar la duración 30 min (hasta ${formatMinutes(profile.maxRuntime + relax.runtime + 30)})`,
         patch: { runtime: relax.runtime + 30 },
       },
-    profile.providers.length > 0 && rejectedBy.platform > 0 && !relax.platforms && { label: "Incluir otras plataformas", patch: { platforms: true } },
+    profile.providers.length > 0 &&
+      (rejectedBy.platform > 0 || rejectedBy.unknownPlatform > 0) &&
+      !relax.platforms && { label: rejectedBy.platform ? "Incluir otras plataformas" : "Incluir sin comprobar disponibilidad", patch: { platforms: true } },
     rejectedBy.oneSided > 0 && !relax.oneSided && { label: profile.people.length === 2 ? "Incluir títulos que le gustan solo a uno" : "Incluir títulos que no encajan con todos", patch: { oneSided: true } },
   ].filter(Boolean);
   const relaxed = relax.runtime > 0 || relax.platforms || relax.oneSided;
@@ -58,7 +65,8 @@ export default function DuoEmptyState({ ranked, profile, source, few = false, on
       ) : (
         <p>TMDB no devolvió títulos con estos filtros. Prueben con más géneros o menos restricciones.</p>
       )}
-      {!noLocalSeries && options.length > 0 && <p>Si quieren, pueden ampliar la búsqueda (lo que aparezca así se marcará como alternativa):</p>}
+      {!noLocalSeries && options.length > 0 && <p>Si quieren, pueden ampliar un límite (lo que aparezca así se marcará como «ampliado», con el detalle):</p>}
+      {!noLocalSeries && !options.length && rejectedBy.must > 0 && <p>Los imprescindibles y los géneros rechazados no se relajan solos: cámbienlos en las preferencias si quieren más opciones.</p>}
 
       <div className="duo-actions">
         {options.map((option) => (
