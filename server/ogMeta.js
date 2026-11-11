@@ -81,10 +81,12 @@ export function injectMeta(html, meta, { origin, path }) {
   ]
     .map(([attribute, key, value]) => `<meta ${attribute}="${key}" content="${escapeHtml(value)}" />`)
     .join("\n    ");
+  // Los reemplazos son FUNCIONES a propósito: con una cadena, String.replace interpreta $&, $' y $`
+  // (escapeHtml no toca el "$") y una sinopsis de TMDB —editable por la comunidad— copiaría trozos del documento.
   return html
-    .replace(/<title>[\s\S]*?<\/title>/, `<title>${escapeHtml(meta.title)}</title>`)
-    .replace(/<meta name="description" content="[^"]*" \/>/, `<meta name="description" content="${escapeHtml(meta.description)}" />`)
-    .replace("</head>", `    ${tags}\n  </head>`);
+    .replace(/<title>[\s\S]*?<\/title>/, () => `<title>${escapeHtml(meta.title)}</title>`)
+    .replace(/<meta name="description" content="[^"]*" \/>/, () => `<meta name="description" content="${escapeHtml(meta.description)}" />`)
+    .replace("</head>", () => `    ${tags}\n  </head>`);
 }
 
 /**
