@@ -135,8 +135,11 @@ const pad = (n) => String(n).padStart(2, "0");
 export const toISODate = (date) =>
   `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 
-function pickTrailer(videos) {
-  const youtube = (videos?.results ?? []).filter((video) => video.site === "YouTube");
+/** Una clave de YouTube real son 11 caracteres [A-Za-z0-9_-]; cualquier otra cosa no entra en la URL del iframe. */
+export const isYouTubeKey = (key) => typeof key === "string" && /^[A-Za-z0-9_-]{6,15}$/.test(key);
+
+export function pickTrailer(videos) {
+  const youtube = (videos?.results ?? []).filter((video) => video.site === "YouTube" && isYouTubeKey(video.key));
   const trailers = youtube.filter((video) => video.type === "Trailer");
   return (trailers.find((video) => video.official) ?? trailers[0] ?? youtube[0])?.key ?? null;
 }
