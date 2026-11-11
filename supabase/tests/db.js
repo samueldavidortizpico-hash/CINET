@@ -37,6 +37,12 @@ const BOOTSTRAP = `
   create publication supabase_realtime;
   grant usage on schema public, auth, storage to anon, authenticated, service_role;
   grant execute on function auth.uid(), auth.jwt() to anon, authenticated, service_role;
+
+  -- Default privileges de Supabase: todo objeto nuevo de public nace abierto para anon/authenticated.
+  -- Sin esto el arnés es más cerrado que producción y un revoke olvidado pasaría desapercibido.
+  alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
+  alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;
+  alter default privileges in schema public grant execute on functions to anon, authenticated, service_role;
 `;
 
 /** Base nueva con todas las migraciones aplicadas. */
