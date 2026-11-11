@@ -29,3 +29,20 @@ export function safeHttpsUrl(value) {
   const url = parseHttps(value);
   return url && !url.username && !url.password ? url.href : null;
 }
+
+const withoutWww = (host) => host.replace(/^www\./, "");
+
+/**
+ * La cadena de cine conocida a la que pertenece una URL, o null. Compara el dominio EXACTO (sin «www.»):
+ * `cinecolombia.com.sitio-falso.example` o `https://cinecolombia.com@sitio-falso.example` no cuentan.
+ * `chains` es una lista de { url, ... } (p. ej. CINEMA_CHAINS); así la función sigue siendo pura.
+ */
+export function officialChainFor(value, chains) {
+  const href = safeHttpsUrl(value);
+  const host = href && safeHostname(href);
+  if (!host) return null;
+  return chains.find((chain) => {
+    const chainHost = safeHostname(chain.url);
+    return chainHost !== null && withoutWww(chainHost) === withoutWww(host);
+  }) ?? null;
+}
