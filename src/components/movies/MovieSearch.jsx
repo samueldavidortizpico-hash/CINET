@@ -3,8 +3,11 @@ import { useNavigate } from "react-router-dom";
 import PosterImage from "../common/PosterImage.jsx";
 import { useAsync } from "../../hooks/useAsync.js";
 import { useLocalStorage } from "../../hooks/useLocalStorage.js";
+import { useAuth } from "../../hooks/useAuth.js";
 import { useMovies } from "../../hooks/useMovies.js";
+import { useTheme } from "../../hooks/useTheme.js";
 import { useDebounced } from "../../hooks/useTitleSearch.js";
+import { isCommandInput, resolveCommand } from "../../services/commands.js";
 import { EMPTY_ADVANCED, queryMovies, searchCatalog } from "../../services/movieService.js";
 import { isTmdbEnabled } from "../../services/tmdbClient.js";
 import { activeSuggestionIndex } from "../../utils/searchSuggestions.js";
@@ -25,6 +28,8 @@ const thumb = (url) => url?.replace("/t/p/w500/", "/t/p/w92/");
 export default function MovieSearch({ onSubmit, className = "", label, count: remoteCount }) {
   const { filters, results, movies, setQuery, setFilter } = useMovies();
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const { toggleTheme } = useTheme();
   const inputRef = useRef(null);
   const listId = useId();
   const [open, setOpen] = useState(false);
@@ -47,14 +52,20 @@ export default function MovieSearch({ onSubmit, className = "", label, count: re
   }, []);
 
   const query = filters.query.trim();
+  // "/" abre el modo comandos: atajos a partes de la app según el rol (ver services/commands.js).
+  const commandMode = isCommandInput(filters.query);
+  const commands = commandMode ? resolveCommand(filters.query, user) : null;
   const debounced = useDebounced(query, 250);
-  const { data: remote } = useAsync(open && tmdb && debounced.length >= 2 ? `suggest-${debounced}` : null, () =>
+  const { data: remote } = useAsync(open && tmdb && !commandMode && debounced.length >= 2 ? `suggest-${debounced}` : null, () =>
     searchCatalog({ query: debounced, genre: "todas", sort: "default", advanced: EMPTY_ADVANCED }, 1)
   );
 
   const titles = tmdb ? (remote?.titles ?? []) : query.length >= 2 ? queryMovies(movies, { query }) : [];
-  const groups =
-    query.length >= 2
+  const groups = commandMode
+    ? commands.options.length
+      ? [["Comandos", commands.options.map(({ command, action }) => ({ kind: "command", item: { id: command.name, command, action } }))]]
+      : []
+    : query.length >= 2
       ? [
           ["Películas", titles.filter((title) => title.type !== "tv").map((item) => ({ kind: "title", item }))],
           ["Series", titles.filter((title) => title.type === "tv").map((item) => ({ kind: "title", item }))],
@@ -67,12 +78,12 @@ export default function MovieSearch({ onSubmit, className = "", label, count: re
         : [];
   const options = groups.flatMap(([, items]) => items);
   const selectedIndex = activeSuggestionIndex(active, options.length);
-  const searching = tmdb && query.length >= 2 && (!remote || debounced !== query);
-  const expanded = open && (groups.length > 0 || searching);
+  const searching = tmdb && !commandMode && query.length >= 2 && (!remote || debounced !== query);
+  const expanded = open && (groups.length > 0 || searching || Boolean(commands?.message));
 
   const count = remoteCount ?? results.length;
   const noun = remoteCount == null ? "película" : "resultado";
-  const status = query ? `${count} ${noun}${count === 1 ? " coincide" : "s coinciden"} con "${query}"` : "";
+  const status = commandMode ? (commands.message ?? `${commands.options.length} comandos disponibles`) : query ? `${count} ${noun}${count === 1 ? " coincide" : "s coinciden"} con "${query}"` : "";
 
   const remember = (text) =>
     text && setHistory((list) => [text, ...(Array.isArray(list) ? list : []).filter((item) => item.toLowerCase() !== text.toLowerCase())].slice(0, HISTORY_LIMIT));
@@ -82,7 +93,26 @@ export default function MovieSearch({ onSubmit, className = "", label, count: re
     setActive(-1);
   };
 
+  const runCommand = ({ command, action }) => {
+    if (!action) {
+      // /sala necesita su código: se deja escrito para completarlo.
+      setQuery(`/${command.name} `);
+      inputRef.current.focus();
+      return;
+    }
+    setQuery("");
+    close();
+    inputRef.current.blur();
+    if (action.type === "navigate") navigate(action.to);
+    else if (action.type === "theme") toggleTheme();
+    else if (action.type === "logout") logout().finally(() => navigate("/home"));
+  };
+
   const choose = ({ kind, item }) => {
+    if (kind === "command") {
+      runCommand(item);
+      return;
+    }
     if (kind === "recent") {
       setQuery(item);
       setActive(-1);
@@ -120,6 +150,11 @@ export default function MovieSearch({ onSubmit, className = "", label, count: re
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    if (commandMode) {
+      // Enter sin elegir: ejecuta el comando si es uno solo y está completo.
+      if (commands.options.length === 1 && commands.options[0].action) runCommand(commands.options[0]);
+      return;
+    }
     remember(query);
     close();
     onSubmit?.();
@@ -179,13 +214,16 @@ export default function MovieSearch({ onSubmit, className = "", label, count: re
                         >
                           {kind === "recent" ? (
                             <span className="suggest-icon" aria-hidden="true">🕘</span>
+                          ) : kind === "command" ? (
+                            <span className="suggest-icon suggest-command" aria-hidden="true">/</span>
                           ) : (
                             <span className={`suggest-thumb${kind === "person" ? " is-person" : ""}`}>
                               <PosterImage src={thumb(kind === "person" ? item.photo : item.poster)} alt="" fallback={kind === "person" ? "👤" : "🎬"} />
                             </span>
                           )}
                           <span className="suggest-text">
-                            <strong>{kind === "recent" ? item : kind === "person" ? item.name : item.title}</strong>
+                            <strong>{kind === "recent" ? item : kind === "person" ? item.name : kind === "command" ? `/${item.command.name}` : item.title}</strong>
+                            {kind === "command" && <small>{item.command.label}</small>}
                             {kind === "title" && <small>{[item.year, `★ ${item.rating}`].filter(Boolean).join(" · ")}</small>}
                             {kind === "person" && <small>{DEPARTMENTS[item.department] ?? item.department} · ver sus títulos</small>}
                           </span>
@@ -196,6 +234,7 @@ export default function MovieSearch({ onSubmit, className = "", label, count: re
                 ))}
               </div>
               {searching && <p className="suggest-status">Buscando en TMDB…</p>}
+              {commands?.message && <p className="suggest-status">{commands.message}</p>}
               {!query && history.length > 0 && (
                 <button type="button" className="suggest-clear" onClick={() => setHistory([])}>
                   Borrar búsquedas recientes
@@ -209,7 +248,7 @@ export default function MovieSearch({ onSubmit, className = "", label, count: re
         </button>
       </div>
       <p className="search-hint">
-        Presiona <strong>Ctrl + K</strong> para buscar · <strong>↑ ↓</strong> para moverte por las sugerencias.
+        Presiona <strong>Ctrl + K</strong> para buscar · <strong>/</strong> para comandos · <strong>↑ ↓</strong> para moverte por las sugerencias.
       </p>
       <p id="search-status" className="search-status" aria-live="polite">
         {status}
