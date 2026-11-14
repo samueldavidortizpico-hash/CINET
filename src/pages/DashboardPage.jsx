@@ -9,7 +9,7 @@ import { useAuth } from "../hooks/useAuth.js";
 import { useDocumentTitle } from "../hooks/useDocumentTitle.js";
 import { useFavorites } from "../hooks/useFavorites.js";
 import { usePlans } from "../hooks/usePlans.js";
-import { EMPTY_ADVANCED, getMovies, getMoviesByIds, searchCatalog } from "../services/movieService.js";
+import { EMPTY_ADVANCED, getMovies, getMoviesByIds, loadMoviesByIds, searchCatalog } from "../services/movieService.js";
 import { HERO_PREFERENCES_KEY } from "../services/heroPreferences.js";
 import { useState } from "react";
 
@@ -24,7 +24,11 @@ export default function DashboardPage() {
   useDocumentTitle("Dashboard");
 
   // Favoritas locales y de TMDB (guardadas desde Duo o la búsqueda global).
-  const { data: favoriteMovies = [] } = useAsync(favorites.join(","), () => getMoviesByIds(favorites));
+  // N22: carga, parcial y vacío son estados distintos; un fallo nunca borra ids guardados.
+  const [favoritesAttempt, setFavoritesAttempt] = useState(0);
+  const favoritesState = useAsync(`${favorites.join(",")}#${favoritesAttempt}`, () => loadMoviesByIds(favorites));
+  const favoriteMovies = favoritesState.data?.movies ?? [];
+  const favoritesFailed = favoritesState.error ? favorites.length : (favoritesState.data?.failedIds.length ?? 0);
   const ownPlans = plans.filter((plan) => plan.isOwner).reverse();
   const featuredIds = Array.isArray(heroPreferences?.featuredIds) ? heroPreferences.featuredIds : [];
   // Fijadas: locales o de TMDB (tmdb-movie-123), en el orden elegido.
@@ -63,10 +67,18 @@ export default function DashboardPage() {
         </section>
       )}
 
-      <h3 className="dashboard-title">❤️ Tus favoritas ({favoriteMovies.length})</h3>
-      {favoriteMovies.length > 0 ? (
+      <h3 className="dashboard-title">❤️ Tus favoritas ({favorites.length})</h3>
+      {favoritesFailed > 0 && (
+        <p className="catalog-notice" role="status">
+          {favoritesFailed === 1 ? "No pudimos cargar 1 favorita ahora mismo" : `No pudimos cargar ${favoritesFailed} favoritas ahora mismo`}; siguen guardadas.{" "}
+          <Button variant="secondary" onClick={() => setFavoritesAttempt((value) => value + 1)}>Reintentar</Button>
+        </p>
+      )}
+      {favoritesState.loading && favorites.length > 0 ? (
+        <p className="catalog-notice" role="status">Cargando tus favoritas…</p>
+      ) : favoriteMovies.length > 0 ? (
         <MovieGrid movies={favoriteMovies} />
-      ) : (
+      ) : favorites.length > 0 ? null : (
         <EmptyState icon="💔" title="Aún no tienes favoritas" action={explore}>
           Marca películas con ♥ desde el catálogo.
         </EmptyState>

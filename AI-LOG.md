@@ -2,6 +2,20 @@
 
 Registro de uso de IA. Solo contiene hechos verificados en esta intervención; no reconstruye tareas anteriores.
 
+## Intervención 2026-11-06 — Codex
+
+Solicitud: mejorar radicalmente login y auditar arquitectura, rutas, Auth, backend, HW11/12/13/15 conservando tecnologías y Git. Se inspeccionó primero el checkout limpio en `audit/cinet-2026-11-05`.
+
+Cambios: composición cinematográfica adaptable carbón/coral, transiciones y carga real; pestañas login/registro con URL; alias españoles; destinos normalizados sin bucles con query/hash; bloqueo síncrono de submit; captura de fallos de restauración y reintento en rutas protegidas; mínimo local Auth ocho caracteres; CSP parcial. Se añadieron pruebas de escalada/validación de perfiles, rutas, carga duplicada, sesión caducada, XSS y capturas.
+
+Resultados y limitaciones: baseline 180/180; suite SQL/unitaria final 181/181; lint limpio. La primera corrida ampliada con XSS detectó contaminación del nombre de Ana entre pruebas, corregida restaurando perfil en finally. Una corrida previa tuvo interferencia entre builds de pruebas en puertos distintos que compartían directorio de salida; no se considera evidencia válida de regresión de producto. Ver logs y cierre definitivo en `AUDITORIA_FINAL_CINET.md` para E2E/build.
+
+Cierre comprobado: Playwright completo 36 aprobadas, 3 omitidas (capturas Duo opcionales), 0 fallos y `EXIT_CODE=0`, registrado en `audit/e2e-exit-2026-11-06.txt`; build de producción exitoso después de E2E. ESLint excluye ahora solo artefactos generados de Playwright; fuentes y pruebas continúan analizadas. Las capturas Auth a 390/834/1440 se ejecutaron y revisaron visualmente.
+
+Auditoría npm actual: 8 vulnerabilidades dev (6 moderadas, 1 alta, 1 crítica); 0 runtime. No se aplicó migración mayor de Capacitor ni fix forzado. Se documentaron contratos reales en `api-design.md`, seguridad en `security-audit.md`, despliegue pendiente en `deployment.txt` y matriz en `AUDITORIA_FINAL_CINET.md`.
+
+No se sustituyó Supabase/PostgreSQL por Express/MongoDB, ni se añadió otra Auth. No se publicaron datos ficticios ni resultados remotos inventados. No hubo deploy, push, migración remota, cambio de rama o eliminación de datos. Persistencia/SMTP/JWT/RLS/variables/cabeceras del hosting requieren staging y no se acreditan por el adaptador local.
+
 ## Intervención 2026-09-27 — Claude Code (Claude Opus 5.5)
 
 ### Qué se pidió

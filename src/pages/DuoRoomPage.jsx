@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import qrcode from "qrcode-generator";
+import Captcha from "../components/auth/Captcha.jsx";
+import { CAPTCHA_MISSING, captchaEnabled } from "../components/auth/captchaConfig.js";
 import Button from "../components/common/Button.jsx";
 import EmptyState from "../components/common/EmptyState.jsx";
 import Loading from "../components/common/Loading.jsx";
@@ -125,15 +127,19 @@ function RoomStart({ user }) {
 function RoomSignIn({ code, continueAsGuest }) {
   const [name, setName] = useState("");
   const [state, setState] = useState({ busy: false, error: "" });
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [captchaRound, setCaptchaRound] = useState(0);
   const from = { from: `/duo/sala/${code}` };
 
   const guest = async (event) => {
     event.preventDefault();
+    if (captchaEnabled && !captchaToken) return setState({ busy: false, error: CAPTCHA_MISSING });
     setState({ busy: true, error: "" });
     try {
-      await continueAsGuest(name); // la sesión nueva vuelve a pintar la página
+      await continueAsGuest(name, captchaToken || undefined); // la sesión nueva vuelve a pintar la página
     } catch (error) {
       setState({ busy: false, error: error.message });
+      setCaptchaRound((round) => round + 1);
     }
   };
 
@@ -152,6 +158,7 @@ function RoomSignIn({ code, continueAsGuest }) {
             <span>O entra como invitado con tu nombre</span>
             <input value={name} onChange={(event) => setName(event.target.value)} maxLength={40} required />
           </label>
+          <Captcha onToken={setCaptchaToken} resetKey={captchaRound} />
           {state.error && <p className="error-message" role="alert">{state.error}</p>}
           <Button variant="secondary" type="submit" disabled={state.busy || !name.trim()}>{state.busy ? "Entrando…" : "Entrar como invitado"}</Button>
           <p className="duo-fineprint">El acceso de invitado vive solo en este navegador: si cierras sesión o borras sus datos, pierdes la sala.</p>

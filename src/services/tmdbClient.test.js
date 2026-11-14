@@ -5,7 +5,7 @@ import { DEFAULT_DUO_SESSION, DEFAULT_PERSON } from "../data/duo.js";
 import { getDuoCandidates } from "./duoService.js";
 import { addToHistory, EMPTY_HISTORY } from "./historyService.js";
 import { buildMarathon, buildProfile, rankTitles } from "./recommender.js";
-import { EMPTY_ADVANCED, fromTmdb, getCollection, getHeroSlides, getMovieById, searchCatalog, toDiscoverParams } from "./movieService.js";
+import { EMPTY_ADVANCED, fromTmdb, getCollection, getHeroSlides, getMovieById, loadMoviesByIds, searchCatalog, toDiscoverParams } from "./movieService.js";
 import {
   checkTmdbConnection,
   configureTmdb,
@@ -14,6 +14,7 @@ import {
   isTmdbEnabled,
   searchMulti,
   tmdbRequest,
+  tmdbRetryAt,
 } from "./tmdbClient.js";
 
 /** Responde según la ruta (la más larga que coincida); cuenta las llamadas. */
@@ -39,26 +40,64 @@ const connect = (routes) => {
 
 const page = (results, totalPages = 3, number = 1) => ({ page: number, results, total_pages: totalPages, total_results: results.length });
 
-test("tmdb respeta Retry-After en segundos y fecha HTTP, con tope de espera", async () => {
-  for (const [retryAfter, now, expected] of [["3", 1_000, 3_000], [new Date(5_000).toUTCString(), 1_000, 4_000], ["999", 0, 30_000]]) {
-    let calls = 0;
-    const waits = [];
-    let clock = now;
-    configureTmdb({
-      token: "t",
-      now: () => clock,
-      wait: async (ms) => { waits.push(ms); clock += ms; },
-      fetch: async () => {
-        calls += 1;
-        return calls === 1
-          ? { ok: false, status: 429, headers: { get: () => retryAfter } }
-          : { ok: true, status: 200, json: async () => ({ ok: true }) };
-      },
-    });
-    assert.deepEqual(await tmdbRequest(`/retry-${calls}-${expected}`, {}, 0), { ok: true });
-    assert.deepEqual(waits, [expected]);
-    assert.equal(calls, 2);
+function rateLimitedApi(retryAfter, { now = 0, random = () => 0, failures = 1 } = {}) {
+  const state = { calls: [], waits: [], clock: now };
+  configureTmdb({
+    token: "t",
+    retryDelay: 1000,
+    random,
+    now: () => state.clock,
+    wait: async (ms) => { state.waits.push(ms); state.clock += ms; },
+    fetch: async () => {
+      state.calls.push(state.clock);
+      return state.calls.length <= failures
+        ? { ok: false, status: 429, headers: { get: () => retryAfter } }
+        : { ok: true, status: 200, json: async () => ({ ok: true }) };
+    },
+  });
+  return state;
+}
+
+test("V30/V31: Retry-After en segundos, fecha futura, vencida e inválida se respeta completo", async () => {
+  for (const [retryAfter, now, expected] of [["3", 1_000, 3_000], [new Date(5_000).toUTCString(), 1_000, 4_000], [new Date(0).toUTCString(), 9_000, 0], ["pronto", 0, 1_000]]) {
+    const state = rateLimitedApi(retryAfter, { now });
+    assert.deepEqual(await tmdbRequest(`/retry-${expected}-${now}`, {}, 0), { ok: true });
+    assert.deepEqual(state.waits, expected ? [expected] : [], String(retryAfter));
+    assert.equal(state.calls.length, 2);
+    assert.ok(state.calls[1] >= now + expected, "el segundo intento nunca antes del instante autorizado");
   }
+});
+
+test("V30: Retry-After de 120 s no se recorta a 30 s: no reintenta y dice cuándo volver", async () => {
+  const state = rateLimitedApi("120");
+  const error = await tmdbRequest("/retry-long", {}, 0).catch((failure) => failure);
+  assert.equal(error.code, "rate-limit");
+  assert.equal(error.retryAt.getTime(), 120_000);
+  assert.deepEqual([state.calls.length, state.waits], [1, []], "sin segunda petición adelantada");
+  assert.equal(tmdbRetryAt().getTime(), 120_000);
+  // Otra consulta durante el bloqueo tampoco sale a la red.
+  const other = await tmdbRequest("/otra-consulta", {}, 0).catch((failure) => failure);
+  assert.equal(other.code, "rate-limit");
+  assert.equal(state.calls.length, 1);
+  state.clock = 120_000;
+  assert.deepEqual(await tmdbRequest("/despues", {}, 0), { ok: true }, "pasado el plazo se consulta de nuevo");
+});
+
+test("V30: las consultas lanzadas durante el bloqueo esperan el mismo instante; el jitter va después del mínimo", async () => {
+  const state = rateLimitedApi("5", { random: () => 0.5 });
+  const sleepers = [];
+  configureTmdb({ wait: (ms) => new Promise((resolve) => sleepers.push({ ms, resolve })) }); // reloj manual
+  const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+  const first = tmdbRequest("/a", {}, 0);
+  await flush(); // llega el 429
+  const others = ["/b", "/c"].map((path) => tmdbRequest(path, {}, 0));
+  await flush();
+  assert.equal(state.calls.length, 1, "nadie más sale a la red durante el bloqueo");
+  assert.deepEqual(sleepers.map((sleeper) => sleeper.ms), [5_500, 5_500, 5_500], "mínimo 5 s + jitter, nunca menos");
+  state.clock = 5_500;
+  sleepers.forEach((sleeper) => sleeper.resolve());
+  assert.deepEqual(await Promise.all([first, ...others]), [{ ok: true }, { ok: true }, { ok: true }]);
+  assert.ok(state.calls.slice(1).every((at) => at >= 5_000));
 });
 
 test("Doomsday fijada en el carrusel pide su fondo y no se confunde con Thunderbolts", async () => {
@@ -231,6 +270,8 @@ test("tmdb: proveedores por tipo de oferta, colecciones mezcladas y detalle de s
   connect({
     "/watch/providers": () => ({
       results: {
+        MX: { link: "javascript:alert(1)" }, // H-06: un upstream comprometido no inyecta enlaces
+        PE: { link: "https://evil.example/themoviedb.org/" },
         CO: {
           link: "https://www.themoviedb.org/movie/1/watch?locale=CO",
           flatrate: [{ provider_id: 119, provider_name: "Amazon Prime Video", logo_path: "/p.jpg" }],
@@ -249,7 +290,9 @@ test("tmdb: proveedores por tipo de oferta, colecciones mezcladas y detalle de s
   assert.deepEqual(watch.providers.map((p) => p.id), [119], "suscripción + gratis, sin duplicados");
   assert.deepEqual(watch.offers.rent.map((p) => p.id), [2]);
   assert.deepEqual(watch.offers.buy.map((p) => p.id), [2]);
-  assert.deepEqual((await getTitleWatchProviders("movie", 1, "MX")).providers, []);
+  assert.equal(watch.link, "https://www.themoviedb.org/movie/1/watch?locale=CO");
+  assert.equal((await getTitleWatchProviders("movie", 1, "MX")).link, null);
+  assert.equal((await getTitleWatchProviders("movie", 1, "PE")).link, null);
 
   const top = await getCollection("top-rated");
   assert.equal(top.source, "tmdb");
@@ -350,5 +393,66 @@ test("tmdb: si discover falla, Duo usa el catálogo local", async () => {
   assert.equal(result.source, "local");
   assert.equal(result.titles.length, 40);
   assert.match(result.notice, /error 500/);
+  configureTmdb({ token: "" });
+});
+
+// ---------- N10: orden en la búsqueda de texto (V32–V34) ----------
+
+test("V32: texto solo respeta el orden elegido (antes: Baja seguía antes que Alta) y lo declara de lo cargado", async () => {
+  const results = [
+    { id: 901, media_type: "movie", title: "Baja", release_date: "2001-01-01", vote_average: 2 },
+    { id: 902, media_type: "movie", title: "Alta", release_date: "1999-01-01", vote_average: 9 },
+    { id: 903, media_type: "movie", title: "Media", release_date: "2010-01-01", vote_average: 9 },
+    { id: 77, media_type: "person", name: "Actor" },
+  ];
+  connect({ "/search/multi": () => page(results) });
+  const titles = async (sort) => (await searchCatalog({ query: "x", genre: "todas", sort, advanced: EMPTY_ADVANCED }, 1)).titles.map((title) => title.title);
+  assert.deepEqual(await titles("rating"), ["Alta", "Media", "Baja"], "empate 9–9 desempatado por título");
+  assert.deepEqual(await titles("title"), ["Alta", "Baja", "Media"]);
+  assert.deepEqual(await titles("year"), ["Media", "Baja", "Alta"]);
+  assert.deepEqual(await titles("default"), ["Baja", "Alta", "Media"], "sin orden: relevancia de TMDB");
+  const result = await searchCatalog({ query: "x", genre: "todas", sort: "rating", advanced: EMPTY_ADVANCED }, 1);
+  assert.equal(result.sortScope, "loaded");
+  assert.equal(result.people.length, 1, "las personas siguen apareciendo");
+});
+
+test("V32: texto + género y texto + persona también ordenan; discover declara orden de catálogo", async () => {
+  connect({
+    "/search/movie": () => page([
+      { id: 911, title: "B", release_date: "2020-01-01", genre_ids: [28], vote_average: 5 },
+      { id: 912, title: "A", release_date: "2020-01-01", genre_ids: [28], vote_average: 8 },
+    ]),
+    "/discover/movie": () => page([{ id: 913, title: "Z", vote_average: 1 }]),
+  });
+  const withGenre = await searchCatalog({ query: "x", genre: "todas", sort: "rating", advanced: { ...EMPTY_ADVANCED, genre: "action" } }, 1);
+  assert.deepEqual(withGenre.titles.map((title) => title.title), ["A", "B"]);
+  assert.equal(withGenre.sortScope, "loaded");
+  const discover = await searchCatalog({ query: "", genre: "todas", sort: "rating", advanced: { ...EMPTY_ADVANCED, genre: "action" } }, 1);
+  assert.equal(discover.sortScope, "catalog");
+});
+
+test("V32: al cargar otra página se reordena todo lo cargado (no solo la página nueva)", async () => {
+  const { mergeSearchPage } = await import("../hooks/useTitleSearch.js");
+  const first = { titles: [{ id: "a", title: "A", rating: 7 }, { id: "b", title: "B", rating: 5 }], people: [] };
+  const merged = mergeSearchPage(first, { titles: [{ id: "c", title: "C", rating: 9 }, { id: "a", title: "A", rating: 7 }], people: [], page: 2, totalPages: 3, sortScope: "loaded" }, "rating");
+  assert.deepEqual(merged.titles.map((title) => title.id), ["c", "a", "b"], "sin duplicados y en orden global de lo cargado");
+});
+
+// ---------- N22: favoritos con fallos parciales (V48) ----------
+
+test("V48: tres favoritas y una ficha caída → dos visibles, una pendiente de reintento, ninguna borrada", async () => {
+  connect({
+    "/movie/1001": () => ({ id: 1001, title: "Uno" }),
+    "/movie/1002": () => 500,
+    "/movie/1003": () => ({ id: 1003, title: "Tres" }),
+    "/movie/1004": () => 404,
+  });
+  const ids = ["tmdb-movie-1001", "tmdb-movie-1002", "tmdb-movie-1003", "tmdb-movie-1004"];
+  const saved = [...ids];
+  const result = await loadMoviesByIds(ids);
+  assert.deepEqual(result.movies.map((movie) => movie.title), ["Uno", "Tres"]);
+  assert.deepEqual(result.failedIds, ["tmdb-movie-1002"], "fallo transitorio ≠ inexistente");
+  assert.deepEqual(result.missingIds, ["tmdb-movie-1004"]);
+  assert.deepEqual(ids, saved, "los ids guardados no cambian");
   configureTmdb({ token: "" });
 });

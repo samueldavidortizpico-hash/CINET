@@ -31,6 +31,7 @@ const config = {
   retryDelay: 1000,
   wait: (ms) => wait(ms),
   now: Date.now,
+  random: Math.random,
   fetch: (...args) => fetch(...args),
 };
 
@@ -117,20 +118,36 @@ function limited(task) {
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+/* Retry-After (N09): el instante que pide el servidor se respeta COMPLETO y lo comparten todas las
+   peticiones (retryAt es del módulo; cancelar una vista no lo borra). Si es más largo de lo que la
+   interfaz espera sola, no se reintenta: el error lleva retryAt para decir cuándo volver a intentar.
+   La variación aleatoria se suma DESPUÉS del mínimo, nunca lo adelanta. */
 let retryAt = 0;
-const MAX_RETRY_AFTER_MS = 30_000;
+const MAX_AUTO_WAIT_MS = 30_000;
+const MAX_JITTER_MS = 1_000;
+
+/** Instante desde el que se puede volver a consultar, o null si no hay bloqueo. */
+export const tmdbRetryAt = () => (retryAt > config.now() ? new Date(retryAt) : null);
 
 function retryAfterMs(value) {
-  if (!value) return config.retryDelay;
-  const seconds = /^\s*\d+\s*$/.test(value) ? Number(value) * 1000 : NaN;
-  const date = Number.isFinite(seconds) ? NaN : Date.parse(value);
-  const requested = Number.isFinite(seconds) ? seconds : Number.isFinite(date) ? date - config.now() : config.retryDelay;
-  return Math.max(0, Math.min(MAX_RETRY_AFTER_MS, requested));
+  const text = String(value ?? "").trim();
+  if (!text) return config.retryDelay;
+  if (/^\d+$/.test(text)) return Number(text) * 1000;
+  const date = Date.parse(text);
+  return Number.isFinite(date) ? Math.max(0, date - config.now()) : config.retryDelay; // vencida → 0; inválida → espera por defecto
+}
+
+function rateLimited() {
+  const at = new Date(retryAt);
+  const clock = at.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  return Object.assign(new TmdbError("rate-limit", `Demasiadas consultas a TMDB. Puedes volver a intentar a las ${clock}.`, 429), { retryAt: at });
 }
 
 async function waitForRetryWindow() {
   const remaining = retryAt - config.now();
-  if (remaining > 0) await config.wait(remaining);
+  if (remaining <= 0) return;
+  if (remaining > MAX_AUTO_WAIT_MS) throw rateLimited();
+  await config.wait(remaining + Math.floor(config.random() * MAX_JITTER_MS));
 }
 
 async function send(url, retries = 1) {
@@ -146,10 +163,13 @@ async function send(url, retries = 1) {
     throw new TmdbError("network", "No hay conexión con TMDB.");
   }
 
-  if (response.status === 429 && retries > 0) {
+  if (response.status === 429) {
     retryAt = Math.max(retryAt, config.now() + retryAfterMs(response.headers?.get?.("retry-after")));
-    await waitForRetryWindow();
-    return send(url, retries - 1);
+    if (retries > 0 && retryAt - config.now() <= MAX_AUTO_WAIT_MS) {
+      await waitForRetryWindow();
+      return send(url, retries - 1);
+    }
+    throw rateLimited();
   }
   if (response.status === 503) {
     const body = await response.json().catch(() => null);
@@ -157,7 +177,6 @@ async function send(url, retries = 1) {
   }
   if (response.status === 401) throw new TmdbError("auth", "El token de TMDB no es válido (401).", 401);
   if (response.status === 404) throw new TmdbError("not-found", "TMDB no encontró ese recurso (404).", 404);
-  if (response.status === 429) throw new TmdbError("rate-limit", "Demasiadas consultas a TMDB; intenta en unos segundos.", 429);
   if (!response.ok) throw new TmdbError("http", `TMDB respondió con error ${response.status}.`, response.status);
 
   const data = await response.json().catch(() => null);
@@ -321,7 +340,8 @@ export async function getTitleWatchProviders(type, tmdbId, region = "CO") {
     type,
     tmdbId,
     region,
-    link: offer.link ?? null,
+    // H-06: el enlace va a un href; solo https de themoviedb.org (nunca javascript:, data: ni otro host).
+    link: /^https:\/\/(www\.)?themoviedb\.org\/\S*$/.test(offer.link ?? "") ? offer.link : null,
     providers: uniqueById([...offers.subscription, ...offers.free]),
     offers,
   };

@@ -4,13 +4,25 @@ import assert from "node:assert/strict";
 import { findMovie, getMovies, getShowtimes, queryMovies } from "./movieService.js";
 import { buildPlan, describeStart, filterPlans, getPlanStats, getRsvpStatus, isUpcoming, recommendedStart, setRsvp, to24h, toStartParts, validatePlan } from "./planService.js";
 import { isRemoteId, toPlanError, toUiPlan } from "./planRepository.js";
-import { toAppUser } from "./authService.js";
+import { Buffer } from "node:buffer";
+import { tokenRole, toAppUser } from "./authService.js";
 
 test("cuenta: un invitado sin email no rompe la app ni pasa por cuenta permanente", () => {
-  assert.deepEqual(toAppUser({ id: "g", email: "", is_anonymous: true, user_metadata: { name: "Ana" } }), { id: "g", email: null, guest: true, name: "Ana" });
+  assert.deepEqual(toAppUser({ id: "g", email: "", is_anonymous: true, user_metadata: { name: "Ana" } }), { id: "g", email: null, guest: true, name: "Ana", jwtRole: null });
   assert.equal(toAppUser({ id: "g", email: null, is_anonymous: true, user_metadata: {} }).name, "Invitado");
-  assert.deepEqual(toAppUser({ id: "u", email: "sam@cinet.co", user_metadata: {} }), { id: "u", email: "sam@cinet.co", guest: false, name: "sam" });
+  assert.deepEqual(toAppUser({ id: "u", email: "sam@cinet.co", user_metadata: {} }), { id: "u", email: "sam@cinet.co", guest: false, name: "sam", jwtRole: null });
   assert.equal(toAppUser(null), null);
+});
+
+test("JWT: el rol de la interfaz sale del claim app_role (dos roles) y cualquier otro valor se ignora", () => {
+  const token = (claims) => `h.${Buffer.from(JSON.stringify(claims)).toString("base64url")}.s`;
+  assert.equal(tokenRole(token({ app_role: "admin" })), "admin");
+  assert.equal(tokenRole(token({ app_role: "user", name: "ñandú ✓" })), "user"); // base64url con - y _
+  assert.equal(tokenRole(token({ app_role: "moderator" })), null);
+  assert.equal(tokenRole(token({ role: "authenticated" })), null, "sin hook → manda profiles.role");
+  assert.equal(tokenRole("basura"), null);
+  assert.equal(tokenRole(undefined), null);
+  assert.equal(toAppUser({ id: "u", email: "a@b.co", user_metadata: {} }, token({ app_role: "admin" })).jwtRole, "admin");
 });
 import { hasErrors, normalizeProfile, validateForm, validateProfile } from "../utils/validation.js";
 
@@ -84,7 +96,7 @@ test("planes compartidos: hora en 24 h, zona del plan y forma para la interfaz",
   assert.deepEqual(["5:15 PM", "12:00 AM", "12:30 PM", "20:30", "8:05", "25:00", "mañana"].map(to24h), ["17:15", "00:00", "12:30", "20:30", "08:05", null, null]);
   assert.deepEqual(toStartParts({ dateISO: "2026-10-17", time: "8:00 PM" }), { dateISO: "2026-10-17", time: "20:00" });
   // 01:30 UTC del 18 = 20:30 del 17 en Bogotá (UTC-5): la fecha no se corre de día.
-  assert.deepEqual(describeStart("2026-10-18T01:30:00Z", "America/Bogota"), { date: "Sábado, 17 de octubre", dateISO: "2026-10-17", time: "20:30" });
+  assert.deepEqual(describeStart("2026-10-18T01:30:00Z", "America/Bogota"), { date: "Sábado, 17 de octubre", dateISO: "2026-10-17", time: "20:30", zoneFallback: false });
   assert.equal(describeStart(null).date, "Fecha por definir");
 
   const row = {

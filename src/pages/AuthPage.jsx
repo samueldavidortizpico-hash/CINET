@@ -1,6 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import AuthForm from "../components/auth/AuthForm.jsx";
+import Captcha from "../components/auth/Captcha.jsx";
+import { CAPTCHA_MISSING, captchaEnabled } from "../components/auth/captchaConfig.js";
 import PasswordField from "../components/auth/PasswordField.jsx";
 import BrandLogo from "../components/common/BrandLogo.jsx";
 import Toast from "../components/common/Toast.jsx";
@@ -50,7 +52,7 @@ export default function AuthPage({ view = "entry" }) {
 
   const [splash] = useState(() => view === "entry" && !splashSeen());
   const [splashDone, setSplashDone] = useState(false);
-  const [tab, setTab] = useState(view === "register" ? "register" : "login");
+  const tab = view === "register" ? "register" : "login";
   const [confirmEmail, setConfirmEmail] = useState("");
   const brand = useRef(null);
   const brandFrom = useRef(null);
@@ -119,7 +121,7 @@ export default function AuthPage({ view = "entry" }) {
   const switchTab = (next, { focus = false } = {}) => {
     if (next === tab) return;
     panelFrom.current = panel.current?.offsetHeight ?? 0;
-    setTab(next);
+    navigate(next === "register" ? "/register" : "/login", { state: { from }, preventScrollReset: true });
     if (focus) tabButtons.current[next]?.focus();
   };
 
@@ -157,10 +159,24 @@ export default function AuthPage({ view = "entry" }) {
         <BrandLogo stacked />
       </div>
 
+      {inAuth && (
+        <aside className="auth-story" aria-label="Bienvenido a CINET">
+          <p className="auth-kicker">EL PLAN EMPIEZA CONTIGO</p>
+          <h2>Grandes historias.<br /><span>Mejor compañía.</span></h2>
+          <p>Descubre qué ver, encuentra tu próxima favorita y convierte una noche cualquiera en un buen plan.</p>
+          <div className="auth-ticket" aria-hidden="true">
+            <span>CINET · ADMITE BUENOS PLANES</span>
+            <strong>Una historia para compartir.</strong>
+            <div className="auth-ticket-line"><span>DESCUBRE</span><i /><span>DECIDE</span><i /><span>COMPARTE</span></div>
+          </div>
+        </aside>
+      )}
+
       {!inAuth ? (
         <section className="auth-splash" aria-labelledby="auth-splash-title">
           <h1 id="auth-splash-title" className="visually-hidden">CINET</h1>
           <p className="auth-tagline">Buenas historias. Mejores planes.</p>
+          <div className={`auth-reel${animating ? " is-intro" : ""}`} aria-hidden="true"><i /><i /><i /><i /><i /></div>
           {!animating && (
             <p className="auth-status" role="status">
               {restoreError || "Comprobando tu sesión…"}
@@ -257,6 +273,8 @@ function ForgotView({ headingRef, from }) {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [state, setState] = useState({ busy: false, error: "", sentTo: "" });
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [captchaRound, setCaptchaRound] = useState(0);
   const input = useRef(null);
   const error = submitted ? validateEmail(email) : "";
 
@@ -268,12 +286,18 @@ function ForgotView({ headingRef, from }) {
       input.current?.focus();
       return;
     }
+    if (captchaEnabled && !captchaToken) {
+      setState({ busy: false, error: CAPTCHA_MISSING, sentTo: "" });
+      return;
+    }
     setState({ busy: true, error: "", sentTo: "" });
     try {
-      await requestPasswordReset(email);
+      await requestPasswordReset(email, captchaToken || undefined);
       setState({ busy: false, error: "", sentTo: email.trim() });
     } catch (requestError) {
       setState({ busy: false, error: requestError.message, sentTo: "" });
+    } finally {
+      setCaptchaRound((round) => round + 1);
     }
   };
 
@@ -302,6 +326,7 @@ function ForgotView({ headingRef, from }) {
           />
           {error && <p id="reset-email-error" className="field-error">{error}</p>}
         </div>
+        <Captcha onToken={setCaptchaToken} resetKey={captchaRound} />
         {state.error && <p className="form-error" role="alert">{state.error}</p>}
         {state.sentTo && (
           <p className="auth-notice" role="status">

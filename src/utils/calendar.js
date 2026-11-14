@@ -1,6 +1,7 @@
 /* Exportar un plan a calendario (.ics, RFC 5545). Descargar el archivo no programa recordatorios. */
 
 import { to24h } from "../services/planService.js";
+import { displayZone } from "../services/planContract.js";
 
 const pad = (value) => String(value).padStart(2, "0");
 const utcStamp = (date) =>
@@ -9,7 +10,7 @@ const utcStamp = (date) =>
 /** Desfase (ms) de una zona IANA en un instante, según Intl. */
 function zoneOffset(instant, timeZone) {
   const parts = Object.fromEntries(
-    new Intl.DateTimeFormat("en-US", { timeZone, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" })
+    new Intl.DateTimeFormat("en-US", { timeZone: displayZone(timeZone).timeZone, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" })
       .formatToParts(new Date(instant))
       .map((part) => [part.type, Number(part.value)])
   );

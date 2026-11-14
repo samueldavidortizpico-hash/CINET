@@ -99,6 +99,11 @@ export default function MoviesPage() {
               {search.error.message} Mostrando el catálogo local de CINET.
             </p>
           )}
+          {useRemote && search.sortScope === "loaded" && (
+            <p className="catalog-notice" role="note">
+              Orden aplicado a los resultados cargados: TMDB no ordena las búsquedas por texto en todo su catálogo.
+            </p>
+          )}
 
           {showTabs && (
             <div className="result-tabs" role="tablist" aria-label="Categorías de resultados">

@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHmac } from "node:crypto";
 import { isIP } from "node:net";
 
 /* =========================================================
@@ -18,7 +18,28 @@ const TMDB_URL = "https://api.themoviedb.org/3";
 const MINUTE = 60;
 const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;
-const RATE_SCRIPT = `local a=redis.call('INCR',KEYS[1]); if a==1 then redis.call('PEXPIRE',KEYS[1],ARGV[1]); end; local b=redis.call('INCR',KEYS[2]); if b==1 then redis.call('PEXPIRE',KEYS[2],ARGV[1]); end; return {a,b,redis.call('PTTL',KEYS[1]),redis.call('PTTL',KEYS[2])}`;
+/*
+ * Cuota atómica (N06). KEYS: 1 identidad, 2 global, 3 rechazos. ARGV: 1 ventana ms, 2 máx. identidad, 3 máx. global.
+ * Orden: (1) si la identidad agotó su cupo se rechaza SIN tocar el global; (2) si el global de TRABAJO ADMITIDO
+ * está lleno se rechaza sin cargar a la identidad; (3) solo una consulta admitida suma a ambos.
+ * Los rechazos se cuentan aparte (observabilidad de abuso), nunca contra el presupuesto de los demás.
+ * Devuelve {admitido 0|1, motivo 0 ninguno|1 identidad|2 global, PTTL ms de la clave que bloquea}.
+ */
+export const RATE_SCRIPT = `
+local w = tonumber(ARGV[1])
+local function reject(reason, key)
+  if redis.call('INCR', KEYS[3]) == 1 then redis.call('PEXPIRE', KEYS[3], w) end
+  return {0, reason, redis.call('PTTL', key)}
+end
+if tonumber(redis.call('GET', KEYS[1]) or '0') >= tonumber(ARGV[2]) then return reject(1, KEYS[1]) end
+if tonumber(redis.call('GET', KEYS[2]) or '0') >= tonumber(ARGV[3]) then return reject(2, KEYS[2]) end
+if redis.call('INCR', KEYS[1]) == 1 then redis.call('PEXPIRE', KEYS[1], w) end
+if redis.call('INCR', KEYS[2]) == 1 then redis.call('PEXPIRE', KEYS[2], w) end
+return {1, 0, 0}`;
+
+/** Identidad de los bots de vista previa (Open Graph): un presupuesto propio dentro del global común (N07). */
+export const PREVIEW_IDENTITY = "preview-bots";
+export const PREVIEW_BUDGET = 120;
 
 function withoutAdultContent(value) {
   if (Array.isArray(value)) return value.map(withoutAdultContent).filter((item) => item !== null);
@@ -27,28 +48,32 @@ function withoutAdultContent(value) {
   return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, withoutAdultContent(item)]));
 }
 
-/** Limitador fijo y atómico compartido por instancias mediante Upstash REST/EVAL. */
-export function createUpstashRateLimiter({ url, token, fetchImpl = (...args) => fetch(...args), windowMs = 60_000, perIpMax = 600, globalMax = 12_000, now = Date.now } = {}) {
+/**
+ * Limitador fijo y atómico compartido por instancias mediante Upstash REST/EVAL.
+ * limiter(identity, { max }) → { allowed, retryAfter?, reason? } | { unavailable: true }.
+ * La identidad se guarda como HMAC (clave = token de Redis): nunca la IP en claro ni un hash reversible.
+ */
+export function createUpstashRateLimiter({ url, token, fetchImpl = (...args) => fetch(...args), windowMs = 60_000, perIpMax = 600, globalMax = 12_000, now = Date.now, prefix = "cinet:tmdb" } = {}) {
   if (!url || !token) throw new TypeError("Se requieren UPSTASH_REDIS_REST_URL y UPSTASH_REDIS_REST_TOKEN.");
-  return async (ip) => {
+  return async (identity, { max = perIpMax } = {}) => {
     const bucket = Math.floor(now() / windowMs);
-    const identity = createHash("sha256").update(ip || "unknown").digest("hex");
-    const keys = [`cinet:tmdb:ip:${identity}:${bucket}`, `cinet:tmdb:global:${bucket}`];
+    const key = createHmac("sha256", token).update(identity || "unknown").digest("hex");
+    const keys = [`${prefix}:id:${key}:${bucket}`, `${prefix}:global:${bucket}`, `${prefix}:rejected:${bucket}`];
     try {
       const response = await fetchImpl(url, {
         method: "POST",
         headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
-        body: JSON.stringify(["EVAL", RATE_SCRIPT, "2", ...keys, String(windowMs)]),
+        body: JSON.stringify(["EVAL", RATE_SCRIPT, "3", ...keys, String(windowMs), String(max), String(globalMax)]),
         signal: AbortSignal.timeout(1500),
       });
       if (!response.ok) return { unavailable: true };
       const payload = await response.json();
-      const [ipCount, globalCount, ipTtl, globalTtl] = payload.result ?? [];
-      if (![ipCount, globalCount, ipTtl, globalTtl].every(Number.isFinite)) return { unavailable: true };
-      if (ipCount > perIpMax || globalCount > globalMax) {
-        return { allowed: false, retryAfter: Math.max(1, Math.ceil(Math.max(ipCount > perIpMax ? ipTtl : 0, globalCount > globalMax ? globalTtl : 0) / 1000)) };
-      }
-      return { allowed: true };
+      const [admitted, reason, ttl] = Array.isArray(payload?.result) ? payload.result : [];
+      if (![admitted, reason, ttl].every(Number.isInteger) || ![0, 1].includes(admitted)) return { unavailable: true };
+      if (admitted === 1) return { allowed: true };
+      // PTTL -1/-2 (sin caducidad o clave ya vencida): se pide esperar la ventana completa, nunca menos.
+      const waitMs = ttl > 0 ? ttl : windowMs;
+      return { allowed: false, reason: reason === 2 ? "global" : "identity", retryAfter: Math.max(1, Math.ceil(waitMs / 1000)) };
     } catch {
       return { unavailable: true };
     }
@@ -141,7 +166,7 @@ export function createTmdbProxy({
 } = {}) {
   const windows = new Map(); // ip → { start, count }
 
-  function limited(ip) {
+  function limited(ip, max = limit.max) {
     const time = now();
     const key = ip || "unknown";
     const current = windows.get(key);
@@ -155,21 +180,22 @@ export function createTmdbProxy({
       return 0;
     }
     current.count += 1;
-    return current.count > limit.max ? Math.ceil((current.start + limit.windowMs - time) / 1000) : 0;
+    return current.count > max ? Math.ceil((current.start + limit.windowMs - time) / 1000) : 0;
   }
 
-  return async function handle({ method = "GET", path = "", query = new URLSearchParams(), ip = "" }) {
+  /** identityMax: cupo propio de una identidad (p. ej. bots de vista previa) dentro del mismo global. */
+  return async function handle({ method = "GET", path = "", query = new URLSearchParams(), ip = "", identityMax }) {
     if (method !== "GET") return fail(405, "method", "Solo se permite GET.", { allow: "GET" });
     const route = ROUTES.find(({ pattern }) => pattern.test(path));
     if (!route) return fail(404, "route", "Ruta no disponible.");
     const { params, error } = validParams(query);
     if (error) return fail(400, "params", error);
     if (sharedLimiter) {
-      const result = await sharedLimiter(ip);
+      const result = await sharedLimiter(ip, identityMax ? { max: identityMax } : undefined);
       if (result?.unavailable) return fail(503, "rate-limit-unavailable", "El catálogo no está disponible temporalmente.");
       if (!result?.allowed) return fail(429, "rate-limit", "Demasiadas consultas; intenta en unos segundos.", { "retry-after": String(result.retryAfter ?? 1) });
     } else {
-      const wait = limited(ip);
+      const wait = limited(ip, identityMax);
       if (wait) return fail(429, "rate-limit", "Demasiadas consultas; intenta en unos segundos.", { "retry-after": String(wait) });
     }
     if (!token) return fail(503, "no-token", "El catálogo en vivo no está configurado en el servidor.");
@@ -210,20 +236,50 @@ export function createTmdbProxy({
   };
 }
 
+/**
+ * Puerta ÚNICA de acceso a TMDB en producción (N07): /api/tmdb y /api/og la usan igual.
+ * Sin Redis falla cerrada (503): ninguna entrada consulta al proveedor sin la cuota compartida.
+ */
+export function createTmdbAccess(env = process.env, { fetchImpl } = {}) {
+  const sharedLimiter = env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN
+    ? createUpstashRateLimiter({ url: env.UPSTASH_REDIS_REST_URL, token: env.UPSTASH_REDIS_REST_TOKEN, ...(fetchImpl && { fetchImpl }) })
+    : async () => ({ unavailable: true });
+  return createTmdbProxy({ token: env.TMDB_READ_TOKEN, sharedLimiter, ...(fetchImpl && { fetchImpl }) });
+}
+
+/** Opciones de identidad del adaptador desde el entorno (ver .env.example: se confirman en staging, N16). */
+export function clientIpOptions(env = process.env) {
+  const header = String(env.TRUSTED_IP_HEADER ?? "").trim().toLowerCase();
+  return {
+    trustedProxyHops: Number.parseInt(env.TRUSTED_PROXY_HOPS ?? "0", 10) || 0,
+    trustedIpHeader: /^[a-z0-9-]{1,40}$/.test(header) ? header : "",
+  };
+}
+
+/**
+ * IP del cliente para la cuota (no es identidad de usuario):
+ * 1) trustedIpHeader: cabecera que la plataforma SOBRESCRIBE (confirmar en staging antes de activarla);
+ * 2) trustedProxyHops: posición contada desde el final de X-Forwarded-For (lo añadido por proxies propios);
+ * 3) dirección del socket. Un valor que no es IP válida se ignora.
+ */
+export function clientIp(req, { trustedProxyHops = 0, trustedIpHeader = "" } = {}) {
+  const fromHeader = trustedIpHeader ? String(req.headers?.[trustedIpHeader] ?? "").split(",")[0].trim() : "";
+  if (fromHeader && isIP(fromHeader)) return fromHeader;
+  const forwarded = String(req.headers?.["x-forwarded-for"] ?? "").split(",").map((part) => part.trim()).filter(Boolean);
+  const forwardedHop = Number.isInteger(trustedProxyHops) && trustedProxyHops > 0 ? forwarded[Math.max(0, forwarded.length - trustedProxyHops)] : "";
+  if (forwardedHop && isIP(forwardedHop)) return forwardedHop;
+  return req.socket?.remoteAddress || "unknown";
+}
+
 /** Adaptador Node (req, res) para Vercel y el servidor de Vite. Acepta /api/tmdb/<ruta> o ?path=<ruta>. */
-export function nodeHandler(handle, { trustedProxyHops = 0 } = {}) {
+export function nodeHandler(handle, ipOptions = {}) {
   return async (req, res) => {
     const url = new URL(req.url ?? "/", "http://localhost");
     const fromQuery = url.searchParams.get("path");
     url.searchParams.delete("path");
     const path = fromQuery != null ? `/${fromQuery.replace(/^\/+/, "")}` : url.pathname.replace(/^\/api\/tmdb/, "") || "/";
-    const forwarded = String(req.headers?.["x-forwarded-for"] ?? "").split(",").map((part) => part.trim()).filter(Boolean);
-    const forwardedHop = Number.isInteger(trustedProxyHops) && trustedProxyHops > 0
-      ? forwarded[Math.max(0, forwarded.length - trustedProxyHops)]
-      : "";
-    const hop = forwardedHop && isIP(forwardedHop) ? forwardedHop : "";
     try {
-      const result = await handle({ method: req.method, path, query: url.searchParams, ip: hop || req.socket?.remoteAddress || "unknown" });
+      const result = await handle({ method: req.method, path, query: url.searchParams, ip: clientIp(req, ipOptions) });
       res.statusCode = result.status;
       for (const [key, value] of Object.entries(result.headers)) res.setHeader(key, value);
       res.end(result.body);

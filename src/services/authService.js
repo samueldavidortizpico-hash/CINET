@@ -5,6 +5,7 @@
    ========================================================= */
 
 import { supabase } from "./supabaseClient.js";
+import { clientEnv } from "../utils/env.js";
 
 const MESSAGES = {
   invalid_credentials: "Correo o contraseña incorrectos.",
@@ -21,7 +22,10 @@ const MESSAGES = {
   email_address_invalid: "Ese correo no es válido.",
 };
 
-const appUrl = (path = "") => `${window.location.origin}${import.meta.env.BASE_URL}${path}`;
+// En el WebView de Capacitor el origen es https://localhost (inservible en un correo): se usa el origen web público.
+const HTTPS_ORIGIN = /^https:\/\/[\w.-]+(:\d+)?$/;
+const publicOrigin = () => (HTTPS_ORIGIN.test(clientEnv.APP_ORIGIN ?? "") ? clientEnv.APP_ORIGIN : window.location.origin);
+const appUrl = (path = "") => `${publicOrigin()}${import.meta.env.BASE_URL}${path}`;
 
 function toError(error) {
   return new Error(MESSAGES[error.code] ?? "No pudimos conectar con el servidor. Inténtalo de nuevo.");
@@ -36,45 +40,61 @@ function client() {
  * Usuario de Supabase → forma que usa la app ({ id, name, email, guest }).
  * Un invitado (Auth anónima) no tiene email y nunca se trata como cuenta permanente.
  */
-export const toAppUser = (user) =>
+export const toAppUser = (user, accessToken) =>
   user && {
     id: user.id,
     email: user.email || null,
     guest: Boolean(user.is_anonymous),
     name: user.user_metadata?.name || user.email?.split("@")[0] || "Invitado",
+    jwtRole: tokenRole(accessToken),
   };
+
+/**
+ * Rol de la app ('user' | 'admin') del claim app_role que pone la base (custom_access_token_hook).
+ * null si el token no lo trae (hook sin activar): entonces manda profiles.role. Solo decide la interfaz;
+ * la API (server/api.js) y la RLS lo comprueban por su cuenta.
+ */
+export function tokenRole(accessToken) {
+  try {
+    const claims = JSON.parse(atob(String(accessToken).split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+    return claims.app_role === "admin" || claims.app_role === "user" ? claims.app_role : null;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Entrar como invitado (sin email) para unirse a una sala o a un plan con enlace; no puede crear.
  * Requiere habilitar "Anonymous sign-ins" en Supabase. La sesión vive solo en este navegador:
  * al cerrarla o borrar los datos del navegador se pierde el acceso.
  */
-export async function continueAsGuest(name) {
-  const { data, error } = await client().auth.signInAnonymously({ options: { data: { name: name.trim() } } });
+export async function continueAsGuest(name, captchaToken) {
+  const { data, error } = await client().auth.signInAnonymously({ options: { data: { name: name.trim() }, captchaToken } });
   if (error?.code === "anonymous_provider_disabled") throw new Error("El acceso como invitado no está habilitado. Inicia sesión o crea una cuenta.");
   if (error) throw toError(error);
   return toAppUser(data.user);
 }
 
 /** Devuelve { user, needsConfirmation }. Sin sesión = Supabase pidió confirmar el correo. */
-export async function register({ name, email, password }) {
+export async function register({ name, email, password, captchaToken }) {
   const { data, error } = await client().auth.signUp({
     email: email.trim(),
     password,
     options: {
+      captchaToken, // solo si Supabase tiene CAPTCHA activo (components/auth/Captcha.jsx)
       data: { name: name.trim() },
       // La raíz (Site URL de Supabase) siempre está permitida; el destino pendiente lo retoma la entrada.
       emailRedirectTo: appUrl(),
     },
   });
   if (error) throw toError(error);
-  // Con confirmación activa, un correo ya registrado vuelve sin error pero sin identidades.
-  if (data.user?.identities?.length === 0) throw new Error(MESSAGES.user_already_exists);
+  // Con confirmación activa, un correo ya registrado vuelve sin error y sin identidades. Se responde
+  // igual que a uno nuevo ("revisa tu correo") para no revelar qué correos tienen cuenta (H-04).
   return { user: toAppUser(data.user), needsConfirmation: !data.session };
 }
 
-export async function login({ email, password }) {
-  const { data, error } = await client().auth.signInWithPassword({ email: email.trim(), password });
+export async function login({ email, password, captchaToken }) {
+  const { data, error } = await client().auth.signInWithPassword({ email: email.trim(), password, options: { captchaToken } });
   if (error) throw toError(error);
   return toAppUser(data.user);
 }
@@ -83,8 +103,8 @@ export async function login({ email, password }) {
  * Envía el enlace para crear una contraseña nueva. Supabase responde igual exista o no la cuenta
  * (no revela qué correos están registrados). La URL debe estar en Auth > URL Configuration > Redirect URLs.
  */
-export async function requestPasswordReset(email) {
-  const { error } = await client().auth.resetPasswordForEmail(email.trim(), { redirectTo: appUrl("nueva-contrasena") });
+export async function requestPasswordReset(email, captchaToken) {
+  const { error } = await client().auth.resetPasswordForEmail(email.trim(), { redirectTo: appUrl("nueva-contrasena"), captchaToken });
   if (error) throw toError(error);
 }
 

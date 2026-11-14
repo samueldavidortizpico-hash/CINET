@@ -70,8 +70,9 @@ test("ojo de contraseña: alterna sin perder el valor y no envía el formulario"
   await expect(page.locator("#password-confirm-error")).toHaveText(/no coinciden/);
   await page.locator("#password-confirm").fill("secreta123");
   await page.getByRole("button", { name: "Crear mi cuenta" }).click();
-  // El Supabase de pruebas no admite registros nuevos: se muestra el error real traducido.
-  await expect(page.getByRole("alert")).toHaveText(/registro de cuentas nuevas está cerrado/);
+  // Confirmación de correo activa (H-04): no hay sesión hasta abrir el enlace y se vuelve a "Iniciar sesión".
+  await expect(page.getByText(/Te enviamos un correo a/)).toBeVisible();
+  await expect(page.getByRole("tab", { name: "Iniciar sesión" })).toHaveAttribute("aria-selected", "true");
 });
 
 test("ruta protegida → acceso → vuelve al destino; roles en el panel", async ({ page }) => {
@@ -81,8 +82,10 @@ test("ruta protegida → acceso → vuelve al destino; roles en el panel", async
   await signIn(page, "ana@cinet.test");
   await expect(page).toHaveURL(/\/dashboard$/);
 
-  await page.goto("/admin"); // usuaria sin rol admin
-  await expect(page).toHaveURL(/\/dashboard$/);
+  await page.goto("/admin"); // usuaria con app_role = user en el JWT
+  await expect(page).toHaveURL(/\/admin$/);
+  await expect(page.getByRole("heading", { level: 1, name: "Acceso restringido" })).toBeVisible();
+  await expect(page.getByText(/error 403/)).toBeVisible();
   await page.getByRole("button", { name: /Tu cuenta/ }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
   await expect(page.getByRole("link", { name: "Administración" })).toHaveCount(0);
@@ -186,4 +189,123 @@ test("enlace de recuperación inválido: error recuperable", async ({ page }) =>
   await expect(page.getByRole("alert")).toContainText("El enlace no es válido o ya caducó");
   await page.getByRole("link", { name: "Pedir otro enlace" }).click();
   await expect(page).toHaveURL(/\/recuperar$/);
+});
+
+
+test("URLs de acceso: pestañas, recarga, atrás y adelante conservan la vista", async ({ page }) => {
+  await page.goto("/login");
+  await page.getByRole("tab", { name: "Crear cuenta" }).click();
+  await expect(page).toHaveURL(/\/register$/);
+  await page.reload();
+  await expect(page.getByRole("tab", { name: "Crear cuenta" })).toHaveAttribute("aria-selected", "true");
+  await page.getByRole("tab", { name: /Iniciar sesi/ }).click();
+  await page.goBack();
+  await expect(page.locator("#name")).toBeVisible();
+  await page.goForward();
+  await expect(page.locator("#name")).toHaveCount(0);
+  await page.goto("/registro");
+  await expect(page.locator("#name")).toBeVisible();
+});
+
+test("carga real: bloquea envíos duplicados y permite reintentar tras un error", async ({ page }) => {
+  let attempts = 0;
+  let release;
+  const gate = new Promise((resolve) => { release = resolve; });
+  await page.route("**/auth/v1/token?grant_type=password", async (route) => {
+    attempts++;
+    await gate;
+    await route.continue();
+  });
+  await page.goto("/login");
+  await signIn(page, "ana@cinet.test", "incorrecta");
+  await expect(page.locator(".auth-form")).toHaveAttribute("aria-busy", "true");
+  await expect(page.getByRole("button", { name: /Entrando/ })).toBeDisabled();
+  await page.locator(".auth-form").evaluate((form) => {
+    form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+    form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+  });
+  await page.screenshot({ path: "audit/login-loading-1440.png" });
+  expect(attempts).toBe(1);
+  release();
+  await expect(page.getByRole("alert")).toContainText("incorrectos");
+  await signIn(page, "ana@cinet.test");
+  await expect(page).toHaveURL(/\/home$/);
+});
+
+test("sesión caducada sin refresh válido vuelve al login y conserva el destino", async ({ page }) => {
+  await page.goto("/login");
+  await signIn(page, "ana@cinet.test");
+  await expect(page).toHaveURL(/\/home$/);
+  await page.evaluate(() => {
+    for (const key of Object.keys(localStorage)) {
+      if (!key.endsWith("-auth-token")) continue;
+      const session = JSON.parse(localStorage.getItem(key));
+      session.expires_at = 1;
+      session.refresh_token = "expired-test-session";
+      localStorage.setItem(key, JSON.stringify(session));
+    }
+  });
+  await page.goto("/dashboard?section=saved#plans");
+  await expect(page).toHaveURL(/\/login$/);
+  await signIn(page, "ana@cinet.test");
+  await expect(page).toHaveURL(/\/dashboard\?section=saved#plans$/);
+});
+
+test("login adaptable sin desbordamiento, con capturas y movimiento reducido", async ({ page }) => {
+  for (const width of [390, 834, 1440]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await page.goto("/login");
+    await expect(heading(page)).toBeVisible();
+    await page.evaluate(async () => {
+      await document.fonts.ready;
+      await Promise.all(document.getAnimations().filter((a) => a.effect.getTiming().iterations !== Infinity).map((a) => a.finished.catch(() => {})));
+    });
+    await page.screenshot({ path: `audit/login-${width}.png`, fullPage: true });
+    await page.locator("#email").fill("correo-invalido");
+    await page.getByRole("button", { name: "Entrar a CINET" }).click();
+    await expect(page.locator("#email-error")).toContainText("válido");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+    await page.screenshot({ path: `audit/login-validation-${width}.png`, fullPage: true });
+  }
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  await expect(heading(page)).toBeVisible();
+  expect(await page.locator(".auth-story").evaluate((el) => getComputedStyle(el).animationName)).toBe("none");
+});
+
+test("alias públicos, acceso directo, recarga y 404", async ({ page }) => {
+  for (const path of ["/catalogo", "/peliculas", "/planes", "/duo"]) {
+    await page.goto(path);
+    await expect(page.locator("main")).toBeVisible();
+    await page.reload();
+    await expect(page).toHaveURL(new RegExp(`${path}$`));
+  }
+  await page.goto("/perfil");
+  await expect(page).toHaveURL(/\/login$/);
+  await page.goto("/ruta-inexistente-auditoria");
+  await expect(page.getByRole("heading", { name: "Página no encontrada" })).toBeVisible();
+});
+
+test("nombre con HTML se muestra como texto y no ejecuta scripts", async ({ page }) => {
+  await page.goto("/login");
+  await signIn(page, "ana@cinet.test");
+  await expect(page).toHaveURL(/\/home$/);
+  const session = await page.evaluate(() => {
+    const key = Object.keys(localStorage).find((key) => key.endsWith("-auth-token"));
+    return JSON.parse(localStorage.getItem(key));
+  });
+  const payload = "<img src=x onerror=window.xssAudit=1>";
+  const url = `/rest/v1/profiles?id=eq.${session.user.id}`;
+  const headers = { Authorization: `Bearer ${session.access_token}`, apikey: "e2e-publishable-key" };
+  const [original] = await (await page.request.get(`${url}&select=display_name`, { headers })).json();
+  try {
+    const response = await page.request.patch(url, { headers, data: { display_name: payload } });
+    expect(response.ok()).toBeTruthy();
+    await page.reload();
+    await expect(page.getByRole("button", { name: `Tu cuenta: ${payload}` })).toBeVisible();
+    expect(await page.evaluate(() => window.xssAudit)).toBeUndefined();
+  } finally {
+    const restored = await page.request.patch(url, { headers, data: { display_name: original.display_name } });
+    expect(restored.ok()).toBeTruthy();
+  }
 });

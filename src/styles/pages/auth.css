@@ -30,6 +30,80 @@
 }
 .auth-screen.is-splash { justify-content: center; }
 
+/* Composición de estreno: conserva carbón, coral y la marca de CINET. */
+.auth-screen { background: radial-gradient(ellipse at 0% 100%, #25131e 0, transparent 55%), var(--auth-bg); }
+.auth-screen.is-auth { padding-top: max(36px, env(safe-area-inset-top)); padding-bottom: 40px; }
+.auth-story { display: none; }
+.auth-screen .auth-card {
+  width: min(100%, 456px);
+  padding: clamp(22px, 4vw, 36px);
+  border: 1px solid rgba(255, 174, 157, 0.17);
+  border-radius: 28px;
+  background: linear-gradient(145deg, rgba(39, 29, 35, 0.96), rgba(16, 14, 20, 0.98));
+  box-shadow: 0 32px 100px #0005, inset 0 1px 0 #ffffff0d;
+}
+.auth-screen .auth-submit {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(115deg, #c52238, #dc3844);
+  box-shadow: 0 8px 26px #d6283929;
+  transition: transform 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
+}
+.auth-screen .auth-submit:hover:not(:disabled) { box-shadow: 0 12px 32px #d628394d; transform: translateY(-2px); }
+.auth-screen .auth-submit:active:not(:disabled) { transform: translateY(0) scale(0.99); }
+.auth-form[aria-busy="true"] .auth-submit::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(100deg, transparent 25%, #ffffff26 50%, transparent 75%);
+  transform: translateX(-100%);
+}
+.auth-screen .auth-spinner { display: inline-block; flex: 0 0 auto; width: 20px; height: 20px; border-width: 2px; }
+.auth-reel { display: flex; align-items: center; gap: 5px; height: 28px; color: var(--auth-coral); }
+.auth-reel i { display: block; width: 4px; height: 18px; border-radius: 5px; background: currentColor; opacity: 0.65; }
+.auth-reel i:nth-child(2n) { height: 26px; }
+.auth-screen .auth-field:focus-within label { color: #ffd0c9; }
+.auth-screen .form-error { padding: 12px 14px; border-radius: 12px; background: #ff6a5c0f; border: 1px solid #ff6a5c33; }
+@keyframes auth-sweep { to { transform: translateX(100%); } }
+@keyframes auth-wave { 0%, 100% { transform: scaleY(0.45); opacity: 0.45; } 50% { transform: scaleY(1); opacity: 1; } }
+@media (min-width: 1000px) {
+  .auth-screen.is-auth {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 456px);
+    grid-template-rows: auto 1fr;
+    align-content: center;
+    align-items: center;
+    column-gap: clamp(48px, 7vw, 120px);
+    padding-inline: max(48px, calc((100vw - 1200px) / 2));
+  }
+  .is-auth .auth-brand { grid-column: 1; grid-row: 1; justify-self: start; }
+  .is-auth .brand-lockup--stacked { flex-direction: row; gap: 14px; }
+  .auth-story { display: block; grid-column: 1; grid-row: 2; max-width: 580px; padding-block: 40px; }
+  .auth-story .auth-kicker { color: #ffb3a9; font-size: 0.72rem; letter-spacing: 0.2em; font-weight: 700; }
+  .auth-story h2 { color: var(--auth-text); font: 700 clamp(2.6rem, 4.5vw, 4.5rem)/1.08 var(--font-display); letter-spacing: -0.045em; margin: 24px 0; }
+  .auth-story h2 span { color: #ff9688; }
+  .auth-story > p:last-of-type { color: var(--auth-soft); font-size: 1.1rem; max-width: 410px; line-height: 1.75; }
+  .auth-ticket { margin-top: 48px; padding: 24px; border: 1px solid #ffb3a92b; border-radius: 18px; transform: rotate(-3deg); background: linear-gradient(120deg, #ff6a5c12, #ffffff03); max-width: 390px; }
+  .auth-ticket > span { color: #ffb3a9; font-size: 0.65rem; letter-spacing: 0.14em; }
+  .auth-ticket strong { display: block; margin: 14px 0 24px; font: 500 1.25rem var(--font-display); }
+  .auth-ticket-line { display: flex; align-items: center; gap: 10px; padding-top: 18px; border-top: 1px dashed #ffffff30; color: var(--auth-muted); font-size: 0.6rem; letter-spacing: 0.1em; }
+  .auth-ticket-line i { flex: 1; height: 1px; background: #ffb3a94d; }
+  .auth-screen .auth-card { grid-column: 2; grid-row: 1 / 3; margin: 0; }
+  .is-auth .auth-light::before { left: 20%; top: 50%; width: 1000px; }
+  .is-auth .auth-light::after { left: 24%; top: 27%; width: 900px; opacity: 0.4; }
+}
+@media (max-width: 480px) {
+  .auth-screen.is-auth { padding-inline: 12px; padding-top: 24px; }
+  .auth-screen .auth-card { padding: 24px 18px; margin-top: 22px; border-radius: 22px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  html:not([data-motion="reduced"]) .auth-form[aria-busy="true"] .auth-submit::after { animation: auth-sweep 1.8s ease-in-out infinite; }
+  html:not([data-motion="reduced"]) .auth-reel i { animation: auth-wave 1.2s ease-in-out infinite; }
+  html:not([data-motion="reduced"]) .auth-reel i:nth-child(2) { animation-delay: 120ms; }
+  html:not([data-motion="reduced"]) .auth-reel i:nth-child(3) { animation-delay: 240ms; }
+  html:not([data-motion="reduced"]) .auth-reel i:nth-child(4) { animation-delay: 360ms; }
+  html:not([data-motion="reduced"]) .auth-reel i:nth-child(5) { animation-delay: 480ms; }
+  html:not([data-motion="reduced"]) .auth-story { animation: auth-rise 700ms ease-out both; }
+}
+
 .visually-hidden {
   position: absolute !important;
   width: 1px;

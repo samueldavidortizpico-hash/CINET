@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import PasswordField from "./PasswordField.jsx";
+import Captcha from "./Captcha.jsx";
+import { CAPTCHA_MISSING, captchaEnabled } from "./captchaConfig.js";
 import { useAuth } from "../../hooks/useAuth.js";
 import { hasErrors, validateConfirm, validateForm, validateLogin } from "../../utils/validation.js";
 
@@ -23,6 +25,9 @@ export default function AuthForm({ mode, initialEmail = "", onSuccess, forgotSta
   const [submitted, setSubmitted] = useState(false);
   const [serverError, setServerError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [captchaRound, setCaptchaRound] = useState(0);
+  const pending = useRef(false);
 
   const errors = isRegister
     ? { ...validateForm(values.name, values.email, values.password), confirm: validateConfirm(values.password, values.confirm) }
@@ -32,20 +37,29 @@ export default function AuthForm({ mode, initialEmail = "", onSuccess, forgotSta
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (busy) return;
+    if (pending.current) return;
     setSubmitted(true);
     if (hasErrors(errors)) {
       const first = Object.keys(errors).find((name) => errors[name]);
       event.currentTarget.elements.namedItem(FIELD_NAMES[first] ?? first)?.focus();
       return;
     }
+    if (captchaEnabled && !captchaToken) {
+      setServerError(CAPTCHA_MISSING);
+      return;
+    }
+    pending.current = true;
     setBusy(true);
     setServerError("");
     try {
-      onSuccess(await (isRegister ? register(values) : login(values)));
+      const input = { ...values, captchaToken: captchaToken || undefined };
+      onSuccess(await (isRegister ? register(input) : login(input)));
     } catch (error) {
       setServerError(error.message);
+    } finally {
+      pending.current = false;
       setBusy(false);
+      setCaptchaRound((round) => round + 1); // el token ya se gastó
     }
   };
 
@@ -105,9 +119,11 @@ export default function AuthForm({ mode, initialEmail = "", onSuccess, forgotSta
         </Link>
       )}
 
+      <Captcha onToken={setCaptchaToken} resetKey={captchaRound} />
+
       {serverError && <p className="form-error" role="alert">{serverError}</p>}
 
-      <button type="submit" className="btn btn-primary auth-submit" disabled={busy}>
+      <button type="submit" className="btn btn-primary auth-submit" disabled={busy} aria-live="polite">
         {busy && <span className="auth-spinner" aria-hidden="true" />}
         {busy ? (isRegister ? "Creando tu cuenta…" : "Entrando…") : isRegister ? "Crear mi cuenta" : "Entrar a CINET"}
       </button>

@@ -8,6 +8,7 @@
 
 import { supabase } from "./supabaseClient.js";
 import { describeStart, parseBudget, toStartParts } from "./planService.js";
+import { decodeDetails, decodePlace, decodeTitle } from "./planContract.js";
 
 const SELECT = "id, owner_id, name, message, mode, title_id, title, place, starts_at, time_zone, time_source, details, status, version, created_at, updated_at, group_id, repeat_every, plan_members (user_id, role, display_name, rsvp, responded_at)";
 export { SELECT as PLAN_SELECT }; // la usa groupRepository (planes de un grupo)
@@ -45,14 +46,14 @@ async function call(name, args) {
   return data;
 }
 
-/** Fila de Supabase → plan para la interfaz. */
+/** Fila de Supabase → plan para la interfaz. Decodifica el contrato v1: un campo dañado se vacía, no rompe la vista. */
 export function toUiPlan(row, userId) {
-  const members = (row.plan_members ?? [])
-    .map((member) => ({ userId: member.user_id, name: member.display_name, role: member.role, rsvp: member.rsvp }))
+  const members = (Array.isArray(row.plan_members) ? row.plan_members : [])
+    .map((member) => ({ userId: member.user_id, name: String(member.display_name ?? ""), role: member.role, rsvp: member.rsvp }))
     .sort((a, b) => (a.role === "owner" ? -1 : b.role === "owner" ? 1 : 0));
   const rsvp = { yes: [], maybe: [], no: [] };
-  members.forEach((member) => member.rsvp && rsvp[member.rsvp].push(member.name));
-  const details = row.details ?? {};
+  members.forEach((member) => rsvp[member.rsvp]?.push(member.name));
+  const details = decodeDetails(row.details);
   const start = describeStart(row.starts_at, row.time_zone);
   return {
     id: row.id,
@@ -64,17 +65,17 @@ export function toUiPlan(row, userId) {
     message: row.message,
     mode: row.mode,
     organizer: members.find((member) => member.role === "owner")?.name ?? "",
-    movie: { id: row.title_id, title: "", genres: [], ...row.title },
-    cinema: { name: "", location: "", ...row.place },
+    movie: { ...decodeTitle(row.title), id: row.title_id },
+    cinema: decodePlace(row.place),
     ...start,
     startsAt: row.starts_at,
     timeZone: row.time_zone,
     timeSource: row.time_source,
-    ambience: details.ambience ?? null,
-    food: details.food ?? null,
-    duration: details.duration ?? null,
-    marathon: details.marathon ?? null,
-    budget: Number.isInteger(details.budget) ? details.budget : null,
+    ambience: details.ambience,
+    food: details.food,
+    duration: details.duration,
+    marathon: details.marathon,
+    budget: details.budget,
     createdAt: row.created_at,
     groupId: row.group_id ?? null,
     repeatEvery: row.repeat_every ?? null, // Plus: week | 2weeks | month
@@ -85,10 +86,31 @@ export function toUiPlan(row, userId) {
   };
 }
 
+/** Varias filas: una que falle al adaptarse se aparta (sin datos en el log) y las demás se muestran. */
+export function toUiPlans(rows, userId) {
+  const plans = [];
+  for (const row of rows ?? []) {
+    try {
+      plans.push(toUiPlan(row, userId));
+    } catch (error) {
+      console.warn("Plan omitido por datos no válidos", row?.id, error?.name);
+    }
+  }
+  return plans;
+}
+
+/** Tope de la lista (H-07): nunca se descarga el historial completo. */
+export const PLAN_LIST_LIMIT = 200;
+
+// ponytail: los 200 más recientes sin cursor; paginar por created_at (keyset) cuando alguien los supere.
 export async function listPlans(userId) {
-  const { data, error } = await client().from("plans").select(SELECT).order("created_at", { ascending: true });
+  const { data, error } = await client()
+    .from("plans")
+    .select(SELECT)
+    .order("created_at", { ascending: false })
+    .limit(PLAN_LIST_LIMIT);
   if (error) throw toPlanError(error);
-  return data.map((row) => toUiPlan(row, userId));
+  return toUiPlans([...(data ?? [])].reverse(), userId); // la app los usa del más antiguo al más nuevo
 }
 
 /** null si no existe o no eres miembro (RLS no distingue: así no se filtra si existe). */

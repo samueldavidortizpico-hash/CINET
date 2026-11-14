@@ -1,10 +1,25 @@
 import { useEffect, useState } from "react";
-import { isAdvancedActive, searchCatalog } from "../services/movieService.js";
+import { isAdvancedActive, searchCatalog, sortTitles } from "../services/movieService.js";
 import { isTmdbEnabled } from "../services/tmdbClient.js";
 
 const DEBOUNCE_MS = 400;
-const EMPTY = { key: null, titles: [], people: [], page: 0, totalPages: 0, error: null, loadingMore: false };
+const EMPTY = { key: null, titles: [], people: [], page: 0, totalPages: 0, sortScope: "relevance", error: null, loadingMore: false };
 export const applySearchError = (current, key, error) => current.key !== key ? current : { ...current, error, loadingMore: false };
+
+const unique = (list) => list.filter((item, index) => list.findIndex((other) => other.id === item.id) === index);
+
+/** Une otra página; si el orden es «de lo cargado» (N10), reordena todo el conjunto, no solo la página nueva. */
+export function mergeSearchPage(current, result, sort) {
+  const titles = unique([...current.titles, ...result.titles]);
+  return {
+    ...current,
+    titles: result.sortScope === "loaded" ? sortTitles(titles, sort) : titles,
+    people: unique([...current.people, ...result.people]),
+    page: result.page,
+    totalPages: result.totalPages,
+    loadingMore: false,
+  };
+}
 
 /** Valor que solo cambia tras `delay` ms sin cambios (búsqueda mientras se escribe). */
 export function useDebounced(value, delay) {
@@ -16,7 +31,6 @@ export function useDebounced(value, delay) {
   return debounced;
 }
 
-const unique = (list) => list.filter((item, index) => list.findIndex((other) => other.id === item.id) === index);
 
 /**
  * Búsqueda remota del catálogo (TMDB) con debounce y "Cargar más".
@@ -43,19 +57,7 @@ export function useTitleSearch(filters) {
   const loadMore = () => {
     setState((current) => ({ ...current, loadingMore: true }));
     searchCatalog(JSON.parse(key), state.page + 1).then(
-      (result) =>
-        setState((current) =>
-          current.key !== key
-            ? current
-            : {
-                ...current,
-                titles: unique([...current.titles, ...result.titles]),
-                people: unique([...current.people, ...result.people]),
-                page: result.page,
-                totalPages: result.totalPages,
-                loadingMore: false,
-              }
-        ),
+      (result) => setState((current) => (current.key !== key ? current : mergeSearchPage(current, result, JSON.parse(key).sort))),
       (error) => setState((current) => applySearchError(current, key, error))
     );
   };
@@ -67,6 +69,7 @@ export function useTitleSearch(filters) {
     titles: current ? state.titles : [],
     people: current ? state.people : [],
     error: current ? state.error : null,
+    sortScope: current ? state.sortScope : "relevance",
     hasMore: current && state.page < state.totalPages,
     loadingMore: current && state.loadingMore,
     loadMore,

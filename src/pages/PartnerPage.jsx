@@ -224,15 +224,47 @@ function OrgPanel({ org, user }) {
         <section className="room-card">
           <h2>Equipo y auditoría</h2>
           <ul className="partner-list">{data.members.map((member) => <li key={member.user_id}><span>{member.user_id === user.id ? "Tú" : `Cuenta …${member.user_id.slice(-4)}`} · {member.role === "admin" ? "administra" : "edita"}</span></li>)}</ul>
-          <form className="partner-form partner-inline" onSubmit={async (event) => { event.preventDefault(); if (await act(() => repo.addMember(org.id, email), "Persona agregada")) setEmail(""); }}>
-            <label className="duo-field"><span>Correo de la cuenta en CINET</span><input type="email" required value={email} onChange={(event) => setEmail(event.target.value)} /></label>
-            <Button variant="secondary" type="submit" disabled={busy}>Agregar editor</Button>
+          <form className="partner-form partner-inline" onSubmit={async (event) => { event.preventDefault(); if (await act(() => repo.inviteMember(org.id, email), "Si el correo tiene cuenta, verá la invitación y podrá aceptarla")) setEmail(""); }}>
+            <label className="duo-field"><span>Correo de la persona a invitar</span><input type="email" required value={email} onChange={(event) => setEmail(event.target.value)} /></label>
+            <Button variant="secondary" type="submit" disabled={busy}>Invitar editor</Button>
           </form>
           <h3>Últimos cambios</h3>
           <ol className="partner-audit">{data.audit.map((entry) => <li key={entry.id}>{when(entry.at)} · {entry.action} · {entry.entity}{entry.actor === user.id ? " · tú" : ""}</li>)}</ol>
         </section>
       )}
     </>
+  );
+}
+
+/** Invitaciones a organizaciones dirigidas a mi correo: solo soy miembro si las acepto (N04). */
+function ReceivedInvites({ onChange }) {
+  const { showToast } = useToast();
+  const [version, setVersion] = useState(0);
+  const { data: invites } = useAsync(`org-invites-${version}`, () => repo.myOrgInvites().catch(() => []));
+  if (!invites?.length) return null;
+  const answer = async (action, message) => {
+    try {
+      await action();
+      showToast(message);
+      setVersion((value) => value + 1);
+      onChange();
+    } catch (error) {
+      showToast(error.message);
+    }
+  };
+  return (
+    <section className="room-card" aria-label="Invitaciones recibidas">
+      <h2>Invitaciones recibidas</h2>
+      <ul className="partner-list">
+        {invites.map((invite) => (
+          <li key={invite.id}>
+            <span>{invite.org_name} · como {invite.role === "admin" ? "administrador" : "editor"}</span>
+            <Button variant="primary" onClick={() => answer(() => repo.acceptOrgInvite(invite.id), "Te uniste a la organización")}>Aceptar</Button>
+            <Button variant="secondary" onClick={() => answer(() => repo.declineOrgInvite(invite.id), "Invitación rechazada")}>Rechazar</Button>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
@@ -272,6 +304,7 @@ export default function PartnerPage() {
 
   return shell(
     <>
+      <ReceivedInvites onChange={() => setVersion((value) => value + 1)} />
       {orgs.length > 1 && (
         <div className="duo-chips" role="radiogroup" aria-label="Organización">
           {orgs.map((org) => (

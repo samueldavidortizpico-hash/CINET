@@ -21,26 +21,36 @@ export function AuthProvider({ children }) {
     // Emite INITIAL_SESSION al suscribirse (sesión guardada) y luego cada login/logout/refresco.
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       clearTimeout(slow);
-      setUser(authService.toAppUser(session?.user ?? null));
+      setUser(authService.toAppUser(session?.user ?? null, session?.access_token));
       setLoading(false);
       if (session) setRestoreError("");
     });
     // Si había sesión guardada pero no se pudo renovar (sin red, servidor caído), el listener emite null:
     // se avisa con un error recuperable en vez de tratarlo como "nunca hubo sesión".
-    supabase.auth.getSession().then(({ error }) => error && setRestoreError(RESTORE_ERROR));
+    let active = true;
+    supabase.auth.getSession()
+      .then(({ error }) => active && error && setRestoreError(RESTORE_ERROR))
+      .catch(() => active && setRestoreError(RESTORE_ERROR));
     return () => {
+      active = false;
       clearTimeout(slow);
       data.subscription.unsubscribe();
     };
   }, []);
 
   const retryRestore = useCallback(async () => {
+    if (!supabase) return;
     setRestoreError("");
     setLoading(true);
-    const { data, error } = await supabase.auth.getSession();
-    if (error) setRestoreError(RESTORE_ERROR);
-    else setUser(authService.toAppUser(data.session?.user ?? null));
-    setLoading(false);
+    try {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) setRestoreError(RESTORE_ERROR);
+      else setUser(authService.toAppUser(data.session?.user ?? null, data.session?.access_token));
+    } catch {
+      setRestoreError(RESTORE_ERROR);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   // Perfil (role incluido) aparte del listener: Supabase desaconseja pedir datos dentro de él.
@@ -84,7 +94,8 @@ export function AuthProvider({ children }) {
         ...user,
         name: profile?.display_name || profile?.username || user.name,
         avatarUrl: profile?.avatar_url ?? null,
-        role: profile?.role ?? "user",
+        // Dos roles: el claim app_role del JWT; sin él (hook apagado), profiles.role normalizado.
+        role: user.jwtRole ?? (profile?.role === "admin" ? "admin" : "user"),
       },
       profile,
       profileLoading: Boolean(userId) && !current,

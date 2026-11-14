@@ -13,6 +13,7 @@
     "pretest:e2e": "node scripts/build-e2e.mjs",
     "test:e2e": "playwright test",
     "test:tmdb": "node --env-file=.env --test scripts/tmdb-live.mjs",
+    "smoke": "node scripts/smoke.mjs",
     "catalog:snapshot": "node --env-file=.env scripts/catalog-snapshot.mjs",
     "eas-build-post-install": "vite build && cap sync android",
     "apk": "eas build -p android --profile preview"
@@ -38,5 +39,9 @@
     "globals": "^17.12.0",
     "supabase": "^2.118.0",
     "vite": "^8.3.1"
+  },
+  "overrides": {
+    "minimatch": "^11.0.5",
+    "rimraf": "^6.1.4"
   }
 }

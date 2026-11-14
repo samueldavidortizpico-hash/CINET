@@ -15,7 +15,8 @@ schemas = ["public", "graphql_public"]
 extra_search_path = ["public", "extensions"]
 # The maximum number of rows returns from a view, table, or stored procedure. Limits payload size
 # for accidental or malicious requests.
-max_rows = 1000
+# Auditoría H-07: tope de servidor por debajo del cual pagina la app (listPlans pide ≤ 200).
+max_rows = 500
 # Controls whether new tables, views, sequences and functions created in the `public` schema by
 # `postgres` are reachable through the Data API roles (`anon`, `authenticated`, `service_role`)
 # without explicit GRANTs, matching the cloud default. Set to `false` to require explicit GRANTs
@@ -178,7 +179,7 @@ enable_anonymous_sign_ins = false
 # Allow/disallow testing manual linking of accounts
 enable_manual_linking = false
 # Passwords shorter than this value will be rejected as weak. Minimum 6, recommended 8 or more.
-minimum_password_length = 6
+minimum_password_length = 8
 # Passwords that do not meet the following requirements will be rejected as weak. Supported values
 # are: `letters_digits`, `lower_upper_letters_digits`, `lower_upper_letters_digits_symbols`
 password_requirements = ""
@@ -209,11 +210,19 @@ token_verifications = 30
 # Number of Web3 logins that can be made in a 5 minute interval per IP address.
 web3 = 30
 
-# Configure one of the supported captcha providers: `hcaptcha`, `turnstile`.
-# [auth.captcha]
-# enabled = true
-# provider = "hcaptcha"
-# secret = ""
+# Auditoría H-04: CAPTCHA (Cloudflare Turnstile). Apagado en local porque exige un secreto real;
+# en staging/producción se enciende en el panel (Auth > Attack Protection) y el cliente envía el
+# token cuando VITE_TURNSTILE_SITE_KEY está definida (src/components/auth/Captcha.jsx).
+[auth.captcha]
+enabled = false
+provider = "turnstile"
+secret = "env(SUPABASE_AUTH_CAPTCHA_SECRET)"
+
+# JWT con dos roles (app_role = user | admin), calculado por la base. Ver la migración
+# 20261113100000_profiles_private_and_jwt_role.sql.
+[auth.hook.custom_access_token]
+enabled = true
+uri = "pg-functions://postgres/public/custom_access_token_hook"
 
 [auth.email]
 # Allow/disallow new user signups via email to your project.
@@ -222,15 +231,17 @@ enable_signup = true
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true
 # If enabled, users need to confirm their email address before signing in.
-enable_confirmations = false
+# Auditoría H-04: sin cuentas sin verificar. La app ya muestra "revisa tu correo" (needsConfirmation).
+enable_confirmations = true
 # If enabled, users will need to reauthenticate or have logged in recently to change their password.
-secure_password_change = false
+# El enlace de recuperación abre una sesión reciente, así que /nueva-contrasena sigue funcionando.
+secure_password_change = true
 # Controls the minimum amount of time that must pass before sending another signup confirmation or password reset email.
-max_frequency = "1s"
+max_frequency = "60s"
 # Number of characters used in the email OTP.
 otp_length = 6
-# Number of seconds before the email OTP expires (defaults to 1 hour).
-otp_expiry = 3600
+# Number of seconds before the email OTP expires (defaults to 1 hour). 15 min: enlace de recuperación corto.
+otp_expiry = 900
 
 # Use a production-ready SMTP server
 # [auth.email.smtp]

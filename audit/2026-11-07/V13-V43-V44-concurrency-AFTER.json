@@ -1,0 +1,46 @@
+{
+  "mode": "after",
+  "postgres": "17.5",
+  "rooms": {
+    "attempts": 12,
+    "ok": 5,
+    "CN429": 7,
+    "stored": 5,
+    "limit": 5
+  },
+  "groups": {
+    "attempts": 30,
+    "ok": 20,
+    "CN429": 10,
+    "stored": 20,
+    "limit": 20
+  },
+  "orgs": {
+    "attempts": 10,
+    "ok": 3,
+    "CN429": 7,
+    "stored": 3,
+    "limit": 3
+  },
+  "groupInviteRace": {
+    "iterations": 60,
+    "deadlocks40P01": 0
+  },
+  "barrierRooms": {
+    "previous": 4,
+    "limit": 5,
+    "secondCreate": "CN429",
+    "stored": 5
+  },
+  "barrierGroupInvite": {
+    "accept": "CN410",
+    "revoke": "ok",
+    "joinedAfterRevoke": 0
+  },
+  "billingConcurrentFirstEvents": {
+    "users": 25,
+    "distinctFinalStates": [
+      "{\"status\":\"expired\",\"e\":\"2030-02-01\"}"
+    ]
+  }
+}

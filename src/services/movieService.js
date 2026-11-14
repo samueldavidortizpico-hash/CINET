@@ -69,11 +69,17 @@ export const EMPTY_ADVANCED = {
 export const isAdvancedActive = (advanced = EMPTY_ADVANCED) =>
   Object.entries(advanced).some(([key, value]) => key !== "region" && value !== EMPTY_ADVANCED[key]);
 
+// Desempate estable (título y luego id): el mismo conjunto siempre sale en el mismo orden.
+const sortNumber = (value) => (value === "" || value == null || !Number.isFinite(Number(value)) ? -Infinity : Number(value));
+const byTitle = (a, b) => String(a.title ?? "").localeCompare(String(b.title ?? ""), "es") || String(a.id ?? "").localeCompare(String(b.id ?? ""));
 const SORTERS = {
-  rating: (a, b) => b.rating - a.rating,
-  year: (a, b) => Number(b.year) - Number(a.year),
-  title: (a, b) => a.title.localeCompare(b.title, "es"),
+  rating: (a, b) => sortNumber(b.rating) - sortNumber(a.rating) || byTitle(a, b),
+  year: (a, b) => sortNumber(b.year) - sortNumber(a.year) || byTitle(a, b),
+  title: byTitle,
 };
+
+/** Ordena sin mutar. "default" (u otro desconocido) conserva el orden recibido. */
+export const sortTitles = (titles, sort) => (SORTERS[sort] ? [...titles].sort(SORTERS[sort]) : titles);
 
 const plain = (text) => String(text).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
 const GENRE_BY_LABEL = new Map(GENRES.map((genre) => [plain(genre.label), genre.key]));
@@ -206,10 +212,25 @@ export async function getMovieById(id) {
     }
 }
 
-/** Favoritos y listas guardadas pueden mezclar ids locales y de TMDB. */
+/**
+ * Favoritos y listas guardadas (ids locales y de TMDB) → { movies, failedIds, missingIds } (N22).
+ * failedIds: no se pudieron cargar AHORA (red/TMDB): se reintentan, nunca se borran.
+ * missingIds: TMDB dice que no existen. Ninguno de los dos casos modifica los ids guardados.
+ */
+export async function loadMoviesByIds(ids) {
+  const settled = await Promise.allSettled(ids.map((id) => getMovieById(id)));
+  const result = { movies: [], failedIds: [], missingIds: [] };
+  settled.forEach((outcome, index) => {
+    if (outcome.status === "rejected") result.failedIds.push(ids[index]);
+    else if (outcome.value) result.movies.push(outcome.value);
+    else result.missingIds.push(ids[index]);
+  });
+  return result;
+}
+
+/** Solo las fichas disponibles (para vistas que no muestran el estado parcial). */
 export async function getMoviesByIds(ids) {
-  const list = await Promise.all(ids.map((id) => getMovieById(id).catch(() => null)));
-  return list.filter(Boolean);
+  return (await loadMoviesByIds(ids)).movies;
 }
 
 function matchesGenre(movie, genre) {
@@ -241,7 +262,7 @@ export function queryMovies(movies, { query = "", genre = "todas", sort = "defau
     (movie) =>
       movie.title.toLowerCase().includes(text) && matchesGenre(movie, genre) && matchesAdvanced(movie, advanced)
   );
-  return SORTERS[sort] ? [...result].sort(SORTERS[sort]) : result;
+  return sortTitles(result, sort);
 }
 
 export function getTrendingMovies(movies, limit = 10) {
@@ -338,17 +359,25 @@ async function matchesTitleDetails(raw, type, { genre = "todas", advanced = EMPT
  * - Solo texto: /search/multi (películas, series y personas).
  * - Texto + filtros: /search/movie|tv y se aplican los filtros a los resultados.
  * - Solo filtros: /discover.
+ *
+ * Contrato de orden (N10), en sortScope:
+ * - "catalog": TMDB ordena TODO el catálogo (discover con sort_by).
+ * - "loaded": TMDB no ordena búsquedas de texto: el orden elegido se aplica a los resultados ya
+ *   cargados (useTitleSearch reordena al «Cargar más»). La interfaz lo dice; no se promete un orden global.
+ * - "relevance": sin orden elegido, el de TMDB.
  */
 export async function searchCatalog(filters, page = 1) {
   const text = filters.query?.trim();
+  const sortScope = SORTERS[filters.sort] ? "loaded" : "relevance";
   if (text && !hasFilters(filters)) {
     const data = await searchMulti(text, page);
     const isPerson = (raw) => raw.media_type === "person";
     return {
-      titles: data.results.filter((raw) => !isPerson(raw)).map((raw) => fromTmdb(raw)),
+      titles: sortTitles(data.results.filter((raw) => !isPerson(raw)).map((raw) => fromTmdb(raw)), filters.sort),
       people: data.results.filter(isPerson).map(toPerson),
       page: data.page,
       totalPages: data.totalPages,
+      sortScope,
     };
   }
 
@@ -362,15 +391,16 @@ export async function searchCatalog(filters, page = 1) {
     const checks = await Promise.all(candidates.map((raw) => matchesTitleDetails(raw, type, filters)));
     const titles = candidates.filter((_, index) => checks[index]).map((raw) => fromTmdb(raw, type));
     return {
-      titles: SORTERS[filters.sort] ? [...titles].sort(SORTERS[filters.sort]) : titles,
+      titles: sortTitles(titles, filters.sort),
       people: [],
       page: data.page,
       totalPages: data.totalPages,
+      sortScope,
     };
   }
 
   const data = await (type === "tv" ? discoverTv : discoverMovies)(toDiscoverParams(filters), page);
-  return { titles: data.results.map((raw) => fromTmdb(raw, type)), people: [], page: data.page, totalPages: data.totalPages };
+  return { titles: data.results.map((raw) => fromTmdb(raw, type)), people: [], page: data.page, totalPages: data.totalPages, sortScope: SORTERS[filters.sort] ? "catalog" : "relevance" };
 }
 
 /* ---------- Secciones del inicio ---------- */

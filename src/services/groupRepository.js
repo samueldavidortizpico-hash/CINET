@@ -4,7 +4,7 @@
    ========================================================= */
 
 import { supabase } from "./supabaseClient.js";
-import { PLAN_SELECT, toPlanError, toUiPlan } from "./planRepository.js";
+import { PLAN_SELECT, toPlanError, toUiPlans } from "./planRepository.js";
 
 const GROUP_SELECT = "id, owner_id, name, created_at, group_members (user_id, role, display_name, joined_at)";
 
@@ -36,7 +36,7 @@ export function toGroup(row, userId) {
 }
 
 export async function listGroups(userId) {
-  const data = await rows(client().from("groups").select(GROUP_SELECT).order("created_at", { ascending: true }));
+  const data = await rows(client().from("groups").select(GROUP_SELECT).order("created_at", { ascending: true }).limit(100));
   return data.map((row) => toGroup(row, userId));
 }
 
@@ -48,8 +48,8 @@ export async function getGroup(id, userId) {
 
 /** Planes del grupo en los que estás (entrar al grupo no abre los planes anteriores). */
 export async function groupPlans(groupId, userId) {
-  const data = await rows(client().from("plans").select(PLAN_SELECT).eq("group_id", groupId).order("starts_at", { ascending: true }));
-  return data.map((row) => toUiPlan(row, userId));
+  const data = await rows(client().from("plans").select(PLAN_SELECT).eq("group_id", groupId).order("starts_at", { ascending: true }).limit(200));
+  return toUiPlans(data, userId);
 }
 
 export const createGroup = (name, displayName) => call("create_group", { p_name: name.trim(), p_display_name: displayName.trim().slice(0, 40) || "Organizador" });

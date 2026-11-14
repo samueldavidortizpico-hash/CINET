@@ -7,7 +7,7 @@
    - Cancelar conserva el acceso hasta period_end; expired lo corta.
    ========================================================= */
 
-import { checkSignature, reply } from "./partnerWebhook.js";
+import { checkSignature, failureReply, reply, withDeadline } from "./partnerWebhook.js";
 
 const KINDS = new Set(["activated", "renewed", "canceled", "expired"]);
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -17,7 +17,7 @@ const REF = /^[\w.:-]{1,100}$/;
 export function parseBillingEvent(raw) {
   let data;
   try {
-    data = JSON.parse(raw);
+    data = JSON.parse(Buffer.isBuffer(raw) ? raw.toString("utf8") : raw);
   } catch {
     return { error: "JSON no válido." };
   }
@@ -44,15 +44,20 @@ export function parseBillingEvent(raw) {
 
 /**
  * handle({ headers, body }) → { status, headers, body }.
- * store.apply(provider, event) → "applied" | "duplicate" | "stale".
+ * store.apply(provider, event, signal) → "applied" | "duplicate" | "stale".
+ * Si el almacenamiento no responde a tiempo → 503 reintentable: el reintento con el mismo id es seguro (N23).
  */
-export function createBillingWebhook({ secret, provider, store, now = () => Date.now() }) {
+export function createBillingWebhook({ secret, provider, store, now = () => Date.now(), storeTimeoutMs = 4_000 }) {
   return async function handle({ headers = {}, body = "" }) {
     const invalid = checkSignature(secret, headers, body, now());
     if (invalid) return reply(401, { error: invalid });
     const { event, error } = parseBillingEvent(body);
     if (error) return reply(400, { error });
-    const result = await store.apply(provider, event);
-    return reply(200, { received: true, result });
+    try {
+      const result = await withDeadline((signal) => store.apply(provider, event, signal), storeTimeoutMs);
+      return reply(200, { received: true, result });
+    } catch (failure) {
+      return failureReply(failure);
+    }
   };
 }

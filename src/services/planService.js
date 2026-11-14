@@ -4,6 +4,7 @@
    ========================================================= */
 
 import { findMovie, toISODate } from "./movieService.js";
+import { decodeMarathon, displayZone } from "./planContract.js";
 
 export const RSVP_OPTIONS = [
   { key: "yes", label: "Sí", icon: "✅", button: "✅ Sí, voy", className: "status-yes" },
@@ -101,15 +102,18 @@ const capitalize = (text) => (text ? text[0].toUpperCase() + text.slice(1) : tex
 /**
  * Inicio guardado (instante UTC) → cómo se ve en la zona del plan:
  * { date: "Viernes, 17 de octubre", dateISO: "2026-10-17", time: "20:30" }.
+ * Zona fuera del contrato (N02): se muestra en UTC, mismo instante, con zoneFallback: true para avisar.
  */
 export function describeStart(startsAt, timeZone = "America/Bogota") {
-  if (!startsAt) return { date: "Fecha por definir", dateISO: null, time: "" };
-  const instant = new Date(startsAt);
-  const part = (options, locale = "es-CO") => new Intl.DateTimeFormat(locale, { timeZone, ...options }).format(instant);
+  const instant = startsAt ? new Date(startsAt) : null;
+  if (!instant || Number.isNaN(instant.getTime())) return { date: "Fecha por definir", dateISO: null, time: "", zoneFallback: false };
+  const zone = displayZone(timeZone);
+  const part = (options, locale = "es-CO") => new Intl.DateTimeFormat(locale, { timeZone: zone.timeZone, ...options }).format(instant);
   return {
     date: capitalize(part({ weekday: "long", day: "numeric", month: "long" })),
     dateISO: part({ year: "numeric", month: "2-digit", day: "2-digit" }, "en-CA"),
-    time: part({ hour: "2-digit", minute: "2-digit", hourCycle: "h23" }),
+    time: `${part({ hour: "2-digit", minute: "2-digit", hourCycle: "h23" })}${zone.fallback ? " UTC" : ""}`,
+    zoneFallback: zone.fallback,
   };
 }
 
@@ -156,12 +160,12 @@ export function getPlanPoster(plan) {
 }
 
 /** "A → B → C" (títulos de una maratón guardada como plan). */
-export const marathonTitles = (plan) => (plan.marathon ?? []).map((item) => item.title).join(" → ");
+export const marathonTitles = (plan) => (decodeMarathon(plan.marathon) ?? []).map((item) => item.title).join(" → ");
 
 export function getShareText(plan) {
   return [
     `🍿 ${plan.name}`,
-    plan.marathon ? `🎬 Maratón: ${marathonTitles(plan)}` : `🎬 ${plan.movie.title}`,
+    marathonTitles(plan) ? `🎬 Maratón: ${marathonTitles(plan)}` : `🎬 ${plan.movie.title}`,
     `📍 ${plan.cinema.name} - ${plan.cinema.location}`,
     `📅 ${plan.date}`,
     `🕐 ${plan.time}`,

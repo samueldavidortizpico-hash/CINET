@@ -1,7 +1,8 @@
 /* Proxy de TMDB: lista blanca, validación, errores sin secretos, caché y límite. Sin red: fetch falso. */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createTmdbProxy, createUpstashRateLimiter, nodeHandler } from "./tmdbProxy.js";
+import { clientIp, clientIpOptions, createTmdbAccess, createTmdbProxy, createUpstashRateLimiter, nodeHandler, PREVIEW_BUDGET, RATE_SCRIPT } from "./tmdbProxy.js";
+import { ogFor } from "./ogMeta.js";
 
 const TOKEN = "server-only-token-1234567890";
 const calls = [];
@@ -49,21 +50,80 @@ test("la política adulta también filtra los resultados devueltos por TMDB", as
   assert.deepEqual(JSON.parse(result.body).results.map((item) => item.id), [1, 3]);
 });
 
-test("Upstash eval aplica límites atómicos compartidos y falla cerrado si Redis no responde", async () => {
+test("Upstash EVAL: identidad primero, global de trabajo admitido, Retry-After y fallo cerrado (N06)", async () => {
   let command;
+  let result;
   const limiter = createUpstashRateLimiter({
-    url: "https://redis.example", token: "secret", perIpMax: 1, globalMax: 1, now: () => 60_000,
+    url: "https://redis.example", token: "secret", perIpMax: 1, globalMax: 3, now: () => 60_000,
     fetchImpl: async (_url, options) => {
       command = JSON.parse(options.body);
-      return Response.json({ result: [2, 2, 1500, 900] });
+      return Response.json({ result });
     },
   });
-  assert.deepEqual(await limiter("203.0.113.7"), { allowed: false, retryAfter: 2 });
+  result = [1, 0, 0];
+  assert.deepEqual(await limiter("203.0.113.7"), { allowed: true });
   assert.equal(command[0], "EVAL");
-  assert.equal(command[2], "2");
-  assert.match(command[3], /^cinet:tmdb:ip:[a-f0-9]{64}:1$/);
+  assert.equal(command[1], RATE_SCRIPT);
+  assert.equal(command[2], "3");
+  assert.match(command[3], /^cinet:tmdb:id:[a-f0-9]{64}:1$/);
+  assert.deepEqual(command.slice(4), ["cinet:tmdb:global:1", "cinet:tmdb:rejected:1", "60000", "1", "3"]);
+  assert.ok(!command[3].includes("203.0.113.7"), "sin IP en claro");
+  result = [0, 1, 1500];
+  assert.deepEqual(await limiter("203.0.113.7"), { allowed: false, reason: "identity", retryAfter: 2 });
+  result = [0, 2, -1];
+  assert.deepEqual(await limiter("198.51.100.1"), { allowed: false, reason: "global", retryAfter: 60 }, "sin TTL: ventana completa, nunca antes");
+  for (const broken of [undefined, [1, 0], ["1", 0, 0], [7, 0, 0], { a: 1 }]) {
+    result = broken;
+    assert.deepEqual(await limiter("203.0.113.7"), { unavailable: true }, `respuesta corrupta ${JSON.stringify(broken)} (V18)`);
+  }
+  result = [1, 0, 0];
+  await limiter("preview-bots", { max: 120 });
+  assert.equal(command.at(-2), "120", "cupo propio de una identidad");
   const down = createUpstashRateLimiter({ url: "https://redis.example", token: "secret", fetchImpl: async () => { throw Error("offline"); } });
   assert.deepEqual(await down("203.0.113.7"), { unavailable: true });
+});
+
+test("la clave de identidad es HMAC con secreto: no se puede revertir por fuerza bruta sin él (N16)", async () => {
+  const keyFor = async (token) => {
+    let key;
+    await createUpstashRateLimiter({ url: "https://r", token, fetchImpl: async (_u, o) => { key = JSON.parse(o.body)[3]; return Response.json({ result: [1, 0, 0] }); } })("203.0.113.7");
+    return key;
+  };
+  assert.notEqual(await keyFor("secret-a"), await keyFor("secret-b"));
+});
+
+test("el script Lua comprueba la identidad antes que el global y solo cuenta trabajo admitido", () => {
+  const order = ["GET', KEYS[1]", "GET', KEYS[2]", "INCR', KEYS[1]", "INCR', KEYS[2]"].map((part) => RATE_SCRIPT.indexOf(part));
+  assert.ok(order.every((position) => position > 0));
+  assert.deepEqual([...order].sort((a, b) => a - b), order, "orden: leer identidad, leer global, sumar identidad, sumar global");
+  assert.match(RATE_SCRIPT, /INCR', KEYS\[3\]/, "los rechazos van a un contador aparte");
+});
+
+test("V17: sin Redis, /api/tmdb y /api/og fallan cerrados y no consultan TMDB (N07)", async () => {
+  calls.length = 0;
+  const access = createTmdbAccess({ TMDB_READ_TOKEN: TOKEN }, { fetchImpl: okFetch(200, { title: "Secreto" }) });
+  assert.equal((await get(access, "/movie/999123")).status, 503);
+  const meta = await ogFor("/movie/tmdb-movie-999123", { tmdb: access });
+  assert.equal(meta.title, "CINET — Buenas historias. Mejores planes.", "vista genérica");
+  assert.equal(calls.length, 0, "cero llamadas al proveedor");
+});
+
+test("V16/V17: API y Open Graph comparten la misma cuota; los bots usan su identidad y presupuesto", async () => {
+  calls.length = 0;
+  const seen = [];
+  const redis = async (url, options) => {
+    const body = JSON.parse(options.body ?? "null");
+    if (body?.[0] !== "EVAL") return okFetch(200, { title: "Dune", release_date: "2021-01-01" })(url, options);
+    seen.push({ max: body.at(-2), global: body[4] });
+    return Response.json({ result: [1, 0, 0] });
+  };
+  const env = { TMDB_READ_TOKEN: TOKEN, UPSTASH_REDIS_REST_URL: "https://redis.example", UPSTASH_REDIS_REST_TOKEN: "r" };
+  const instanceA = createTmdbAccess(env, { fetchImpl: redis });
+  const instanceB = createTmdbAccess(env, { fetchImpl: redis });
+  assert.equal((await get(instanceA, "/movie/1")).status, 200);
+  assert.equal((await ogFor("/movie/tmdb-movie-1", { tmdb: instanceB })).title, "Dune (2021) · CINET");
+  assert.deepEqual(seen.map((item) => item.global), [seen[0].global, seen[0].global], "un solo contador global para ambas entradas e instancias");
+  assert.deepEqual(seen.map((item) => item.max), ["600", String(PREVIEW_BUDGET)]);
 });
 
 test("errores de TMDB sin filtrar el token ni su detalle", async () => {
@@ -147,4 +207,12 @@ test("el adaptador ignora X-Forwarded-For salvo que se configure un proxy confia
   await make(0)({ url: "/api/tmdb/movie/1", method: "GET", headers: { "x-forwarded-for": "spoofed, 198.51.100.8" }, socket: { remoteAddress: "10.0.0.2" } }, response());
   await make(1)({ url: "/api/tmdb/movie/1", method: "GET", headers: { "x-forwarded-for": "spoofed, 198.51.100.8" }, socket: { remoteAddress: "10.0.0.2" } }, response());
   assert.deepEqual(observed, ["10.0.0.2", "198.51.100.8"]);
+});
+
+test("V20: una cabecera de IP aportada por el cliente no cambia la identidad salvo la configurada como confiable", () => {
+  const req = { headers: { "x-forwarded-for": "6.6.6.6", "x-real-ip": "7.7.7.7", "x-vercel-forwarded-for": "not-an-ip" }, socket: { remoteAddress: "10.0.0.2" } };
+  assert.equal(clientIp(req), "10.0.0.2", "por defecto: socket");
+  assert.equal(clientIp(req, clientIpOptions({ TRUSTED_IP_HEADER: "X-Real-IP" })), "7.7.7.7");
+  assert.equal(clientIp(req, clientIpOptions({ TRUSTED_IP_HEADER: "x-vercel-forwarded-for" })), "10.0.0.2", "valor que no es IP: se ignora");
+  assert.equal(clientIp(req, clientIpOptions({ TRUSTED_IP_HEADER: "bad header!" })), "10.0.0.2", "nombre inválido: se ignora");
 });

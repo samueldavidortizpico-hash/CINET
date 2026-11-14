@@ -18,8 +18,8 @@ export default defineConfig({
   reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : "list",
   use: { locale: "es-CO", timezoneId: "America/Bogota", trace: "retain-on-failure", ...devices["Desktop Chrome"] },
   projects: [
-    { name: "local", testIgnore: /duo-room|shared-plan|account-preferences|groups|partners|plus|auth-entry/, use: { baseURL: `http://localhost:${LOCAL}` } },
-    { name: "accounts", testMatch: /duo-room|shared-plan|account-preferences|groups|partners|plus|auth-entry/, use: { baseURL: `http://localhost:${ROOMS}` } },
+    { name: "local", testIgnore: /duo-room|shared-plan|account-preferences|groups|partners|plus|auth-entry|api-roles/, use: { baseURL: `http://localhost:${LOCAL}` } },
+    { name: "accounts", testMatch: /duo-room|shared-plan|account-preferences|groups|partners|plus|auth-entry|api-roles/, use: { baseURL: `http://localhost:${ROOMS}` } },
   ],
   webServer: [
     {

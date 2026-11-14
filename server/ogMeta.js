@@ -7,6 +7,7 @@
    ========================================================= */
 
 import { movies } from "../src/data/movies.js";
+import { PREVIEW_BUDGET, PREVIEW_IDENTITY } from "./tmdbProxy.js";
 
 const DEFAULT = {
   title: "CINET — Buenas historias. Mejores planes.",
@@ -34,7 +35,8 @@ async function publicTitle(id, tmdb) {
   if (local) return { title: `${local.title}${local.year ? ` (${local.year})` : ""}`, description: clip(local.description), image: `/${local.poster}` };
   const match = /^tmdb-(movie|tv)-(\d{1,9})$/.exec(id);
   if (!match || !tmdb) return null;
-  const response = await tmdb({ method: "GET", path: `/${match[1]}/${match[2]}`, query: new URLSearchParams({ language: "es-CO" }), ip: "og" });
+  // Bots de vista previa: una identidad con presupuesto propio dentro de la cuota global (N07).
+  const response = await tmdb({ method: "GET", path: `/${match[1]}/${match[2]}`, query: new URLSearchParams({ language: "es-CO" }), ip: PREVIEW_IDENTITY, identityMax: PREVIEW_BUDGET });
   if (response.status !== 200) return null;
   const data = JSON.parse(response.body);
   const name = data.title ?? data.name;

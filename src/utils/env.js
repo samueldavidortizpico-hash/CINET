@@ -6,10 +6,12 @@ function read() {
   try {
     return {
       BASE_URL: import.meta.env.BASE_URL,
+      APP_ORIGIN: import.meta.env.VITE_APP_ORIGIN, // origen WEB público: enlaces de Auth cuando la app corre empaquetada (Android)
       TMDB_API_URL: import.meta.env.VITE_TMDB_API_URL,
       SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
       SUPABASE_KEY: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY, // clave publicable: pensada para el navegador
       ANALYTICS_ENDPOINT: import.meta.env.VITE_ANALYTICS_ENDPOINT,
+      TURNSTILE_SITE_KEY: import.meta.env.VITE_TURNSTILE_SITE_KEY, // clave pública del sitio (el secreto vive en Supabase)
     };
   } catch {
     return {};

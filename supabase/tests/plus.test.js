@@ -112,9 +112,11 @@ test("webhook de cobros: idempotente, ignora eventos viejos, cancela y vence con
   assert.equal(await billing(["pasarela", "evt-1", "activated", B, "2030-01-01T00:00:00Z", "2030-02-01T00:00:00Z", "sub-b"]), "applied");
   assert.equal(await billing(["pasarela", "evt-1", "activated", B, "2030-01-01T00:00:00Z", "2030-02-01T00:00:00Z", "sub-b"]), "duplicate");
   assert.equal(await billing(["pasarela", "evt-2", "canceled", B, "2030-01-10T00:00:00Z", null, null]), "applied");
-  assert.equal(await billing(["pasarela", "evt-0", "renewed", B, "2030-01-05T00:00:00Z", "2030-03-01T00:00:00Z", null]), "stale", "un evento viejo no reactiva");
+  // N05: una renovación del 5 llegada tarde (anterior a la cancelación del 10) NO reactiva (sigue cancelada),
+  // pero sí extiende el periodo pagado: es el mismo estado que si hubiera llegado en orden.
+  assert.equal(await billing(["pasarela", "evt-0", "renewed", B, "2030-01-05T00:00:00Z", "2030-03-01T00:00:00Z", null]), "applied");
   let [row] = await adminRows("select status, source, to_char(current_period_end at time zone 'UTC', 'YYYY-MM-DD') as ends from public.entitlements where user_id = $1", [B]);
-  assert.deepEqual(row, { status: "canceled", source: "provider", ends: "2030-02-01" });
+  assert.deepEqual(row, { status: "canceled", source: "provider", ends: "2030-03-01" });
   assert.equal(await errorCode(billing(["pasarela", "evt-3", "renewed", B, "2030-01-11T00:00:00Z", "2030-01-01T00:00:00Z", null])), "CN422");
   assert.equal(await billing(["pasarela", "evt-4", "expired", B, "2030-01-12T00:00:00Z", null, null]), "applied");
   [row] = await adminRows("select status, to_char(current_period_end at time zone 'UTC', 'YYYY-MM-DD') as ends from public.entitlements where user_id = $1", [B]);

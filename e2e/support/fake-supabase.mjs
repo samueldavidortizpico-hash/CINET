@@ -8,11 +8,13 @@
    Uso: node e2e/support/fake-supabase.mjs <carpeta del build, p. ej. node_modules/.cache/cinet-e2e-rooms>  (puerto 4176)
    ========================================================= */
 
-import { randomUUID } from "node:crypto";
+import { createHmac, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { extname, join, resolve } from "node:path";
 import { as, createDb } from "../../supabase/tests/db.js";
+import { apiNodeHandler, createApi } from "../../server/api.js";
+import { readBody as readRawBody } from "../../server/partnerWebhook.js";
 
 const PORT = Number(process.env.FAKE_SUPABASE_PORT ?? 4176);
 const ROOT = resolve(process.argv[2] ?? "node_modules/.cache/cinet-e2e-rooms");
@@ -23,6 +25,7 @@ const db = await createDb();
 const users = new Map(); // id → { id, email, name, anonymous }
 const passwords = new Map(); // id → contraseña cambiada en la prueba (si no, PASSWORD)
 const recoveries = new Set(); // correos que pidieron enlace de recuperación
+const unconfirmed = new Set(); // cuentas registradas en la prueba que aún no confirmaron el correo
 
 async function addUser({ id = randomUUID(), email = null, name = "", anonymous = false }) {
   await db.exec("reset role");
@@ -61,15 +64,32 @@ const authUser = (user) => ({
   identities: [],
   created_at: "2026-10-10T00:00:00.000Z",
 });
-function session(user) {
+// JWT HS256 real con un secreto de este proceso: un payload alterado (p. ej. app_role forjado) no valida.
+const JWT_SECRET = randomBytes(32);
+const sign = (data) => createHmac("sha256", JWT_SECRET).update(data).digest("base64url");
+
+/** Como Supabase Auth: los claims pasan por public.custom_access_token_hook (la migración real) antes de firmar. */
+async function session(user) {
   const exp = Math.floor(Date.now() / 1000) + 3600;
-  const claims = { sub: user.id, role: "authenticated", aud: "authenticated", exp, email: user.email ?? "", is_anonymous: user.anonymous };
-  return { access_token: `${b64({ alg: "HS256", typ: "JWT" })}.${b64(claims)}.e2e`, token_type: "bearer", expires_in: 3600, expires_at: exp, refresh_token: user.id, user: authUser(user) };
+  const base = { sub: user.id, role: "authenticated", aud: "authenticated", exp, email: user.email ?? "", is_anonymous: user.anonymous };
+  const claims = await exclusive(async () => {
+    await db.exec("reset role");
+    await db.exec("set role supabase_auth_admin");
+    const { rows } = await db.query("select public.custom_access_token_hook($1::jsonb) as out", [JSON.stringify({ user_id: user.id, claims: base })]);
+    await db.exec("reset role");
+    return rows[0].out.claims;
+  });
+  const unsigned = `${b64({ alg: "HS256", typ: "JWT" })}.${b64(claims)}`;
+  return { access_token: `${unsigned}.${sign(unsigned)}`, token_type: "bearer", expires_in: 3600, expires_at: exp, refresh_token: user.id, user: authUser(user) };
 }
 function requester(req) {
-  const token = (req.headers.authorization ?? "").replace(/^Bearer /, "");
+  const [header, payload, signature = ""] = (req.headers.authorization ?? "").replace(/^Bearer /, "").split(".");
   try {
-    const claims = JSON.parse(Buffer.from(token.split(".")[1] ?? "", "base64url").toString());
+    const expected = Buffer.from(sign(`${header}.${payload}`));
+    const given = Buffer.from(signature);
+    if (expected.length !== given.length || !timingSafeEqual(expected, given)) return null;
+    const claims = JSON.parse(Buffer.from(payload ?? "", "base64url").toString());
+    if (claims.exp * 1000 < Date.now()) return null;
     return users.get(claims.sub) ?? null;
   } catch {
     return null;
@@ -217,18 +237,28 @@ async function auth(req, res, path, params) {
     const { email, password } = await readBody(req);
     const user = [...users.values()].find((item) => item.email === email);
     if (!user || password !== (passwords.get(user.id) ?? PASSWORD)) return send(res, 400, { code: "invalid_credentials", error_code: "invalid_credentials", msg: "Invalid login credentials" });
-    return send(res, 200, session(user));
+    if (unconfirmed.has(user.id)) return send(res, 400, { code: "email_not_confirmed", error_code: "email_not_confirmed", msg: "Email not confirmed" });
+    return send(res, 200, await session(user));
   }
   if (path === "/auth/v1/token" && params.get("grant_type") === "refresh_token") {
     const { refresh_token: id } = await readBody(req);
     const user = users.get(id);
-    return user ? send(res, 200, session(user)) : send(res, 400, { code: "refresh_token_not_found", msg: "Invalid Refresh Token" });
+    return user ? send(res, 200, await session(user)) : send(res, 400, { code: "refresh_token_not_found", msg: "Invalid Refresh Token" });
   }
   if (path === "/auth/v1/signup") {
     const body = await readBody(req);
-    if (body.email) return send(res, 422, { code: "signup_disabled", error_code: "signup_disabled", msg: "Solo cuentas sembradas en E2E" });
+    if (body.email) {
+      // Como Supabase con confirmación de correo: sin sesión, y un correo existente devuelve un usuario
+      // ofuscado (identities vacío) con el mismo 200, para no revelar qué cuentas existen.
+      const existing = [...users.values()].find((item) => item.email === body.email);
+      if (existing) return send(res, 200, { ...authUser({ ...existing, id: randomUUID() }), identities: [] });
+      const user = await exclusive(() => addUser({ email: body.email, name: body.data?.name ?? "" }));
+      passwords.set(user.id, body.password);
+      unconfirmed.add(user.id);
+      return send(res, 200, { ...authUser(user), identities: [{ provider: "email" }] });
+    }
     const user = await exclusive(() => addUser({ name: body.data?.name ?? "", anonymous: true }));
-    return send(res, 200, session(user));
+    return send(res, 200, await session(user));
   }
   if (path === "/auth/v1/user") {
     const user = requester(req);
@@ -263,6 +293,12 @@ async function serveStatic(res, path) {
   }
 }
 
+// La API REST real (server/api.js) contra este mismo Supabase de pruebas. Cuota en memoria: siempre admite.
+const api = apiNodeHandler(
+  createApi({ supabaseUrl: `http://localhost:${PORT}`, supabaseKey: "e2e-publishable-key", limiter: async () => ({ allowed: true }), log: () => {} }),
+  { readBody: readRawBody, clientIp: (req) => req.socket.remoteAddress ?? "unknown" },
+);
+
 const server = createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
   if (process.env.FAKE_SUPABASE_LOG) {
@@ -271,13 +307,14 @@ const server = createServer(async (req, res) => {
   }
   try {
     if (url.pathname.startsWith("/api/tmdb")) return send(res, 503, { error: { code: "no-token", message: "Sin catálogo en vivo en E2E." } });
+    if (url.pathname.startsWith("/api/v1")) return await api(req, res);
     if (url.pathname.startsWith("/auth/v1/")) return await auth(req, res, url.pathname, url.searchParams);
     // Solo E2E: el enlace que llegaría por correo (fragmento con la sesión de recuperación, flujo implícito).
     if (url.pathname === "/__e2e/recovery-link") {
       const email = url.searchParams.get("email");
       const user = [...users.values()].find((item) => item.email === email);
       if (!user || !recoveries.has(email)) return send(res, 404, { error: "Sin solicitud de recuperación" });
-      const { access_token, refresh_token, expires_in, expires_at } = session(user);
+      const { access_token, refresh_token, expires_in, expires_at } = await session(user);
       return send(res, 200, { link: `/nueva-contrasena#${new URLSearchParams({ access_token, refresh_token, expires_in, expires_at, token_type: "bearer", type: "recovery" })}` });
     }
     if (url.pathname.startsWith("/rest/v1/rpc/") && req.method === "POST") return await rpc(res, url.pathname.slice(13), await readBody(req), requester(req));

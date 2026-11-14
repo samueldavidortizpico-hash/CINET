@@ -1,0 +1,170 @@
+﻿
+> cinehub@2.0.0 pretest:e2e
+> node scripts/build-e2e.mjs
+
+vite v8.3.6 building client environment for production...
+transforming...
+✓ 240 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                  2.03 kB │ gzip:  0.86 kB
+dist/assets/index-BuKF-BIM.css                 259.02 kB │ gzip: 48.10 kB
+dist/assets/useLocalStorage-D1bwS7kW.js          0.40 kB │ gzip:  0.28 kB
+dist/assets/useDuoHistory-BJBxi6FY.js            0.43 kB │ gzip:  0.29 kB
+dist/assets/useMovie-1eqacZF_.js                 0.49 kB │ gzip:  0.31 kB
+dist/assets/PlanStats-gv4S_1_k.js                0.57 kB │ gzip:  0.37 kB
+dist/assets/useToast-DtrlrGZv.js                 0.60 kB │ gzip:  0.39 kB
+dist/assets/rolldown-runtime-XKyaHtl9.js         0.72 kB │ gzip:  0.42 kB
+dist/assets/storage-DbnxlZPy.js                  0.95 kB │ gzip:  0.41 kB
+dist/assets/TasteFields-B3MPQJRC.js              1.20 kB │ gzip:  0.57 kB
+dist/assets/historyService-DkZ2N7sN.js           1.61 kB │ gzip:  0.74 kB
+dist/assets/groupRepository-DvZKUHec.js          1.90 kB │ gzip:  0.86 kB
+dist/assets/useAccountPreferences-CCl3rCb3.js    2.01 kB │ gzip:  0.99 kB
+dist/assets/PlatformLogo-CjY9c4hB.js             2.34 kB │ gzip:  0.82 kB
+dist/assets/calendar-B7Bntdqp.js                 2.42 kB │ gzip:  1.35 kB
+dist/assets/AdminPage-BGkw30st.js                2.44 kB │ gzip:  1.14 kB
+dist/assets/PlanForm-Coa1mSv9.js                 2.47 kB │ gzip:  1.10 kB
+dist/assets/CinemaPage-cV_qP8Ah.js               3.02 kB │ gzip:  1.30 kB
+dist/assets/partnerRepository-Dyh3VDa7.js        3.07 kB │ gzip:  1.33 kB
+dist/assets/CreatePlanPage-s7EGx1EO.js           3.18 kB │ gzip:  1.52 kB
+dist/assets/MyPlansPage-R-1MR6_l.js              3.55 kB │ gzip:  1.59 kB
+dist/assets/csvImport-UwxZojBQ.js                4.02 kB │ gzip:  1.98 kB
+dist/assets/InvitePage-BUMpUgyp.js               4.17 kB │ gzip:  1.67 kB
+dist/assets/RecapPage-BRHp0Z5L.js                4.50 kB │ gzip:  1.81 kB
+dist/assets/DashboardPage-0ClNg4WC.js            4.67 kB │ gzip:  1.86 kB
+dist/assets/PlusPage-CIoSWQv4.js                 5.83 kB │ gzip:  2.38 kB
+dist/assets/ImportPage-DYx3dvG0.js               5.89 kB │ gzip:  2.28 kB
+dist/assets/tmdbClient-0w87DDoD.js               6.36 kB │ gzip:  3.06 kB
+dist/assets/CinemaTicketsPage-CQyrE37h.js        6.57 kB │ gzip:  2.53 kB
+dist/assets/MoviesPage-DGZeq3RD.js               8.07 kB │ gzip:  2.74 kB
+dist/assets/GroupsPage-Dk0npQel.js               9.57 kB │ gzip:  3.30 kB
+dist/assets/FunctionsPage-Ck50jibi.js           10.07 kB │ gzip:  3.59 kB
+dist/assets/ProfilePage-ue_erfvC.js             11.66 kB │ gzip:  4.42 kB
+dist/assets/PartnerPage-CGvIM_Pu.js             13.36 kB │ gzip:  3.98 kB
+dist/assets/MovieDetailPage-D8xk7M25.js         13.52 kB │ gzip:  4.70 kB
+dist/assets/LegalPage-CMXysUdh.js               14.53 kB │ gzip:  5.53 kB
+dist/assets/PlanPage-CeJGP2jO.js                20.40 kB │ gzip:  6.94 kB
+dist/assets/duoService-G18961M2.js              30.37 kB │ gzip: 11.32 kB
+dist/assets/movieService-DSKlO4Sh.js            40.17 kB │ gzip: 13.37 kB
+dist/assets/DuoRoomPage-Bl-4GPfH.js             41.88 kB │ gzip: 14.57 kB
+dist/assets/useDocumentTitle-_52d5FkW.js       103.24 kB │ gzip: 34.32 kB
+dist/assets/DuoPage-EsVRIyrX.js                107.84 kB │ gzip: 33.44 kB
+dist/assets/planService-C7tOVvSE.js            217.88 kB │ gzip: 56.77 kB
+dist/assets/index-BPxDu8V5.js                  308.78 kB │ gzip: 99.16 kB
+
+✓ built in 966ms
+vite v8.3.6 building client environment for production...
+transforming...
+✓ 240 modules transformed.
+rendering chunks...
+computing gzip size...
+node_modules/.cache/cinet-e2e-rooms/index.html                                  2.03 kB │ gzip:  0.86 kB
+node_modules/.cache/cinet-e2e-rooms/assets/index-BuKF-BIM.css                 259.02 kB │ gzip: 48.10 kB
+node_modules/.cache/cinet-e2e-rooms/assets/useLocalStorage-D1bwS7kW.js          0.40 kB │ gzip:  0.28 kB
+node_modules/.cache/cinet-e2e-rooms/assets/useDuoHistory-BXUvMxZm.js            0.43 kB │ gzip:  0.29 kB
+node_modules/.cache/cinet-e2e-rooms/assets/useMovie-CbE3LSIc.js                 0.49 kB │ gzip:  0.31 kB
+node_modules/.cache/cinet-e2e-rooms/assets/PlanStats-PzuqEjds.js                0.57 kB │ gzip:  0.37 kB
+node_modules/.cache/cinet-e2e-rooms/assets/useToast-DtrlrGZv.js                 0.60 kB │ gzip:  0.39 kB
+node_modules/.cache/cinet-e2e-rooms/assets/rolldown-runtime-XKyaHtl9.js         0.72 kB │ gzip:  0.42 kB
+node_modules/.cache/cinet-e2e-rooms/assets/storage-DbnxlZPy.js                  0.95 kB │ gzip:  0.41 kB
+node_modules/.cache/cinet-e2e-rooms/assets/TasteFields-C1k0myRt.js              1.20 kB │ gzip:  0.57 kB
+node_modules/.cache/cinet-e2e-rooms/assets/historyService-DkZ2N7sN.js           1.61 kB │ gzip:  0.74 kB
+node_modules/.cache/cinet-e2e-rooms/assets/groupRepository-DOoS7n4b.js          1.90 kB │ gzip:  0.86 kB
+node_modules/.cache/cinet-e2e-rooms/assets/useAccountPreferences-7Ft9wiPV.js    2.01 kB │ gzip:  0.99 kB
+node_modules/.cache/cinet-e2e-rooms/assets/PlatformLogo-CjY9c4hB.js             2.34 kB │ gzip:  0.82 kB
+node_modules/.cache/cinet-e2e-rooms/assets/calendar-BnE1phOg.js                 2.42 kB │ gzip:  1.35 kB
+node_modules/.cache/cinet-e2e-rooms/assets/AdminPage-B6dWVnN3.js                2.44 kB │ gzip:  1.13 kB
+node_modules/.cache/cinet-e2e-rooms/assets/PlanForm-DnqbYfjF.js                 2.47 kB │ gzip:  1.10 kB
+node_modules/.cache/cinet-e2e-rooms/assets/CinemaPage-DYx_Pn9i.js               3.02 kB │ gzip:  1.30 kB
+node_modules/.cache/cinet-e2e-rooms/assets/partnerRepository-CR6jVsCv.js        3.07 kB │ gzip:  1.33 kB
+node_modules/.cache/cinet-e2e-rooms/assets/CreatePlanPage-CXkAsSTt.js           3.18 kB │ gzip:  1.52 kB
+node_modules/.cache/cinet-e2e-rooms/assets/MyPlansPage-BD7xFMeP.js              3.55 kB │ gzip:  1.59 kB
+node_modules/.cache/cinet-e2e-rooms/assets/csvImport-ofAKI7Qy.js                4.02 kB │ gzip:  1.98 kB
+node_modules/.cache/cinet-e2e-rooms/assets/InvitePage-DJHLIJKO.js               4.17 kB │ gzip:  1.67 kB
+node_modules/.cache/cinet-e2e-rooms/assets/RecapPage-CPGBqnNK.js                4.50 kB │ gzip:  1.80 kB
+node_modules/.cache/cinet-e2e-rooms/assets/DashboardPage-D4kM07W7.js            4.67 kB │ gzip:  1.86 kB
+node_modules/.cache/cinet-e2e-rooms/assets/PlusPage-CQdHiqGv.js                 5.83 kB │ gzip:  2.38 kB
+node_modules/.cache/cinet-e2e-rooms/assets/ImportPage-FObRnjtU.js               5.89 kB │ gzip:  2.28 kB
+node_modules/.cache/cinet-e2e-rooms/assets/tmdbClient-Bh8mlx_3.js               6.40 kB │ gzip:  3.08 kB
+node_modules/.cache/cinet-e2e-rooms/assets/CinemaTicketsPage-DLtbjkmn.js        6.57 kB │ gzip:  2.53 kB
+node_modules/.cache/cinet-e2e-rooms/assets/MoviesPage-B49KUy7I.js               8.07 kB │ gzip:  2.74 kB
+node_modules/.cache/cinet-e2e-rooms/assets/GroupsPage-BsPdWmzA.js               9.57 kB │ gzip:  3.30 kB
+node_modules/.cache/cinet-e2e-rooms/assets/FunctionsPage-B1ke8NJs.js           10.07 kB │ gzip:  3.58 kB
+node_modules/.cache/cinet-e2e-rooms/assets/ProfilePage-BOxtUxPh.js             11.66 kB │ gzip:  4.42 kB
+node_modules/.cache/cinet-e2e-rooms/assets/PartnerPage-XMZk5jV3.js             13.36 kB │ gzip:  3.97 kB
+node_modules/.cache/cinet-e2e-rooms/assets/MovieDetailPage-DLm8AczX.js         13.52 kB │ gzip:  4.70 kB
+node_modules/.cache/cinet-e2e-rooms/assets/LegalPage-DUY6Kn-l.js               14.53 kB │ gzip:  5.53 kB
+node_modules/.cache/cinet-e2e-rooms/assets/PlanPage-D3uXLZCp.js                20.40 kB │ gzip:  6.94 kB
+node_modules/.cache/cinet-e2e-rooms/assets/duoService-CJTGo3A4.js              30.37 kB │ gzip: 11.31 kB
+node_modules/.cache/cinet-e2e-rooms/assets/movieService-Dy2q7aF6.js            40.17 kB │ gzip: 13.37 kB
+node_modules/.cache/cinet-e2e-rooms/assets/DuoRoomPage-mTBvklqc.js             41.88 kB │ gzip: 14.57 kB
+node_modules/.cache/cinet-e2e-rooms/assets/useDocumentTitle-_52d5FkW.js       103.24 kB │ gzip: 34.32 kB
+node_modules/.cache/cinet-e2e-rooms/assets/DuoPage-GCdnglnQ.js                107.84 kB │ gzip: 33.44 kB
+node_modules/.cache/cinet-e2e-rooms/assets/planService-BGgw0Viq.js            217.88 kB │ gzip: 56.77 kB
+node_modules/.cache/cinet-e2e-rooms/assets/index-S50ne5CM.js                  308.78 kB │ gzip: 99.16 kB
+
+✓ built in 841ms
+
+> cinehub@2.0.0 test:e2e
+> playwright test
+
+npm.cmd : [WebServer] (node:35724) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+En línea: 2 Carácter: 69
++ ... ; $env:CINET_E2E_ROOMS_PORT='4226'; npm.cmd run test:e2e 2>&1 | Out-F ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([WebServer] (no... env being set.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:18072) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 39 tests using 1 worker
+
+(node:35796) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [local] › e2e\duo-journey.spec.js:67:1 › Duo completo: gustos con películas → finalistas → ronda reanudable → revelación → elección → plan (21.4s)
+  ✓   2 [local] › e2e\duo-journey.spec.js:120:1 › una ronda nueva no hereda votos; sin movimiento no hay revelación (4.5s)
+  ✓   3 [local] › e2e\duo-journey.spec.js:143:1 › «Menos movimiento» se aplica a toda la página y se recuerda (2.8s)
+  ✓   4 [local] › e2e\duo-journey.spec.js:153:1 › una plataforma sin disponibilidad comprobada no se da por cumplida; ampliarla queda marcado (4.2s)
+  -   5 [local] › e2e\duo-journey.spec.js:172:3 › capturas de las escenas a 390 px
+  -   6 [local] › e2e\duo-journey.spec.js:172:3 › capturas de las escenas a 834 px
+  -   7 [local] › e2e\duo-journey.spec.js:172:3 › capturas de las escenas a 1440 px
+  ✓   8 [local] › e2e\duo-journey.spec.js:222:1 › después de la fecha: «¿La vieron? ¿Les gustó?» es opcional, local y saca la película de Duo (2.6s)
+  ✓   9 [local] › e2e\entry-public.spec.js:5:1 › sin cuentas disponibles, la entrada lo dice y deja explorar sin cuenta (2.2s)
+  ✓  10 [local] › e2e\entry-public.spec.js:17:1 › Legal y privacidad: público, con índice, fecha y enlaces desde la entrada (3.2s)
+  ✓  11 [local] › e2e\entry-public.spec.js:35:1 › /about ya no existe: lleva a Créditos y fuentes con la atribución de TMDB y JustWatch (976ms)
+  ✓  12 [local] › e2e\plan-journey.spec.js:5:1 › organizar una salida al cine sin cuentas ni catálogo en vivo (6.1s)
+  ✓  13 [local] › e2e\plan-journey.spec.js:56:1 › importar un CSV de Letterboxd: coincide, no inventa y no duplica (2.3s)
+  ✓  14 [local] › e2e\plan-journey.spec.js:77:1 › una invitación sin cuentas configuradas explica qué pasa (1.1s)
+  ✓  15 [local] › e2e\plan-journey.spec.js:83:1 › Duo deja elegir quiénes ven: solo, en pareja o en grupo (5.1s)
+  ✓  16 [local] › e2e\plan-journey.spec.js:108:1 › Duo entiende una frase, muestra lo entendido y deja corregirlo (2.5s)
+  ✓  17 [local] › e2e\plan-journey.spec.js:132:1 › sin conexión CINET abre desde la caché y la caché no guarda datos privados (2.2s)
+(node:15204) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  18 [accounts] › e2e\account-preferences.spec.js:15:1 › gustos privados por cuenta en el mismo navegador (6.1s)
+  ✓  19 [accounts] › e2e\auth-entry.spec.js:13:1 › primera apertura: bienvenida una vez por sesión, omitible y sin pedir acceso con sesión (3.2s)
+  ✓  20 [accounts] › e2e\auth-entry.spec.js:36:1 › la bienvenida termina sola y respeta menos movimiento (1.6s)
+  ✓  21 [accounts] › e2e\auth-entry.spec.js:44:1 › ojo de contraseña: alterna sin perder el valor y no envía el formulario (3.4s)
+  ✓  22 [accounts] › e2e\auth-entry.spec.js:77:1 › ruta protegida → acceso → vuelve al destino; roles en el panel (5.4s)
+  ✓  23 [accounts] › e2e\auth-entry.spec.js:101:1 › panel del avatar: abre, Escape devuelve el foco, cierra al navegar y cierra sesión (4.0s)
+  ✓  24 [accounts] › e2e\auth-entry.spec.js:135:1 › móvil 390 px: el panel es una hoja inferior que cubre el contenido (2.5s)
+  ✓  25 [accounts] › e2e\auth-entry.spec.js:153:1 › recuperar contraseña y crear una nueva desde el enlace (5.9s)
+  ✓  26 [accounts] › e2e\auth-entry.spec.js:184:1 › enlace de recuperación inválido: error recuperable (966ms)
+  ✓  27 [accounts] › e2e\auth-entry.spec.js:192:1 › URLs de acceso: pestañas, recarga, atrás y adelante conservan la vista (1.5s)
+  ✓  28 [accounts] › e2e\auth-entry.spec.js:207:1 › carga real: bloquea envíos duplicados y permite reintentar tras un error (1.9s)
+  ✓  29 [accounts] › e2e\auth-entry.spec.js:232:1 › sesión caducada sin refresh válido vuelve al login y conserva el destino (2.2s)
+  ✓  30 [accounts] › e2e\auth-entry.spec.js:251:1 › login adaptable sin desbordamiento, con capturas y movimiento reducido (6.9s)
+  ✓  31 [accounts] › e2e\auth-entry.spec.js:273:1 › alias públicos, acceso directo, recarga y 404 (2.7s)
+  ✓  32 [accounts] › e2e\auth-entry.spec.js:286:1 › nombre con HTML se muestra como texto y no ejecuta scripts (1.9s)
+  ✓  33 [accounts] › e2e\duo-room.spec.js:40:1 › dos personas eligen en una sala, cada una desde su navegador (6.8s)
+  ✓  34 [accounts] › e2e\duo-room.spec.js:85:1 › un invitado sin cuenta se une con su nombre, pero no abre salas (3.5s)
+  ✓  35 [accounts] › e2e\duo-room.spec.js:98:1 › un código inventado no revela ninguna sala (1.6s)
+  ✓  36 [accounts] › e2e\groups.spec.js:12:1 › grupo: invitar, sumar a un plan y repetirlo sin copiar respuestas (6.3s)
+  ✓  37 [accounts] › e2e\partners.spec.js:16:1 › un cine verificado publica una función y el público la ve con su fuente (8.3s)
+  ✓  38 [accounts] › e2e\plus.spec.js:6:1 › noche fija: sin Plus el servidor la niega; con la prueba se programa la siguiente; cancelar conserva el periodo (5.1s)
+  ✓  39 [accounts] › e2e\shared-plan.spec.js:12:1 › Ana organiza, Bea entra con el enlace y confirma con su propia cuenta (8.2s)
+
+  3 skipped
+  36 passed (2.7m)
+EXIT_CODE=0

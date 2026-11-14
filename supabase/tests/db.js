@@ -15,6 +15,7 @@ const BOOTSTRAP = `
   create role anon nologin;
   create role authenticated nologin;
   create role service_role nologin bypassrls;
+  create role supabase_auth_admin nologin;
   create schema auth;
   create schema storage;
   create table auth.users (
@@ -39,11 +40,21 @@ const BOOTSTRAP = `
   grant execute on function auth.uid(), auth.jwt() to anon, authenticated, service_role;
 `;
 
-/** Base nueva con todas las migraciones aplicadas. */
-export async function createDb() {
+/**
+ * Base nueva con las migraciones aplicadas. `before` (nombre de archivo) se detiene antes de esa
+ * migración para preparar datos históricos; luego `applyMigrations(db, { from })` aplica el resto.
+ */
+export async function createDb({ before = null } = {}) {
   const db = new PGlite();
   await db.exec(BOOTSTRAP);
-  const files = (await readdir(MIGRATIONS)).filter((name) => name.endsWith(".sql")).sort();
+  await applyMigrations(db, { to: before });
+  return db;
+}
+
+export async function applyMigrations(db, { from = null, to = null } = {}) {
+  const files = (await readdir(MIGRATIONS))
+    .filter((name) => name.endsWith(".sql") && (!from || name >= from) && (!to || name < to))
+    .sort();
   for (const file of files) {
     try {
       await db.exec(await readFile(new URL(file, MIGRATIONS), "utf8"));
@@ -51,7 +62,6 @@ export async function createDb() {
       throw new Error(`La migración ${file} falló: ${error.message}`, { cause: error });
     }
   }
-  return db;
 }
 
 /** Crea usuarios en auth.users (el trigger de perfiles corre como en Supabase). */

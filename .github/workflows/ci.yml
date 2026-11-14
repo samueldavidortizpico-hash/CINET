@@ -1,11 +1,13 @@
-# Calidad en cada push y pull request. No usa secretos de producción:
+# Calidad en cada pull request y en cada push a main o a ramas de trabajo (N21). Sin secretos de producción:
 # la app se prueba en modo local (sin TMDB ni Supabase) y la base de datos con PGlite.
+# Para exigirlo antes de integrar: Settings > Branches > regla sobre main > "Require status checks" > «quality» y «dependencies».
 name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, "fix/**", "audit/**"]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -17,7 +19,7 @@ concurrency:
 jobs:
   quality:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -33,11 +35,47 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - name: Recorrido E2E en modo local
         run: npm run test:e2e
-      - if: failure()
+      - name: Registrar SHA y entorno de esta ejecución
+        if: always()
+        run: echo "sha=${GITHUB_SHA} ref=${GITHUB_REF} node=$(node -v) runner=${RUNNER_OS}" | tee ci-run.txt
+      - if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: ci-evidence-${{ github.sha }}
+          # Informes y trazas de Playwright (sin secretos: la app corre en modo local con datos sintéticos).
           path: |
+            ci-run.txt
             playwright-report/
             test-results/
+          if-no-files-found: ignore
           retention-days: 7
+
+  # Auditoría H-05: bloquea secretos en el código y en el historial de la rama (no imprime valores: --redact).
+  secrets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Gitleaks (historial completo de la rama)
+        run: |
+          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.21.2/gitleaks_8.21.2_linux_x64.tar.gz | tar -xz gitleaks
+          ./gitleaks git . --redact --no-banner --exit-code 1
+
+  dependencies:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      # Sin scripts de instalación: solo se inspecciona el árbol de dependencias.
+      - run: npm ci --ignore-scripts
+      - name: Dependencias de producción (bloquea)
+        run: npm audit --omit=dev
+      # Pendiente N19: tar/@capacitor/cli exigen Capacitor 8 (ver docs/OPERACION-STAGING.md). Hasta entonces avisa; pasar a bloqueante al migrar.
+      - name: Árbol completo (aviso visible, no bloquea)
+        run: npm audit || echo "::warning::npm audit completo reporta avisos de herramientas de desarrollo (Capacitor CLI)"

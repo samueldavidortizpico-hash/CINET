@@ -80,10 +80,14 @@ export const deleteOffer = (id) => run(db().from("offers").delete().eq("id", id)
 
 export const audit = (orgId) => run(db().from("org_audit").select("id, actor, action, entity, at").eq("org_id", orgId).order("at", { ascending: false }).limit(30));
 export const members = (orgId) => run(db().from("org_members").select("user_id, role, added_at").eq("org_id", orgId));
-export const addMember = (orgId, email, role = "editor") => run(db().rpc("add_org_member", { p_org: orgId, p_email: email, p_role: role }));
+/** Invita por correo (N04): nunca revela si hay cuenta; la persona entra solo si acepta. */
+export const inviteMember = (orgId, email, role = "editor") => run(db().rpc("invite_org_member", { p_org: orgId, p_email: email, p_role: role }));
+export const myOrgInvites = () => run(db().rpc("list_my_org_invites"));
+export const acceptOrgInvite = (inviteId) => run(db().rpc("accept_org_invite", { p_invite: inviteId }));
+export const declineOrgInvite = (inviteId) => run(db().rpc("decline_org_invite", { p_invite: inviteId }));
 export const removeMember = (orgId, userId) => run(db().rpc("remove_org_member", { p_org: orgId, p_user: userId }));
 
 /* ---------- Operación de CINET ---------- */
 export const pendingOrganizations = () =>
-  run(db().from("organizations").select("id, name, kind, official_url, status, created_at").eq("status", "pending").order("created_at", { ascending: true }));
+  run(db().from("organizations").select("id, name, kind, official_url, status, created_at").eq("status", "pending").order("created_at", { ascending: true }).limit(100));
 export const setOrganizationStatus = (orgId, status) => run(db().rpc("verify_organization", { p_org: orgId, p_status: status }));

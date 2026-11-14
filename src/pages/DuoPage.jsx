@@ -63,7 +63,7 @@ function candidatesKey(profile, saga) {
 
 /** /duo — seis escenas para 1 a 8 personas: preparar → gustos → coincidencias → finalistas → decidir → organizar. */
 export default function DuoPage() {
-  const { session, hasSession, update, reset } = useDuoSession();
+  const { session, hasSession, repaired, update, reset } = useDuoSession();
   const { user } = useAuth();
   const account = useAccountPreferences(); // con cuenta, la persona 1 parte de sus gustos guardados
   const { history, change: changeHistory, reset: resetHistory } = useDuoHistory();
@@ -297,6 +297,11 @@ export default function DuoPage() {
         {!storageOk && (
           <p className="duo-notice" role="status">
             Este navegador no deja guardar datos: la sesión y el historial se perderán al recargar la página.
+          </p>
+        )}
+        {repaired.length > 0 && (
+          <p className="duo-notice" role="status">
+            Recuperamos tu sesión guardada; descartamos datos dañados ({listEs(repaired)}). Lo demás sigue como lo dejaste.
           </p>
         )}
         {seed && step === "mode" && (

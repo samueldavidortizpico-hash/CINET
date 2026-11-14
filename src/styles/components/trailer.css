@@ -54,6 +54,26 @@
   line-height: 1;
 }
 
+/* ── <dialog> nativo de Modal.jsx (tráiler y plataformas) ──
+   El propio <dialog> es la capa oscura: se anulan los estilos del navegador y el ::backdrop. */
+dialog.modal-native {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  border: 0;
+  color: inherit;
+}
+
+dialog.modal-native:not([open]) {
+  display: none;
+}
+
+dialog.modal-native::backdrop {
+  background: transparent;
+}
+
 /* ── Overlay ──────────────────────────────────────────── */
 
 .trailer-overlay {
