@@ -1,8 +1,14 @@
 import PosterImage from "../common/PosterImage.jsx";
+import { CINEMA_CHAINS } from "../../data/showtimes.js";
 import { formatBudget, getPlanPoster, marathonTitles } from "../../services/planService.js";
+import { officialChainFor, safeHostname, safeHttpsUrl } from "../../utils/url.js";
 
 /** Cabecera del plan. `children` recibe acciones extra (p. ej. editar). */
 export default function PlanHero({ plan, children }) {
+  // place.url lo escribe quien organiza y lo leen los invitados: solo https sin credenciales, y solo se
+  // llama «sitio oficial» si el dominio es exactamente el de una cadena conocida (si no, se ve el dominio real).
+  const placeHref = safeHttpsUrl(plan.cinema.url);
+  const officialChain = officialChainFor(placeHref, CINEMA_CHAINS);
   const details = [
     plan.marathon ? ["🍿 Maratón", marathonTitles(plan)] : ["🎬 Película", plan.movie.title],
     [plan.mode === "home" ? "📺 Dónde" : "📍 Cine", [plan.cinema.name, plan.cinema.location].filter(Boolean).join(" · ")],
@@ -42,10 +48,12 @@ export default function PlanHero({ plan, children }) {
           ))}
         </div>
 
-        {plan.mode === "cinema" && plan.cinema.url && (
+        {plan.mode === "cinema" && placeHref && (
           <p className="plan-note">
-            <a href={plan.cinema.url} target="_blank" rel="noreferrer">
-              Consultar funciones en {plan.cinema.name} (sitio oficial) ↗
+            <a href={placeHref} target="_blank" rel="noopener noreferrer">
+              {officialChain
+                ? `Consultar funciones en ${officialChain.name} (sitio oficial) ↗`
+                : `Enlace que añadió quien organiza: ${safeHostname(placeHref)} ↗`}
             </a>
           </p>
         )}

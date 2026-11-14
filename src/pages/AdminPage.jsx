@@ -4,6 +4,7 @@ import { useAsync } from "../hooks/useAsync.js";
 import { useDocumentTitle } from "../hooks/useDocumentTitle.js";
 import { useToast } from "../hooks/useToast.js";
 import { partnersAvailable, pendingOrganizations, setOrganizationStatus } from "../services/partnerRepository.js";
+import { safeHostname, safeHttpsUrl } from "../utils/url.js";
 
 // Herramientas de administración existentes. Cada una se trasladará aquí cuando
 // sus datos vivan en Supabase con políticas RLS que solo permitan escribir a admins.
@@ -38,18 +39,35 @@ function PendingPartners() {
       {error && <p className="error-message" role="alert">{error.message}</p>}
       {pending?.length === 0 && <p>No hay solicitudes pendientes.</p>}
       <ul>
-        {pending?.map((org) => (
-          <li key={org.id}>
-            <span>
-              <strong>{org.name}</strong> · {org.kind === "cinema" ? "Cine" : "Organizador"} ·{" "}
-              <a href={org.official_url} target="_blank" rel="noopener noreferrer">{new URL(org.official_url).hostname}</a>
-            </span>
-            <span className="admin-partner-actions">
-              <Button variant="primary" onClick={() => decide(org, "verified")}>Verificar</Button>
-              <Button variant="secondary" onClick={() => decide(org, "suspended")}>Rechazar</Button>
-            </span>
-          </li>
-        ))}
+        {pending?.map((org) => {
+          // official_url lo escribe quien solicita la cuenta: nunca se asume que new URL() la acepte.
+          const href = safeHttpsUrl(org.official_url);
+          const host = safeHostname(org.official_url);
+          const usable = Boolean(href && host);
+          return (
+            <li key={org.id}>
+              <span>
+                <strong>{org.name}</strong> · {org.kind === "cinema" ? "Cine" : "Organizador"} ·{" "}
+                {usable ? (
+                  <a href={href} target="_blank" rel="noopener noreferrer">{host}</a>
+                ) : (
+                  <span className="error-message">Sitio no válido: <code className="admin-raw-url">{org.official_url}</code></span>
+                )}
+              </span>
+              <span className="admin-partner-actions">
+                <Button
+                  variant="primary"
+                  disabled={!usable}
+                  title={usable ? undefined : "No se puede verificar un sitio que no se puede abrir"}
+                  onClick={() => decide(org, "verified")}
+                >
+                  Verificar
+                </Button>
+                <Button variant="secondary" onClick={() => decide(org, "suspended")}>Rechazar</Button>
+              </span>
+            </li>
+          );
+        })}
       </ul>
     </section>
   );

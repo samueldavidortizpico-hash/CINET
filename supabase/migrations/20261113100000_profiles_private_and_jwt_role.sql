@@ -15,14 +15,8 @@
 --    profiles.role (is_platform_admin), así que bajar a alguien de admin surte efecto inmediato en datos.
 -- =========================================================
 
-drop policy if exists "Perfiles visibles para todos" on public.profiles;
-
-create policy "Cada usuario ve solo su perfil"
-  on public.profiles for select
-  to authenticated
-  using ((select auth.uid()) = id);
-
-revoke select on table public.profiles from anon;
+-- (1) ya lo hace 20261110150000_profiles_private_read.sql ("Cada cuenta ve solo su perfil" + revoke a anon);
+--     esta migración no lo repite: aquí solo va el rol en el JWT.
 
 -- ---------- Rol en el JWT ----------
 create function public.custom_access_token_hook(event jsonb)

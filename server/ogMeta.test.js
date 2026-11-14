@@ -61,3 +61,10 @@ test("el manejador usa el origen configurado, no la cabecera Host, y cachea segÃ
   await broken({ url: "/api/og?path=/" }, { writeHead: (status) => (out.status = status), end: () => {} });
   assert.equal(out.status, 503);
 });
+
+test("los patrones especiales de String.replace ($&, $', $`) en una sinopsis no alteran el HTML", () => {
+  const html = injectMeta(SHELL, { title: "Peli $& $` $'", description: "Cuesta $' y $& pesos", image: "/p.jpg", private: false }, { origin: "https://cinet.app", path: "/movie/1" });
+  assert.ok(html.includes("Cuesta $&#39; y $&amp; pesos"), "el texto entra literal, con su escapado");
+  assert.equal((html.match(/<\/head>/g) ?? []).length, 1, "un solo cierre de head: nada del documento se copia dentro de los atributos");
+  assert.equal((html.match(/<title>/g) ?? []).length, 1);
+});

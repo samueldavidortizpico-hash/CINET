@@ -453,3 +453,5 @@ button.person-chip span { display: grid; }
   .skeleton-poster,
 .skeleton-line { animation: none; }
 }
+
+.suggest-command { font-weight: 700; font-family: ui-monospace, monospace; opacity: .85; }

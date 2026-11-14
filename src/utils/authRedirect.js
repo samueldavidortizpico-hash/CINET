@@ -11,18 +11,30 @@ import { readStorage, writeStorage } from "./storage.js";
 const PENDING_KEY = "cinet-auth-next";
 const AUTH_PATHS = new Set(["/", "/login", "/register", "/registro", "/recuperar", "/nueva-contrasena"]);
 
+// Origen ficticio solo para resolver la ruta como lo hace el navegador y ver si se queda en el sitio.
+const PROBE_ORIGIN = "https://cinet.invalid";
+
 /** Ruta interna segura o null. */
 export function safeNext(path) {
   if (typeof path !== "string" || !path.startsWith("/") || path.startsWith("//") || path.includes("\\")) return null;
-  if ([...path].some((char) => char.charCodeAt(0) <= 32 || char.charCodeAt(0) === 127)) return null;
+  // No se guarda nada con caracteres de control (se recorre en vez de usar una regex: ESLint prohíbe controles en ellas).
+  for (const char of path) {
+    const code = char.codePointAt(0);
+    if (code <= 0x1f || code === 0x7f) return null;
+  }
+  // El navegador elimina tabulaciones y saltos de línea al analizar una URL: "/\t/evil.com" pasa a ser "//evil.com".
+  // Enumerar caracteres siempre deja alguno fuera; la comprobación fiable es resolverla y exigir el mismo origen.
+  // Además se normaliza (decodificada, sin barra final, sin mayúsculas) para que "/%6cogin" o "/home/../login"
+  // no esquiven la lista de pantallas de acceso ni "/%2f%2fevil.com" se vuelva "//evil.com".
   try {
-    const url = new URL(path, "https://cinet.invalid");
+    const url = new URL(path, PROBE_ORIGIN);
+    if (url.origin !== PROBE_ORIGIN) return null;
     const pathname = decodeURIComponent(url.pathname).replace(/\/+$/, "") || "/";
-    if (url.origin !== "https://cinet.invalid" || pathname.includes("\\") || pathname.startsWith("//") || AUTH_PATHS.has(pathname.toLowerCase())) return null;
-    return url.pathname + url.search + url.hash;
+    if (pathname.startsWith("//") || pathname.includes("\\") || AUTH_PATHS.has(pathname.toLowerCase())) return null;
   } catch {
     return null;
   }
+  return path;
 }
 
 export const rememberNext = (path) => writeStorage(PENDING_KEY, safeNext(path));
