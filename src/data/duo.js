@@ -5,7 +5,6 @@ export const DUO_PREFERENCES_KEY = "cinehub-duo-preferences"; // { genres } de l
 export const DUO_HISTORY_KEY = "cinehub-duo-history";
 export const DUO_SESSION_KEY = "cinehub-duo-session";
 
-export const MIN_PEOPLE = 1;
 export const MAX_PEOPLE = 8;
 
 /** ¿Quiénes ven? count: personas al elegir la tarjeta (en grupo se ajusta con + y −). */

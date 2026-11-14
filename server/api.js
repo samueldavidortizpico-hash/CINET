@@ -174,7 +174,6 @@ const ROUTES = [
   { method: "PATCH", path: "/admin/organizations/:id", roles: ["admin"], body: true, run: setOrganizationStatus },
 ].map((route) => ({ ...route, regex: new RegExp(`^${route.path.replace(/:(\w+)/g, "(?<$1>[^/]+)")}$`) }));
 
-export const API_ROUTES = ROUTES.map(({ method, path, roles }) => ({ method, path, roles }));
 
 function match(method, path) {
   const candidates = ROUTES.filter((route) => route.regex.test(path));

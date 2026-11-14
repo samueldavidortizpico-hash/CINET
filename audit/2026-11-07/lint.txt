@@ -1,4 +1,0 @@
-
-> cinehub@2.0.0 lint
-> eslint .
-

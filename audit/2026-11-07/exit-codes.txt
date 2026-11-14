@@ -1,8 +1,0 @@
-lint exit=0
-test exit=0
-build-e2e exit=0
-e2e exit=0
-build exit=0
-audit full exit=1
-audit prod exit=0
-diffcheck exit=0

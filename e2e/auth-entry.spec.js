@@ -224,7 +224,7 @@ test("carga real: bloquea envíos duplicados y permite reintentar tras un error"
     form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
     form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
   });
-  await page.screenshot({ path: "audit/login-loading-1440.png" });
+  await page.screenshot({ path: "test-results/evidencia/login-loading-1440.png" });
   expect(attempts).toBe(1);
   release();
   await expect(page.getByRole("alert")).toContainText("incorrectos");
@@ -260,12 +260,12 @@ test("login adaptable sin desbordamiento, con capturas y movimiento reducido", a
       await document.fonts.ready;
       await Promise.all(document.getAnimations().filter((a) => a.effect.getTiming().iterations !== Infinity).map((a) => a.finished.catch(() => {})));
     });
-    await page.screenshot({ path: `audit/login-${width}.png`, fullPage: true });
+    await page.screenshot({ path: `test-results/evidencia/login-${width}.png`, fullPage: true });
     await page.locator("#email").fill("correo-invalido");
     await page.getByRole("button", { name: "Entrar a CINET" }).click();
     await expect(page.locator("#email-error")).toContainText("válido");
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
-    await page.screenshot({ path: `audit/login-validation-${width}.png`, fullPage: true });
+    await page.screenshot({ path: `test-results/evidencia/login-validation-${width}.png`, fullPage: true });
   }
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");

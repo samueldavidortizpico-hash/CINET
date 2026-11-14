@@ -1,6 +1,0 @@
-# 2026-11-07T20:55:23-05:00 · SHA base a596ad2 + cambios locales · fengari 0.1.4 (Lua 5.3), Redis simulado en memoria — NO es Redis real
-V15 — límite identidad 1, global 3:
-  ANTES: A@0ms→200  A@0ms→429  A@0ms→429  B@0ms→429  C@0ms→429  D@0ms→429  E@0ms→429 | global= 7 rejected= 0
-  AHORA: A@0ms→200  A@0ms→429(id,ttl=60000)  A@0ms→429(id,ttl=60000)  B@0ms→200  C@0ms→200  D@0ms→429(global,ttl=60000)  E@0ms→429(global,ttl=60000) | global= 3 rejected= 4
-V19 — frontera de ventana (A agota, se espera a la siguiente ventana):
-  AHORA: A@0ms→200  A@0ms→429(id,ttl=60000)  A@59999ms→429(id,ttl=1)  A@60000ms→200 | global= 1 rejected= 2

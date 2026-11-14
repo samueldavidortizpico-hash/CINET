@@ -9,16 +9,16 @@ Responde a `AUDITORIA_SEGURIDAD_CINET_PARA_CLAUDE_2026-11-13.md` y a dos pedidos
 | Comprobación | Resultado |
 |---|---|
 | `npm run lint` | sin errores |
-| `npm test` (unitarias, proxy, API y SQL sobre PGlite con todas las migraciones) | **236/236** |
+| `npm test` (unitarias, proxy, API y SQL sobre PGlite con todas las migraciones, incluidas las de Juan) | **275/275** |
 | `npm run build` (guardián de secretos en el bundle) | OK |
-| `npm run test:e2e` (proyectos local y accounts) | 40 pasan; 1 intermitente (`duo-journey`, proyecto local, sin relación con Auth/API): 3/3 en verde al repetir |
+| `npm run test:e2e` (proyectos local y accounts) | 41 pasan, 0 fallan (tras integrar `main` y la limpieza) |
 | Escaneo de secretos en archivos rastreados | 0 hallazgos |
 | Escaneo del historial completo (`git rev-list --all`) | **1 hallazgo**: token TMDB en `origin/gh-pages` (H-05) |
 
 ## Por hallazgo
 
 ### H-01 Perfiles públicos (P1) → corregido
-- **Cambio:** `supabase/migrations/20261113100000_profiles_private_and_jwt_role.sql`. Se elimina «Perfiles visibles para todos», se añade «Cada usuario ve solo su perfil» y se revoca `select` a `anon`.
+- **Cambio:** lo resolvió Juan en `20261110150000_profiles_private_read.sql` (PR #1, integrado en esta rama con el merge `24bc145`). Elimina «Perfiles visibles para todos», añade «Cada cuenta ve solo su perfil» y revoca `select` a `anon`. La migración `20261113100000` ya no lo repite: solo añade el rol al JWT.
 - **Prueba negativa:** `supabase/tests/security.test.js` (H-01). A solo ve su fila, A no lee a B y anon recibe 42501.
 - **Impacto en lo compartido:** ninguno. Los nombres visibles de planes, grupos y salas viven en `plan_members` / `group_members` / `room_members`. Ninguna pantalla leía perfiles ajenos (verificado con grep en `src/`).
 - **Remoto:** aplicar la migración y repetir con REST (`GET /rest/v1/profiles` con anon → 401/vacío).
@@ -39,8 +39,9 @@ Responde a `AUDITORIA_SEGURIDAD_CINET_PARA_CLAUDE_2026-11-13.md` y a dos pedidos
 - **Remoto:** en Supabase > Auth, activar confirmación, CAPTCHA (secreto Turnstile), OTP de 900 s, SMTP propio (SPF/DKIM/DMARC) y una allowlist exacta de Redirect URLs en HTTPS. Probar: enlace usado o caducado falla; la contraseña vieja deja de servir; un redirect externo es rechazado.
 
 ### H-05 Secretos (P1) → **acción tuya pendiente**
-- **Hallazgo crítico:** el bundle `assets/index-AJ1A4nfk.js` del commit `9719392` en **`origin/gh-pages`** (publicado en GitHub, 2026-09-28) contiene el **token de lectura de TMDB**, y por hash es **el mismo que está hoy en `.env`**. No se imprimió su valor.
-- **Qué hacer:** (1) regenerar el *API Read Access Token* en TMDB > Settings > API y actualizarlo en Vercel y en `.env`; (2) decidir si borrar o reescribir la rama `gh-pages` en GitHub. No lo hice porque es destructivo y externo, y el token sigue en cachés de forks aunque se borre: **rotarlo es lo que lo resuelve**.
+- **Hallazgo crítico:** el bundle `assets/index-AJ1A4nfk.js` del commit `9719392` en **`origin/gh-pages`** (publicado en GitHub, 2026-09-28) contenía el **token de lectura de TMDB**, y por hash es **el mismo que está hoy en `.env`**. No se imprimió su valor.
+- **Hecho:** la rama `gh-pages` se borró del remoto (2026-11-13). Tenía un solo commit, de Samuel; ninguna otra rama contiene el token.
+- **Pendiente (solo lo puede hacer la persona dueña de la cuenta TMDB):** regenerar el *API Read Access Token* en TMDB > Settings > API y actualizarlo en Vercel y en `.env`. Mientras no se rote, el token sigue siendo válido: GitHub conserva el commit por SHA un tiempo y pudo copiarse antes.
 - **CI:** nuevo job `secrets` (gitleaks v8.21.2, historial de la rama, `--redact`).
 - El resto ya estaba bien: `VITE_*` sin secretos (guardián del build), webhooks con HMAC en tiempo constante, ventana de timestamp, límite de cuerpo e idempotencia.
 
@@ -104,7 +105,7 @@ curl -i https://<dominio>/api/v1/auth/register                                  
 
 ## Verificación remota pendiente (antes de declarar producción segura)
 
-- [ ] **Rotar el token TMDB** y decidir qué hacer con `origin/gh-pages`.
+- [ ] **Rotar el token TMDB** (`origin/gh-pages` ya se borró).
 - [ ] `supabase db push` de la migración 20261113100000 en staging y luego en producción. Activar el Custom Access Token Hook.
 - [ ] Auth alojado: confirmación, CAPTCHA, OTP de 900 s, SMTP, Redirect URLs y `max_rows`.
 - [ ] Vercel: variables de `/api/v1` (`SUPABASE_PUBLISHABLE_KEY`, Upstash), Deployment Checks con `smoke` y `npm run smoke -- https://<preview>` en verde.

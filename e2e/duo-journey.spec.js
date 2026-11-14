@@ -166,7 +166,7 @@ test("una plataforma sin disponibilidad comprobada no se da por cumplida; amplia
 
 /*
  * Capturas auténticas de las seis escenas en 390/834/1440 px (solo con DUO_CAPTURE=1; se guardan en
- * docs/evidencia/duo-avanzado). Además comprueba: sin desbordamiento horizontal y sin errores de consola.
+ * test-results/evidencia, ignorada por git). Además comprueba: sin desbordamiento horizontal y sin errores de consola.
  */
 for (const width of [390, 834, 1440]) {
   test(`capturas de las escenas a ${width} px`, async ({ page }) => {
@@ -179,7 +179,7 @@ for (const width of [390, 834, 1440]) {
       await page.waitForTimeout(450);
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
       expect(overflow, `${name}: sin desbordamiento horizontal`).toBeLessThanOrEqual(0);
-      await page.screenshot({ path: `docs/evidencia/duo-avanzado/despues-${width}-${name}.png` });
+      await page.screenshot({ path: `test-results/evidencia/duo-despues-${width}-${name}.png` });
     };
     await page.goto("/duo");
     await page.getByRole("button", { name: /Una cita/ }).click();
