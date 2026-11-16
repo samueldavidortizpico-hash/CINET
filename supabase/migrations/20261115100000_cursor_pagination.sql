@@ -88,7 +88,7 @@ begin
     from (
       select to_jsonb(t) || jsonb_build_object('plan_members', (select coalesce(jsonb_agg(jsonb_build_object('user_id', m.user_id, 'role', m.role, 'display_name', m.display_name, 'rsvp', m.rsvp, 'responded_at', m.responded_at) order by m.user_id), '[]'::jsonb) from public.plan_members m where m.plan_id = t.id)) || jsonb_build_object('__cursor', jsonb_build_object('createdAt', t.created_at, 'id', t.id::text)) as item,
              t.created_at as key_at, t.id as key_id
-      from public.plans t 
+      from public.plans t
       where (p_group is null or t.group_id = p_group)
         and (p_cursor_at is null or (t.created_at, t.id) > (p_cursor_at, p_cursor_id))
       order by t.created_at asc, t.id asc limit 51
@@ -113,7 +113,7 @@ begin
     from (
       select to_jsonb(t) || jsonb_build_object('group_members', (select coalesce(jsonb_agg(jsonb_build_object('user_id', m.user_id, 'role', m.role, 'display_name', m.display_name, 'joined_at', m.joined_at) order by m.user_id), '[]'::jsonb) from public.group_members m where m.group_id = t.id)) || jsonb_build_object('__cursor', jsonb_build_object('createdAt', t.created_at, 'id', t.id::text)) as item,
              t.created_at as key_at, t.id as key_id
-      from public.groups t 
+      from public.groups t
       where true
         and (p_cursor_at is null or (t.created_at, t.id) > (p_cursor_at, p_cursor_id))
       order by t.created_at asc, t.id asc limit 51
@@ -138,7 +138,7 @@ begin
     from (
       select jsonb_build_object('id', t.id, 'created_at', t.created_at, 'expires_at', t.expires_at, 'revoked_at', t.revoked_at, 'uses', t.uses) || jsonb_build_object('__cursor', jsonb_build_object('createdAt', t.created_at, 'id', t.id::text)) as item,
              t.created_at as key_at, t.id as key_id
-      from public.plan_invites t 
+      from public.plan_invites t
       where t.plan_id = p_plan and t.revoked_at is null and t.expires_at > now()
         and (p_cursor_at is null or (t.created_at, t.id) < (p_cursor_at, p_cursor_id))
       order by t.created_at desc, t.id desc limit 51
@@ -163,7 +163,7 @@ begin
     from (
       select jsonb_build_object('id', t.id, 'created_at', t.created_at, 'expires_at', t.expires_at, 'revoked_at', t.revoked_at, 'uses', t.uses) || jsonb_build_object('__cursor', jsonb_build_object('createdAt', t.created_at, 'id', t.id::text)) as item,
              t.created_at as key_at, t.id as key_id
-      from public.group_invites t 
+      from public.group_invites t
       where t.group_id = p_group and t.revoked_at is null and t.expires_at > now()
         and (p_cursor_at is null or (t.created_at, t.id) < (p_cursor_at, p_cursor_id))
       order by t.created_at desc, t.id desc limit 51
@@ -213,7 +213,7 @@ begin
     from (
       select to_jsonb(t) || jsonb_build_object('__cursor', jsonb_build_object('createdAt', t.created_at, 'id', t.id::text)) as item,
              t.created_at as key_at, t.id as key_id
-      from public.organizations t 
+      from public.organizations t
       where t.status = 'pending' and public.is_platform_admin()
         and (p_cursor_at is null or (t.created_at, t.id) > (p_cursor_at, p_cursor_id))
       order by t.created_at asc, t.id asc limit 51
@@ -238,7 +238,7 @@ begin
     from (
       select to_jsonb(t) || jsonb_build_object('__cursor', jsonb_build_object('createdAt', t.created_at, 'id', t.id::text)) as item,
              t.created_at as key_at, t.id as key_id
-      from public.venues t 
+      from public.venues t
       where t.org_id = p_org
         and (p_cursor_at is null or (t.created_at, t.id) > (p_cursor_at, p_cursor_id))
       order by t.created_at asc, t.id asc limit 51
@@ -263,7 +263,7 @@ begin
     from (
       select to_jsonb(t) || jsonb_build_object('__cursor', jsonb_build_object('createdAt', t.created_at, 'id', t.id::text)) as item,
              t.created_at as key_at, t.id as key_id
-      from public.listings t 
+      from public.listings t
       where t.org_id = p_org
         and (p_cursor_at is null or (t.created_at, t.id) > (p_cursor_at, p_cursor_id))
       order by t.created_at asc, t.id asc limit 51
@@ -288,7 +288,7 @@ begin
     from (
       select to_jsonb(t) || jsonb_build_object('__cursor', jsonb_build_object('createdAt', t.created_at, 'id', t.id::text)) as item,
              t.created_at as key_at, t.id as key_id
-      from public.offers t 
+      from public.offers t
       where t.org_id = p_org
         and (p_cursor_at is null or (t.created_at, t.id) > (p_cursor_at, p_cursor_id))
       order by t.created_at asc, t.id asc limit 51
@@ -313,7 +313,7 @@ begin
     from (
       select to_jsonb(t) || jsonb_build_object('__cursor', jsonb_build_object('createdAt', t.added_at, 'id', t.user_id::text)) as item,
              t.added_at as key_at, t.user_id as key_id
-      from public.org_members t 
+      from public.org_members t
       where t.org_id = p_org
         and (p_cursor_at is null or (t.added_at, t.user_id) > (p_cursor_at, p_cursor_id))
       order by t.added_at asc, t.user_id asc limit 51
@@ -338,7 +338,7 @@ begin
     from (
       select to_jsonb(t) || jsonb_build_object('id', t.id::text) || jsonb_build_object('__cursor', jsonb_build_object('createdAt', t.at, 'id', t.id::text)) as item,
              t.at as key_at, t.id as key_id
-      from public.org_audit t 
+      from public.org_audit t
       where t.org_id = p_org
         and (p_cursor_at is null or (t.at, t.id) < (p_cursor_at, p_cursor_id))
       order by t.at desc, t.id desc limit 51
@@ -391,7 +391,7 @@ begin
     from (
       select to_jsonb(t) || jsonb_build_object('__cursor', jsonb_build_object('createdAt', t.created_at, 'id', t.id::text)) as item,
              t.created_at as key_at, t.id as key_id
-      from public.listings t 
+      from public.listings t
       where t.title_id = p_title
         and (p_cursor_at is null or (t.created_at, t.id) > (p_cursor_at, p_cursor_id))
       order by t.created_at asc, t.id asc limit 51
@@ -419,7 +419,7 @@ begin
     from (
       select to_jsonb(t) || jsonb_build_object('__cursor', jsonb_build_object('createdAt', t.created_at, 'id', t.id::text)) as item,
              t.created_at as key_at, t.id as key_id
-      from public.offers t 
+      from public.offers t
       where t.title_id = p_title
         and (p_cursor_at is null or (t.created_at, t.id) > (p_cursor_at, p_cursor_id))
       order by t.created_at asc, t.id asc limit 51
