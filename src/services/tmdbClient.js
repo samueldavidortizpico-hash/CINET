@@ -21,7 +21,7 @@ const inBrowser = typeof window !== "undefined";
 const nodeEnv = inBrowser ? {} : (globalThis.process?.env ?? {});
 
 const config = {
-  token: nodeEnv.TMDB_READ_TOKEN || nodeEnv.VITE_TMDB_READ_TOKEN || "",
+  token: nodeEnv.TMDB_READ_TOKEN || "",
   // En el navegador, una URL directa a TMDB no sirve (no hay token): se usa el proxy.
   baseUrl: inBrowser
     ? (clientEnv.TMDB_API_URL && clientEnv.TMDB_API_URL !== DEFAULT_URL ? clientEnv.TMDB_API_URL : "/api/tmdb")

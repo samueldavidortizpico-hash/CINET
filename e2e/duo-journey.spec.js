@@ -220,6 +220,9 @@ for (const width of [390, 834, 1440]) {
 }
 
 test("después de la fecha: «¿La vieron? ¿Les gustó?» es opcional, local y saca la película de Duo", async ({ page }) => {
+  // Fecha y hora deterministas: a las 22:00 seleccionar hoy a las 20:30 ya es pasado.
+  // Se conservan ambas comprobaciones: no ofrecer feedback antes y ofrecerlo después.
+  await page.clock.setFixedTime(new Date("2026-11-15T12:00:00-05:00"));
   // Plan local real (mismo recorrido que la app) y luego su fecha pasa al pasado.
   await page.goto("/functions?movie=interstellar&time=20:30");
   await expect(page.getByLabel(/Hora propuesta/)).toHaveValue("20:30"); // la hora que traen de Duo llega como propuesta

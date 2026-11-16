@@ -84,6 +84,8 @@ test("N18: navegación, login, Duo, ficha y tráiler funcionan bajo la CSP de ve
   });
   await page.route("https://www.youtube.com/**", (route) => route.fulfill({ contentType: "text/html", body: "<!doctype html><p>player</p>" }));
   await page.route("https://fonts.googleapis.com/**", (route) => route.fulfill({ contentType: "text/css", body: "" }));
+  const avatar = await readFile("public/icon-192.png");
+  await page.route("https://cinet-csp-fixture.supabase.co/storage/**", (route) => route.fulfill({ contentType: "image/png", body: avatar }));
   const violations = [];
   await page.addInitScript(() => document.addEventListener("securitypolicyviolation", (event) => (window.__csp ??= []).push(`${event.violatedDirective} ${event.blockedURI} ${event.sourceFile}:${event.lineNumber} ${String(event.sample).slice(0, 80)}`)));
   for (const path of ["/", "/login", "/home", "/movies", "/duo", "/movie/interstellar", "/plan/abc"]) {
@@ -91,6 +93,15 @@ test("N18: navegación, login, Duo, ficha y tráiler funcionan bajo la CSP de ve
     await page.waitForLoadState("networkidle");
     violations.push(...(await page.evaluate(() => window.__csp ?? [])).map((item) => `${path}: ${item}`));
   }
+  // Reproduce el origen real de avatares, con bytes locales y sin consultar Supabase.
+  expect(await page.evaluate(() => new Promise((resolve) => {
+    const image = new Image();
+    image.onload = () => resolve(image.naturalWidth > 0);
+    image.onerror = () => resolve(false);
+    image.src = "https://cinet-csp-fixture.supabase.co/storage/v1/object/public/avatars/test.png";
+    document.body.append(image);
+  }))).toBe(true);
+  violations.push(...(await page.evaluate(() => window.__csp ?? [])).map((item) => `avatar: ${item}`));
   await page.goto("/movie/interstellar");
   await page.locator("#trailer-button").click();
   await expect(page.locator("dialog.trailer-overlay[open]")).toBeVisible();

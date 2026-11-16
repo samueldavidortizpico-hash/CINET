@@ -30,4 +30,7 @@ jobs:
           SMOKE_URL: ${{ github.event.deployment_status.environment_url || inputs.url }}
           # Solo si el preview tiene Vercel Authentication. Nunca se imprime.
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          # CSV o JSON de orígenes HTTPS exactos controlados por el equipo. No usar *.vercel.app.
+          # Si hay secreto y el evento apunta fuera de esta lista, el script aborta sin llamar a la red.
+          SMOKE_TRUSTED_ORIGINS: ${{ vars.SMOKE_TRUSTED_ORIGINS }}
         run: node scripts/smoke.mjs "$SMOKE_URL"

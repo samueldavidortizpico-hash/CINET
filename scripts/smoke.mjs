@@ -2,15 +2,20 @@
    Uso: node scripts/smoke.mjs https://<despliegue>
    Si el preview tiene Vercel Authentication, define VERCEL_AUTOMATION_BYPASS_SECRET (Protection Bypass for Automation).
    Sale con código 1 si algo falla: el workflow deploy-smoke lo convierte en un check que bloquea la promoción. */
-const base = new URL(process.argv[2] ?? process.env.SMOKE_URL ?? "");
-const bypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
-const headers = bypass ? { "x-vercel-protection-bypass": bypass } : {};
+import { createSmokePolicy } from "../server/smokePolicy.js";
+
+const policy = createSmokePolicy({
+  url: process.argv[2] ?? process.env.SMOKE_URL ?? "",
+  bypass: process.env.VERCEL_AUTOMATION_BYPASS_SECRET,
+  trustedOrigins: process.env.SMOKE_TRUSTED_ORIGINS,
+});
+const { base } = policy;
 const failures = [];
 
 async function check(name, path, expect, init = {}) {
   const url = new URL(path, base);
   try {
-    const response = await fetch(url, { redirect: "manual", ...init, headers: { ...headers, ...init.headers }, signal: AbortSignal.timeout(15_000) });
+    const response = await fetch(url, { ...init, redirect: "manual", headers: { ...init.headers, ...policy.headersFor(url) }, signal: AbortSignal.timeout(15_000) });
     const problems = expect(response) ?? [];
     console.log(`${problems.length ? "✖" : "✔"} ${name}: ${init.method ?? "GET"} ${url.pathname} → ${response.status}${problems.length ? ` (${problems.join("; ")})` : ""}`);
     if (problems.length) failures.push(name);

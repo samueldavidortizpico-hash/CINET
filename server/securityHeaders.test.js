@@ -57,6 +57,7 @@ test("CSP efectiva: cubre los recursos reales, sin comodines ni unsafe-inline en
   assert.deepEqual(d.get("frame-src"), ["https://www.youtube.com", TURNSTILE]);
   assert.ok(d.get("connect-src").includes("https://*.supabase.co") && d.get("connect-src").includes("wss://*.supabase.co"));
   assert.ok(d.get("img-src").includes("https://image.tmdb.org"));
+  assert.ok(d.get("img-src").includes("https://*.supabase.co"), "los avatares de Storage deben estar permitidos por la política efectiva");
   assert.deepEqual(d.get("object-src"), ["'none'"]);
   assert.deepEqual(d.get("frame-ancestors"), ["'none'"]);
   for (const [name, values] of d) assert.ok(!values.includes("*"), `${name} sin comodín general`);
