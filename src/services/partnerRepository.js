@@ -6,6 +6,7 @@
 
 import { supabase } from "./supabaseClient.js";
 import { zonedInstant } from "../utils/calendar.js";
+import { collectDataPages, readDataPage } from "./dataPagination.js";
 
 function toError(error) {
   if (typeof error?.code === "string" && error.code.startsWith("CN")) return Object.assign(new Error(error.message), { code: error.code });
@@ -27,23 +28,27 @@ const db = () => {
 
 export const partnersAvailable = () => Boolean(supabase);
 
-/** Organizaciones de las que soy parte, con mi rol. */
-export async function myOrganizations(userId) {
-  const memberships = await run(db().from("org_members").select("org_id, role").eq("user_id", userId));
-  if (!memberships.length) return [];
-  const orgs = await run(db().from("organizations").select("id, name, kind, official_url, status, verified_at, created_at").in("id", memberships.map((item) => item.org_id)));
-  return orgs.map((org) => ({ ...org, role: memberships.find((item) => item.org_id === org.id)?.role }));
+/** Página acotada por servidor; no se envía límite desde el cliente. */
+export async function partnerPage(resource, { orgId = null, cursor = null } = {}) {
+  const names = { organizations: "list_my_organizations_page", pending: "list_pending_organizations_page", venues: "list_org_venues_page", listings: "list_org_listings_page", offers: "list_org_offers_page", members: "list_org_members_page", audit: "list_org_audit_page", invitations: "list_my_org_invites_page" };
+  if (!names[resource]) throw Object.assign(new Error("Listado no válido."), { code: "CN422" });
+  const scoped = ["venues", "listings", "offers", "members", "audit"].includes(resource);
+  try { return await readDataPage(db(), names[resource], scoped ? { p_org: orgId } : {}, { cursor, integerId: resource === "audit" }); }
+  catch (error) { throw toError(error); }
 }
+const all = (resource, orgId = null, key) => collectDataPages((cursor) => partnerPage(resource, { orgId, cursor }), key);
+
+/** Solo las organizaciones de la sesión; userId se mantiene por compatibilidad del consumidor. */
+export const myOrganizations = () => all("organizations");
 
 export const requestOrganization = ({ name, kind, officialUrl }) =>
   run(db().rpc("request_organization", { p_name: name, p_kind: kind, p_official_url: officialUrl }));
 
-export const venues = (orgId) => run(db().from("venues").select("id, name, city, official_url").eq("org_id", orgId).order("name"));
+export const venues = async (orgId) => (await all("venues", orgId)).sort((a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
 export const addVenue = (orgId, { name, city, officialUrl }) =>
   run(db().from("venues").insert({ org_id: orgId, name, city, official_url: officialUrl || null }).select().single());
 
-export const listings = (orgId) =>
-  run(db().from("listings").select("id, venue_id, kind, title_id, title, starts_at, time_zone, format, language, price_cop, official_url, source, status, valid_until, updated_at").eq("org_id", orgId).order("starts_at", { ascending: true }));
+export const listings = async (orgId) => (await all("listings", orgId)).sort((a, b) => a.starts_at.localeCompare(b.starts_at) || a.id.localeCompare(b.id));
 
 /** Una función o evento: la hora se guarda con su zona; los datos valen hasta que empieza. */
 export function addListing(orgId, { venueId, kind, title, dateISO, time, timeZone = "America/Bogota", format, language, price, officialUrl }) {
@@ -71,20 +76,19 @@ export function addListing(orgId, { venueId, kind, title, dateISO, time, timeZon
 }
 export const setListingStatus = (id, status) => run(db().from("listings").update({ status }).eq("id", id).select());
 
-export const offers = (orgId) => run(db().from("offers").select("id, title_id, headline, body, url, valid_until").eq("org_id", orgId));
+export const offers = (orgId) => all("offers", orgId);
 export const addOffer = (orgId, { titleId, headline, body, url, validUntil }) =>
   run(db().from("offers").insert({ org_id: orgId, title_id: titleId || null, headline, body: body ?? "", url, valid_until: validUntil }).select().single());
 
-export const audit = (orgId) => run(db().from("org_audit").select("id, actor, action, entity, at").eq("org_id", orgId).order("at", { ascending: false }).limit(30));
-export const members = (orgId) => run(db().from("org_members").select("user_id, role, added_at").eq("org_id", orgId));
+export const audit = (orgId) => all("audit", orgId);
+export const members = (orgId) => all("members", orgId, (row) => row.user_id);
 /** Invita por correo (N04): nunca revela si hay cuenta; la persona entra solo si acepta. */
 export const inviteMember = (orgId, email, role = "editor") => run(db().rpc("invite_org_member", { p_org: orgId, p_email: email, p_role: role }));
-export const myOrgInvites = () => run(db().rpc("list_my_org_invites"));
+export const myOrgInvites = () => all("invitations");
 export const acceptOrgInvite = (inviteId) => run(db().rpc("accept_org_invite", { p_invite: inviteId }));
 export const declineOrgInvite = (inviteId) => run(db().rpc("decline_org_invite", { p_invite: inviteId }));
 export const removeMember = (orgId, userId) => run(db().rpc("remove_org_member", { p_org: orgId, p_user: userId }));
 
 /* ---------- Operación de CINET ---------- */
-export const pendingOrganizations = () =>
-  run(db().from("organizations").select("id, name, kind, official_url, status, created_at").eq("status", "pending").order("created_at", { ascending: true }).limit(100));
+export const pendingOrganizations = () => all("pending");
 export const setOrganizationStatus = (orgId, status) => run(db().rpc("verify_organization", { p_org: orgId, p_status: status }));

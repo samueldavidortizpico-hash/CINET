@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createApi } from "./api.js";
+import { decodeCursor, encodeCursor } from "../src/services/dataPagination.js";
 
 const b64 = (value) => Buffer.from(JSON.stringify(value)).toString("base64url");
 const jwt = (claims) => `${b64({ alg: "HS256" })}.${b64(claims)}.firma`;
@@ -32,6 +33,7 @@ function fakeSupabase({ adminInDb = true } = {}) {
     if (pathname === "/rest/v1/profiles") return reply(200, [{ id: USER.id, display_name: "Ana" }]);
     if (pathname === "/rest/v1/plans") return reply(200, searchParams.get("id") === "eq.44444444-4444-4444-8444-444444444444" ? [] : [{ id: "p1", created_at: "2026-11-01T00:00:00Z" }]);
     if (pathname === "/rest/v1/organizations") return reply(200, [{ id: ORG, status: "pending" }]);
+    if (pathname === "/rest/v1/rpc/is_platform_admin") return reply(200, adminInDb);
     if (pathname === "/rest/v1/rpc/verify_organization") return adminInDb ? reply(204) : reply(400, { code: "CN403", message: "Solo un operador… (SQL interno)" });
     return reply(404, {});
   };
@@ -96,10 +98,68 @@ test("API: cada consulta viaja con el JWT de quien llama (RLS), nunca con la cla
 });
 
 test("API: la base tiene la última palabra — claim admin viejo pero sin rol en la base → 403 sin filtrar el SQL", async () => {
-  const { call } = setup({ adminInDb: false });
+  const { call, calls } = setup({ adminInDb: false });
+  assert.equal((await call({ path: "/admin/organizations", token: ADMIN_TOKEN })).status, 403);
   const result = await call({ method: "PATCH", path: `/admin/organizations/${ORG}`, token: ADMIN_TOKEN, body: { status: "verified" } });
   assert.equal(result.status, 403);
   assert.doesNotMatch(result.body, /SQL|Solo un operador/);
+  assert.ok(!calls.some((item) => item.pathname === "/rest/v1/organizations" || item.pathname === "/rest/v1/rpc/verify_organization"));
+});
+
+test("API: rechazo de Auth por token caducado revocado o audiencia inválida queda en 401 y no consulta datos", async () => {
+  // Contrato del borde Auth simulado, no un verificador criptográfico propio ni prueba del hosting.
+  for (const [status, code] of [[401, "jwt_expired"], [403, "session_not_found"], [400, "validation_failed"], [422, "bad_jwt"]]) {
+    const paths = [];
+    const handle = createApi({ supabaseUrl: "https://x", supabaseKey: "pk", limiter: async () => ({ allowed: true }), log: () => {}, fetchImpl: async (url) => {
+      paths.push(new URL(url).pathname);
+      return reply(status, { error_code: code, message: "detalle interno" });
+    } });
+    const result = await handle({ path: "/me", headers: { authorization: `Bearer ${USER_TOKEN}` } });
+    assert.equal(result.status, 401, code);
+    assert.deepEqual(paths, ["/auth/v1/user"]);
+    assert.doesNotMatch(result.body, /detalle interno|jwt_expired|session_not_found/);
+  }
+});
+
+test("API: esquema bearer sin distinción de mayúsculas y sujeto coherente con Auth", async () => {
+  const base = fakeSupabase();
+  const handle = createApi({ supabaseUrl: "https://x", supabaseKey: "pk", limiter: async () => ({ allowed: true }), log: () => {}, fetchImpl: base.fetchImpl });
+  assert.equal((await handle({ path: "/me", headers: { authorization: `bearer ${USER_TOKEN}` } })).status, 200);
+  const mismatch = createApi({ supabaseUrl: "https://x", supabaseKey: "pk", limiter: async () => ({ allowed: true }), log: () => {}, fetchImpl: async () => reply(200, ADMIN) });
+  assert.equal((await mismatch({ path: "/me", headers: { authorization: `Bearer ${USER_TOKEN}` } })).status, 401);
+  const tooLong = await handle({ path: "/me", headers: { authorization: `Bearer ${"x".repeat(16_001)}.a.b` } });
+  assert.equal(tooLong.status, 401);
+});
+
+test("API: el rol ausente y user_metadata admin no conceden administración a un invitado", async () => {
+  const token = jwt({ sub: USER.id, role: "authenticated", user_metadata: { app_role: "admin", role: "admin" } });
+  const handle = createApi({ supabaseUrl: "https://x", supabaseKey: "pk", limiter: async () => ({ allowed: true }), log: () => {}, fetchImpl: async (url) => {
+    assert.equal(new URL(url).pathname, "/auth/v1/user");
+    return reply(200, { ...USER, is_anonymous: true });
+  } });
+  const result = await handle({ path: "/admin/organizations", headers: { authorization: `Bearer ${token}` } });
+  assert.equal(result.status, 403);
+});
+
+test("API: JSON de proveedor inválido y lectura interrumpida se normalizan sin filtrar detalles", async () => {
+  for (const [pathname, failure, expected] of [["/auth/v1/user", new SyntaxError("contenido privado"), 502], ["/rest/v1/profiles", new DOMException("contenido privado", "TimeoutError"), 504]]) {
+    const base = fakeSupabase();
+    const handle = createApi({ supabaseUrl: "https://x", supabaseKey: "pk", limiter: async () => ({ allowed: true }), log: () => {}, fetchImpl: (url, init) => new URL(url).pathname === pathname ? { ok: true, status: 200, json: async () => { throw failure; } } : base.fetchImpl(url, init) });
+    const result = await handle({ path: "/me", headers: { authorization: `Bearer ${USER_TOKEN}` } });
+    assert.equal(result.status, expected);
+    assert.doesNotMatch(result.body, /contenido privado/);
+  }
+});
+
+test("API: JSON válido con forma de listado inesperada es fallo de proveedor y no lista vacía o error interno", async () => {
+  for (const path of ["/me", "/plans", `/plans/${ORG}`]) {
+    for (const value of [null, {}, [null], ["fila"]]) {
+      const base = fakeSupabase();
+      const handle = createApi({ supabaseUrl: "https://x", supabaseKey: "pk", limiter: async () => ({ allowed: true }), log: () => {}, fetchImpl: (url, init) => new URL(url).pathname.startsWith("/rest/v1/") ? reply(200, value) : base.fetchImpl(url, init) });
+      const result = await handle({ path, headers: { authorization: `Bearer ${USER_TOKEN}` } });
+      assert.equal(result.status, 502, `${path}: ${JSON.stringify(value)}`);
+    }
+  }
 });
 
 test("API: registro POST — 202 neutro exista o no el correo; validación, JSON y tipo de contenido", async () => {
@@ -154,5 +214,90 @@ test("API: el registro de peticiones no contiene correo, contraseña, token ni I
   for (const line of logs) {
     assert.doesNotMatch(line, /cinet\.test|correcta-123|203\.0\.113|eyJ|firma/);
     assert.deepEqual(Object.keys(JSON.parse(line)), ["api", "requestId", "method", "route", "status", "ms"]);
+  }
+});
+
+test("API: planes y cola admin recorren más de 200 filas con empates sin saltos ni duplicados", async () => {
+  const id = (n) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
+  const timestamp = "2026-11-15T19:00:00.000001Z";
+  for (const [path, table, ascending] of [["/plans", "plans", false], ["/admin/organizations", "organizations", true]]) {
+    const rows = Array.from({ length: 237 }, (_, i) => ({ id: id(i + 1), created_at: timestamp }));
+    // También hay una fila que solo se diferencia en un microsegundo.
+    rows.push({ id: id(238), created_at: "2026-11-15T19:00:00.000002Z" });
+    const queryLog = [];
+    const base = fakeSupabase();
+    const handle = createApi({ supabaseUrl: "https://x", supabaseKey: "pk", limiter: async () => ({ allowed: true }), log: () => {}, fetchImpl: async (url, init) => {
+      const parsed = new URL(url);
+      if (parsed.pathname !== `/rest/v1/${table}`) return base.fetchImpl(url, init);
+      const params = parsed.searchParams;
+      queryLog.push(params);
+      const sort = (a, b) => a.created_at.localeCompare(b.created_at) || a.id.localeCompare(b.id);
+      let selected = [...rows].sort((a, b) => (ascending ? 1 : -1) * sort(a, b));
+      if (params.has("or")) {
+        const filter = /^\(created_at\.(lt|gt)\.([^,]+),and\(created_at\.eq\.([^,]+),id\.(lt|gt)\.([^()]+)\)\)$/.exec(params.get("or"));
+        assert.ok(filter, "el filtro tiene solamente una comparación lexicográfica validada");
+        assert.equal(filter[2], filter[3]);
+        assert.equal(filter[1], ascending ? "gt" : "lt");
+        const last = { created_at: filter[2], id: filter[5] };
+        selected = selected.filter((row) => (ascending ? 1 : -1) * sort(row, last) > 0);
+      }
+      assert.ok(Number(params.get("limit")) <= 51);
+      assert.equal(params.get("order"), `created_at.${ascending ? "asc" : "desc"},id.${ascending ? "asc" : "desc"}`);
+      return reply(200, selected.slice(0, Number(params.get("limit"))));
+    } });
+    const collected = [];
+    let cursor = null;
+    let requests = 0;
+    do {
+      const query = new URLSearchParams({ limit: "50", ...(cursor && { cursor }) });
+      const result = await handle({ path, query, headers: { authorization: `Bearer ${ADMIN_TOKEN}` } });
+      assert.equal(result.status, 200);
+      const page = JSON.parse(result.body);
+      assert.ok(page.items.length <= 50);
+      collected.push(...page.items);
+      cursor = page.nextCursor;
+      assert.equal(page.hasMore, Boolean(cursor));
+      if (cursor) assert.equal(decodeCursor(cursor).createdAt, timestamp, "no truncar los microsegundos del cursor");
+      requests++;
+      assert.ok(requests < 10);
+    } while (cursor);
+    assert.equal(requests, 5);
+    assert.equal(queryLog.length, 5);
+    assert.equal(collected.length, 238);
+    assert.equal(new Set(collected.map((row) => row.id)).size, 238);
+    const sorted = [...rows].sort((a, b) => (ascending ? 1 : -1) * (a.created_at.localeCompare(b.created_at) || a.id.localeCompare(b.id)));
+    assert.deepEqual(collected, sorted);
+  }
+});
+
+test("API: cursor inválido no llega a datos y límites no pueden excederse o repetirse", async () => {
+  const valid = encodeCursor({ createdAt: "2026-11-15T19:00:00.123456+00:00", id: ORG });
+  for (const query of ["limit=0", "limit=51", "limit=1&limit=50", "cursor=mal", `cursor=${valid}&before=2026-11-15`, "before=", `cursor=${b64({ v: 1, createdAt: "x),id.neq.null", id: ORG })}`]) {
+    const { call, calls } = setup();
+    const result = await call({ path: "/plans", token: USER_TOKEN, query });
+    assert.equal(result.status, 422, query);
+    assert.equal(calls.filter((item) => item.pathname === "/rest/v1/plans").length, 0);
+  }
+});
+
+test("API: lista vacía y última página exacta no emiten un cursor falso; reintento conserva la misma consulta", async () => {
+  for (const rows of [[], [{ id: ORG, created_at: "2026-11-15T19:00:00Z" }]]) {
+    const base = fakeSupabase();
+    let attempts = 0;
+    const dataUrls = [];
+    const handle = createApi({ supabaseUrl: "https://x", supabaseKey: "pk", limiter: async () => ({ allowed: true }), log: () => {}, fetchImpl: (url, init) => {
+      if (new URL(url).pathname !== "/rest/v1/plans") return base.fetchImpl(url, init);
+      dataUrls.push(url);
+      return ++attempts === 1 ? reply(503, {}) : reply(200, rows);
+    } });
+    const request = { path: "/plans", query: new URLSearchParams("limit=1"), headers: { authorization: `Bearer ${USER_TOKEN}` } };
+    assert.equal((await handle(request)).status, 502);
+    const result = await handle(request);
+    assert.equal(result.status, 200);
+    const page = JSON.parse(result.body);
+    assert.deepEqual(page.items, rows);
+    assert.equal(page.hasMore, false);
+    assert.equal(page.nextCursor, null);
+    assert.equal(dataUrls[0], dataUrls[1]);
   }
 });

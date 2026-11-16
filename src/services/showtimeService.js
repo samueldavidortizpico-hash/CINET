@@ -12,8 +12,8 @@
 
 import { supabase } from "./supabaseClient.js";
 import { describeStart } from "./planService.js";
+import { collectDataPages, readDataPage } from "./dataPagination.js";
 
-const LISTING = "id, org_id, venue_id, kind, title_id, title, starts_at, time_zone, format, language, price_cop, official_url, source, status, valid_until, updated_at";
 const text = (value, max = 200) => (typeof value === "string" ? value.slice(0, max) : "");
 const httpsUrl = (value) => (typeof value === "string" && /^https:\/\/\S+$/.test(value) ? value : null);
 
@@ -65,22 +65,40 @@ export function toShowtimes(rows, venues, orgs, now = new Date()) {
 
 const unavailable = () => Object.assign(new Error("No pudimos cargar la cartelera de aliados."), { code: "network" });
 
+/** Lookups públicos en lotes acotados; no crece el filtro in con toda la cartelera. */
+async function lookupRows(table, select, ids) {
+  const rows = [];
+  for (let index = 0; index < ids.length; index += 50) {
+    const { data, error } = await supabase.from(table).select(select).in("id", ids.slice(index, index + 50));
+    if (error) throw unavailable();
+    rows.push(...(data ?? []));
+  }
+  return rows;
+}
 async function lookups(rows) {
   const venueIds = [...new Set(rows.map((row) => row.venue_id).filter(Boolean))];
   const orgIds = [...new Set(rows.map((row) => row.org_id))];
   const [venues, orgs] = await Promise.all([
-    venueIds.length ? supabase.from("venues").select("id, name, city").in("id", venueIds) : { data: [] },
-    orgIds.length ? supabase.from("organizations").select("id, name").in("id", orgIds) : { data: [] },
+    lookupRows("venues", "id, name, city", venueIds),
+    lookupRows("organizations", "id, name", orgIds),
   ]);
-  // Sin nombres de sede u organización la fila sigue siendo útil (hora + enlace oficial).
-  return { venues: new Map((venues.data ?? []).map((venue) => [venue.id, venue])), orgs: new Map((orgs.data ?? []).map((org) => [org.id, org])) };
+  return { venues: new Map(venues.map((venue) => [venue.id, venue])), orgs: new Map(orgs.map((org) => [org.id, org])) };
+}
+
+/** Página pública: RLS decide vigencia y organización; transferencia created_at/id. */
+export async function titleDataPage(kind, titleId, { cursor = null } = {}) {
+  const name = { listings: "list_title_listings_page", offers: "list_title_offers_page" }[kind];
+  if (!name || typeof titleId !== "string" || !titleId.length || titleId.length > 64) throw Object.assign(new Error("Título no válido."), { code: "CN422" });
+  if (!supabase) return { items: [], nextCursor: null };
+  try { return await readDataPage(supabase, name, { p_title: titleId }, { cursor }); }
+  catch { throw unavailable(); }
 }
 
 /** Funciones vigentes de un título → { items, skipped }. Lanza si la consulta falla. */
 export async function getListingsForTitle(titleId, now = new Date()) {
   if (!supabase) return { items: [], skipped: 0 };
-  const { data, error } = await supabase.from("listings").select(LISTING).eq("title_id", String(titleId)).order("starts_at", { ascending: true }).limit(100);
-  if (error) throw unavailable();
+  const data = await collectDataPages((cursor) => titleDataPage("listings", String(titleId), { cursor }));
+  data.sort((a, b) => a.starts_at.localeCompare(b.starts_at) || a.id.localeCompare(b.id));
   if (!data?.length) return { items: [], skipped: 0 };
   const { venues, orgs } = await lookups(data);
   return toShowtimes(data, venues, orgs, now);
@@ -89,8 +107,7 @@ export async function getListingsForTitle(titleId, now = new Date()) {
 /** Ofertas patrocinadas vigentes (aparte de las funciones; no tocan el ranking). Lanza si la consulta falla. */
 export async function getOffersForTitle(titleId, now = new Date()) {
   if (!supabase) return [];
-  const { data, error } = await supabase.from("offers").select("id, org_id, headline, body, url, valid_until").eq("title_id", String(titleId)).limit(20);
-  if (error) throw unavailable();
+  const data = await collectDataPages((cursor) => titleDataPage("offers", String(titleId), { cursor }));
   if (!data?.length) return [];
   const { orgs } = await lookups(data);
   return data

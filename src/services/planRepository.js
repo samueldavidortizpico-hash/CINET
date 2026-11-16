@@ -9,6 +9,7 @@
 import { supabase } from "./supabaseClient.js";
 import { describeStart, parseBudget, toStartParts } from "./planService.js";
 import { decodeDetails, decodePlace, decodeTitle } from "./planContract.js";
+import { collectDataPages, readDataPage } from "./dataPagination.js";
 
 const SELECT = "id, owner_id, name, message, mode, title_id, title, place, starts_at, time_zone, time_source, details, status, version, created_at, updated_at, group_id, repeat_every, plan_members (user_id, role, display_name, rsvp, responded_at)";
 export { SELECT as PLAN_SELECT }; // la usa groupRepository (planes de un grupo)
@@ -99,19 +100,16 @@ export function toUiPlans(rows, userId) {
   return plans;
 }
 
-/** Tope de la lista (H-07): nunca se descarga el historial completo. */
-export const PLAN_LIST_LIMIT = 200;
-
-// ponytail: los 200 más recientes sin cursor; paginar por created_at (keyset) cuando alguien los supere.
-export async function listPlans(userId) {
-  const { data, error } = await client()
-    .from("plans")
-    .select(SELECT)
-    .order("created_at", { ascending: false })
-    .limit(PLAN_LIST_LIMIT);
-  if (error) throw toPlanError(error);
-  return toUiPlans([...(data ?? [])].reverse(), userId); // la app los usa del más antiguo al más nuevo
+/** Página de transferencia de 50 planes, orden created_at/id ascendente. */
+export async function listPlansPage(userId, { cursor = null, groupId = null } = {}) {
+  try {
+    const page = await readDataPage(client(), "list_plans_page", { p_group: groupId }, { cursor });
+    return { ...page, items: toUiPlans(page.items, userId) };
+  } catch (error) { throw toPlanError(error); }
 }
+
+/** Compatibilidad con el frontend actual: todos los planes, del más antiguo al más nuevo. */
+export const listPlans = (userId) => collectDataPages((cursor) => listPlansPage(userId, { cursor }));
 
 /** null si no existe o no eres miembro (RLS no distingue: así no se filtra si existe). */
 export async function getPlan(id, userId) {
@@ -201,17 +199,11 @@ export const scheduleNextPlan = (planId, clientRef) => call("schedule_next_plan"
 export const createInvite = (id, days = 14) => call("create_plan_invite", { p_plan: id, p_days: days, p_max_uses: null });
 export const revokeInvite = (inviteId) => call("revoke_plan_invite", { p_invite: inviteId });
 
-export async function listInvites(planId) {
-  const { data, error } = await client()
-    .from("plan_invites")
-    .select("id, created_at, expires_at, revoked_at, uses")
-    .eq("plan_id", planId)
-    .is("revoked_at", null)
-    .gt("expires_at", new Date().toISOString())
-    .order("created_at", { ascending: false });
-  if (error) throw toPlanError(error);
-  return data;
+export async function listInvitesPage(planId, { cursor = null } = {}) {
+  try { return await readDataPage(client(), "list_plan_invites_page", { p_plan: planId }, { cursor }); }
+  catch (error) { throw toPlanError(error); }
 }
+export const listInvites = (planId) => collectDataPages((cursor) => listInvitesPage(planId, { cursor }));
 
 export async function previewInvite(token) {
   const data = await call("preview_plan_invite", { p_token: token });

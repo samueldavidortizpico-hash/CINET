@@ -1,7 +1,7 @@
 /* =========================================================
    API REST de CINET: /api/v1/* (Vercel la reescribe a /api/v1?path=…).
    - Identidad: JWT de Supabase Auth en "Authorization: Bearer <token>". Supabase Auth lo valida
-     (GET /auth/v1/user: firma, caducidad y sesión revocada); luego se lee el claim app_role
+     (GET /auth/v1/user: firma, caducidad y sesión cuando el token la referencia); luego se lee app_role
      ('user' | 'admin') que pone public.custom_access_token_hook. Sin claim → 'user' (mínimo privilegio).
    - Autorización en dos capas: la ruta exige rol (403) y Postgres vuelve a decidir con RLS, porque
      cada consulta viaja con el token de quien llama (nunca con service_role).
@@ -14,6 +14,7 @@
    ========================================================= */
 import { randomUUID } from "node:crypto";
 import { validateForm, validateLogin } from "../src/utils/validation.js";
+import { decodeCursor, encodeCursor } from "../src/services/dataPagination.js";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const ROLES = ["user", "admin"];
@@ -46,7 +47,8 @@ export class HttpError extends Error {
 /** Payload de un JWT YA validado por Supabase Auth (solo para leer claims, nunca para decidir validez). */
 export function jwtClaims(token) {
   try {
-    return JSON.parse(Buffer.from(String(token).split(".")[1] ?? "", "base64url").toString("utf8"));
+    const value = JSON.parse(Buffer.from(String(token).split(".")[1] ?? "", "base64url").toString("utf8"));
+    return value && typeof value === "object" && !Array.isArray(value) ? value : {};
   } catch {
     return {};
   }
@@ -88,6 +90,7 @@ async function register({ body, sb }) {
 }
 
 function sessionBody(payload) {
+  if (!payload || typeof payload.access_token !== "string" || typeof payload.refresh_token !== "string") throw new HttpError(502, "upstream");
   const claims = jwtClaims(payload.access_token);
   return {
     access_token: payload.access_token,
@@ -110,7 +113,7 @@ async function login({ body, sb }) {
     throw new HttpError(401, "invalid_credentials"); // mismo mensaje exista o no la cuenta
   }
   sb.assertOk(response);
-  return ok(200, sessionBody(await response.json()));
+  return ok(200, sessionBody(await upstreamJson(response)));
 }
 
 async function refresh({ body, sb }) {
@@ -119,37 +122,69 @@ async function refresh({ body, sb }) {
   const response = await sb.auth("/token?grant_type=refresh_token", { method: "POST", body: { refresh_token: token } });
   if (response.status === 400 || response.status === 401) throw new HttpError(401, "unauthorized", "La sesión caducó. Inicia sesión de nuevo.");
   sb.assertOk(response);
-  return ok(200, sessionBody(await response.json()));
+  return ok(200, sessionBody(await upstreamJson(response)));
 }
 
 async function me({ caller, sb }) {
-  const rows = await sb.rest(`/profiles?select=id,username,display_name,avatar_url,bio&id=eq.${caller.id}`, { token: caller.token });
+  const rows = dataRows(await sb.rest(`/profiles?select=id,username,display_name,avatar_url,bio&id=eq.${caller.id}`, { token: caller.token }));
   return ok(200, { id: caller.id, role: caller.role, guest: caller.guest, profile: rows[0] ?? null });
 }
 
 const PLAN_COLUMNS = "id,name,mode,title,starts_at,time_zone,status,owner_id,created_at";
 
-async function listPlans({ caller, query, sb }) {
-  const limit = query.get("limit") ?? "20";
+function dataRows(value) {
+  if (!Array.isArray(value) || value.some((row) => !row || typeof row !== "object" || Array.isArray(row))) throw new HttpError(502, "upstream");
+  return value;
+}
+
+function pageRequest(query, { ascending = false, defaultLimit = 20 } = {}) {
+  for (const name of ["limit", "before", "cursor"]) {
+    if (query.getAll(name).length > 1) throw invalid({ [name]: "No repitas este parámetro." });
+  }
+  const limit = query.get("limit") ?? String(defaultLimit);
   if (!/^\d{1,2}$/.test(limit) || Number(limit) < 1 || Number(limit) > 50) throw invalid({ limit: "Entero entre 1 y 50." });
   const before = query.get("before");
-  if (before !== null && Number.isNaN(Date.parse(before))) throw invalid({ before: "Fecha ISO 8601." });
-  const filter = before ? `&created_at=lt.${encodeURIComponent(new Date(before).toISOString())}` : "";
+  const cursor = query.get("cursor");
+  if (before !== null && cursor !== null) throw invalid({ cursor: "Usa cursor o before, no ambos." });
+  if (before !== null && (before.length > 64 || Number.isNaN(Date.parse(before)))) throw invalid({ before: "Fecha ISO 8601." });
+  let filter = before ? `&created_at=lt.${encodeURIComponent(new Date(before).toISOString())}` : "";
+  if (cursor !== null) {
+    let last;
+    try { last = decodeCursor(cursor); } catch { throw invalid({ cursor: "Cursor no válido." }); }
+    const cmp = ascending ? "gt" : "lt";
+    filter = `&or=${encodeURIComponent(`(created_at.${cmp}.${last.createdAt},and(created_at.eq.${last.createdAt},id.${cmp}.${last.id}))`)}`;
+  }
+  return { limit: Number(limit), filter };
+}
+
+function pageResponse(rows, limit) {
+  dataRows(rows);
+  const items = rows.slice(0, limit);
+  const hasMore = rows.length > limit;
+  const last = items.at(-1);
+  return { items, hasMore, nextCursor: hasMore ? encodeCursor({ createdAt: last.created_at, id: last.id }) : null };
+}
+
+async function listPlans({ caller, query, sb }) {
+  const { limit, filter } = pageRequest(query);
   // RLS: solo vuelven los planes de los que quien llama es miembro (ser admin no abre planes ajenos).
-  const rows = await sb.rest(`/plans?select=${PLAN_COLUMNS}${filter}&order=created_at.desc&limit=${Number(limit)}`, { token: caller.token });
-  return ok(200, { items: rows, nextBefore: rows.length === Number(limit) ? rows.at(-1).created_at : null });
+  const rows = await sb.rest(`/plans?select=${PLAN_COLUMNS}${filter}&order=created_at.desc,id.desc&limit=${limit + 1}`, { token: caller.token });
+  const page = pageResponse(rows, limit);
+  // Compatibilidad de respuesta: before queda como filtro inicial legado; continuar con nextCursor.
+  return ok(200, { ...page, nextBefore: page.hasMore ? page.items.at(-1).created_at : null });
 }
 
 async function getPlan({ caller, params, sb }) {
   if (!UUID.test(params.id)) throw new HttpError(404, "not_found", "El plan no existe o no tienes acceso.");
-  const rows = await sb.rest(`/plans?select=${PLAN_COLUMNS}&id=eq.${params.id}`, { token: caller.token });
+  const rows = dataRows(await sb.rest(`/plans?select=${PLAN_COLUMNS}&id=eq.${params.id}`, { token: caller.token }));
   if (!rows.length) throw new HttpError(404, "not_found", "El plan no existe o no tienes acceso.");
   return ok(200, rows[0]);
 }
 
-async function pendingOrganizations({ caller, sb }) {
-  const rows = await sb.rest("/organizations?select=id,name,kind,official_url,status,created_at&status=eq.pending&order=created_at.asc&limit=100", { token: caller.token });
-  return ok(200, { items: rows });
+async function pendingOrganizations({ caller, query, sb }) {
+  const { limit, filter } = pageRequest(query, { ascending: true, defaultLimit: 50 });
+  const rows = await sb.rest(`/organizations?select=id,name,kind,official_url,status,created_at&status=eq.pending${filter}&order=created_at.asc,id.asc&limit=${limit + 1}`, { token: caller.token });
+  return ok(200, pageResponse(rows, limit));
 }
 
 async function setOrganizationStatus({ caller, params, body, sb }) {
@@ -186,6 +221,14 @@ function match(method, path) {
 }
 
 /* ---------- Supabase (Auth + PostgREST) con plazo ---------- */
+async function upstreamJson(response) {
+  try {
+    return await response.json();
+  } catch (error) {
+    throw new HttpError(error?.name === "TimeoutError" ? 504 : 502, error?.name === "TimeoutError" ? "timeout" : "upstream");
+  }
+}
+
 function supabaseClient({ url, key, fetchImpl }) {
   const call = async (path, { method = "GET", token, body } = {}) => {
     try {
@@ -208,7 +251,7 @@ function supabaseClient({ url, key, fetchImpl }) {
     auth: (path, options) => call(`/auth/v1${path}`, options),
     async rest(path, options) {
       const response = await call(`/rest/v1${path}`, options);
-      if (response.ok) return response.status === 204 ? [] : response.json();
+      if (response.ok) return response.status === 204 ? [] : upstreamJson(response);
       const payload = await response.json().catch(() => ({}));
       // Códigos estables (cinet_fail, SQLSTATE) → HTTP. El mensaje SQL nunca se reenvía.
       if (payload.code === "CN403" || payload.code === "42501" || response.status === 403) throw new HttpError(403, "forbidden");
@@ -223,12 +266,13 @@ function supabaseClient({ url, key, fetchImpl }) {
 
 /** Quién llama: Supabase Auth valida el token; el rol sale del claim app_role. */
 async function authenticate(headers, sb) {
-  const token = /^Bearer ([\w-]+\.[\w-]+\.[\w-]+)$/.exec(String(headers.authorization ?? ""))?.[1];
+  const authorization = String(headers.authorization ?? "");
+  const token = authorization.length <= 16_000 ? /^Bearer +([\w-]+\.[\w-]+\.[\w-]+)$/i.exec(authorization)?.[1] : null;
   if (!token) throw new HttpError(401, "unauthorized");
   const response = await sb.auth("/user", { token });
-  if (response.status === 401 || response.status === 403) throw new HttpError(401, "unauthorized");
+  if ([400, 401, 403, 422].includes(response.status)) throw new HttpError(401, "unauthorized");
   sb.assertOk(response);
-  const user = await response.json();
+  const user = await upstreamJson(response);
   const claims = jwtClaims(token);
   if (!user?.id || claims.sub !== user.id) throw new HttpError(401, "unauthorized");
   return { id: user.id, token, role: appRole(claims), guest: Boolean(user.is_anonymous) };
@@ -278,6 +322,12 @@ export function createApi({ supabaseUrl, supabaseKey, limiter, fetchImpl = (...a
 
       const caller = route.roles ? await authenticate(headers, sb) : null;
       if (caller && !route.roles.includes(caller.role)) throw new HttpError(403, "forbidden");
+      // app_role es una foto del momento de emisión. Para operar como admin se exige el rol actual,
+      // también en lecturas: una democión no espera a que caduque el JWT. La RPC conserva RLS y token.
+      if (route.roles?.length === 1 && route.roles[0] === "admin") {
+        const currentAdmin = await sb.rest("/rpc/is_platform_admin", { token: caller.token, method: "POST", body: {} });
+        if (currentAdmin !== true) throw new HttpError(403, "forbidden");
+      }
       if (bodyError) throw new HttpError(bodyError.status === 413 ? 413 : bodyError.status === 408 ? 408 : 400, bodyError.status === 413 ? "payload_too_large" : bodyError.status === 408 ? "timeout" : "bad_json");
       const parsed = route.body ? parseBody(body, headers) : {};
       const result = await route.run({ caller, params, query, body: parsed, sb });
