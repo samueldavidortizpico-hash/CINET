@@ -216,3 +216,29 @@ test("V20: una cabecera de IP aportada por el cliente no cambia la identidad sal
   assert.equal(clientIp(req, clientIpOptions({ TRUSTED_IP_HEADER: "x-vercel-forwarded-for" })), "10.0.0.2", "valor que no es IP: se ignora");
   assert.equal(clientIp(req, clientIpOptions({ TRUSTED_IP_HEADER: "bad header!" })), "10.0.0.2", "nombre inválido: se ignora");
 });
+
+test("cada fallo deja un log sin secretos: Redis ausente, sin token, token rechazado, límite de TMDB, red; el éxito no registra", async () => {
+  const logs = [];
+  const log = (entry) => logs.push(entry);
+  const redisOk = async () => new Response(JSON.stringify({ result: [1, 0, 0] }));
+  const env = { TMDB_READ_TOKEN: TOKEN, UPSTASH_REDIS_REST_URL: "https://redis.example", UPSTASH_REDIS_REST_TOKEN: "redis-token-123456" };
+  const withTmdb = (tmdb) => async (url, options) => (String(url).startsWith("https://redis.example") ? redisOk() : tmdb(url, options));
+  const cases = [
+    [{ TMDB_READ_TOKEN: TOKEN }, okFetch(), 503, { code: "rate-limit-unavailable", reason: "redis-not-configured" }],
+    [{ ...env, TMDB_READ_TOKEN: "" }, withTmdb(okFetch()), 503, { code: "no-token" }],
+    [env, withTmdb(okFetch(401, { status_message: "Invalid API key" })), 502, { code: "upstream", reason: "tmdb-401" }],
+    [env, withTmdb(okFetch(429, {}, { "retry-after": "3" })), 429, { code: "rate-limit", reason: "tmdb-429" }],
+    [env, withTmdb(async () => { throw new TypeError("fetch failed"); }), 502, { code: "network" }],
+    [env, withTmdb(okFetch(200, { images: {} })), 200, null],
+  ];
+  for (const [caseEnv, fetchImpl, status, expected] of cases) {
+    logs.length = 0;
+    const result = await get(createTmdbAccess(caseEnv, { fetchImpl, log }), "/configuration");
+    assert.equal(result.status, status, JSON.stringify(expected));
+    assert.equal(result.body.includes("redis-not-configured"), false, "el motivo interno no sale en la respuesta");
+    if (!expected) { assert.equal(logs.length, 0); continue; }
+    assert.equal(logs.length, 1);
+    assert.deepEqual({ ...logs[0], path: undefined }, { ...expected, status, path: undefined });
+    assert.equal(JSON.stringify(logs).includes(TOKEN), false, "el token nunca va al log");
+  }
+});

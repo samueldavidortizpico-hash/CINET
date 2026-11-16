@@ -1140,15 +1140,15 @@
     "semantic_hash": ""
   },
   "server/tmdbProxy.js": {
-    "mtime": 1794616361.314872,
-    "seen": 1794618202.5109365,
-    "ast_hash": "5bb4981f466f52607e3c79ddb0967c5c",
+    "mtime": 1794802906.6164405,
+    "seen": 1794803191.0866017,
+    "ast_hash": "0486c5728d717a86761689d682093a65",
     "semantic_hash": ""
   },
   "server/tmdbProxy.test.js": {
-    "mtime": 1794102884.3901846,
-    "seen": 1794618202.5109398,
-    "ast_hash": "131664ebcf13c810fc4bb3f6992bb4c5",
+    "mtime": 1794802920.7606127,
+    "seen": 1794803191.0866044,
+    "ast_hash": "607a6bae1bdc972a4a34e64fe8d5aaaa",
     "semantic_hash": ""
   },
   "src/components/duo/DuoShortlist.jsx": {
@@ -1932,14 +1932,14 @@
     "semantic_hash": ""
   },
   "scripts/smoke.mjs": {
-    "mtime": 1794617760.8721046,
-    "seen": 1794618202.5108986,
+    "mtime": 1794617761.872104,
+    "seen": 1794803191.0865674,
     "ast_hash": "0ea68cba9f716536752edee4ecb4ba9c",
     "semantic_hash": ""
   },
   "server/api.js": {
-    "mtime": 1794621493.566942,
-    "seen": 1794622050.432043,
+    "mtime": 1794621494.5669425,
+    "seen": 1794803191.0865731,
     "ast_hash": "9ee3ae4389c4ac3a7c235adb692ebe5f",
     "semantic_hash": ""
   },
@@ -2274,8 +2274,8 @@
     "semantic_hash": ""
   },
   "scripts/audit-db-privileges.mjs": {
-    "mtime": 1794619575.040162,
-    "seen": 1794622050.432024,
+    "mtime": 1794619576.0401616,
+    "seen": 1794803191.086551,
     "ast_hash": "ea6300d166b67db314479bf8d50567c7",
     "semantic_hash": ""
   },
@@ -2367,6 +2367,12 @@
     "mtime": 1794619575.0389848,
     "seen": 1794622050.4326105,
     "ast_hash": "f7fa553da535a76f84acdd2ed14d29f2",
+    "semantic_hash": ""
+  },
+  "docs/AUDITORIA_TECNICA_PARA_REMEDIACION_2026-11-15.md": {
+    "mtime": 1794796816.0171285,
+    "seen": 1794803191.0877964,
+    "ast_hash": "2bb1a0d806d3298aa8699b03a33d0f77",
     "semantic_hash": ""
   }
 }

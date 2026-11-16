@@ -163,6 +163,8 @@ export function createTmdbProxy({
   limit = { max: 600, windowMs: 60_000 },
   sharedLimiter,
   now = Date.now,
+  // Registro para los logs de Vercel: solo código, estado y ruta; nunca token, IP ni cuerpo.
+  log = (entry) => console.warn("[tmdb-proxy]", JSON.stringify(entry)),
 } = {}) {
   const windows = new Map(); // ip → { start, count }
 
@@ -183,8 +185,19 @@ export function createTmdbProxy({
     return current.count > max ? Math.ceil((current.start + limit.windowMs - time) / 1000) : 0;
   }
 
+  /* Los fallos de servidor/proveedor (5xx) y los límites (429) quedan en el log; los 4xx del cliente no. */
+  return async function logged(request) {
+    const result = await handle(request);
+    if (result.status >= 500 || result.status === 429) {
+      let code = "unknown";
+      try { code = JSON.parse(result.body).error.code; } catch { /* cuerpo sin código */ }
+      log({ code, status: result.status, path: String(request?.path ?? "").slice(0, 80), ...(result.reason && { reason: result.reason }) });
+    }
+    return result;
+  };
+
   /** identityMax: cupo propio de una identidad (p. ej. bots de vista previa) dentro del mismo global. */
-  return async function handle({ method = "GET", path = "", query = new URLSearchParams(), ip = "", identityMax }) {
+  async function handle({ method = "GET", path = "", query = new URLSearchParams(), ip = "", identityMax }) {
     if (method !== "GET") return fail(405, "method", "Solo se permite GET.", { allow: "GET" });
     const route = ROUTES.find(({ pattern }) => pattern.test(path));
     if (!route) return fail(404, "route", "Ruta no disponible.");
@@ -192,7 +205,8 @@ export function createTmdbProxy({
     if (error) return fail(400, "params", error);
     if (sharedLimiter) {
       const result = await sharedLimiter(ip, identityMax ? { max: identityMax } : undefined);
-      if (result?.unavailable) return fail(503, "rate-limit-unavailable", "El catálogo no está disponible temporalmente.");
+      // reason solo va al log (redis-not-configured vs. Redis caído); nunca a la respuesta.
+      if (result?.unavailable) return { ...fail(503, "rate-limit-unavailable", "El catálogo no está disponible temporalmente."), reason: result.unavailable === true ? "redis-error" : result.unavailable };
       if (!result?.allowed) return fail(429, "rate-limit", "Demasiadas consultas; intenta en unos segundos.", { "retry-after": String(result.retryAfter ?? 1) });
     } else {
       const wait = limited(ip, identityMax);
@@ -212,9 +226,9 @@ export function createTmdbProxy({
         : fail(502, "network", "No hay conexión con TMDB.");
     }
     if (response.status === 404) return fail(404, "not-found", "TMDB no encontró ese recurso.");
-    if (response.status === 429) return fail(429, "rate-limit", "TMDB limitó las consultas; intenta en unos segundos.", { "retry-after": response.headers.get("retry-after") ?? "2" });
+    if (response.status === 429) return { ...fail(429, "rate-limit", "TMDB limitó las consultas; intenta en unos segundos.", { "retry-after": response.headers.get("retry-after") ?? "2" }), reason: "tmdb-429" };
     // 401/403 de TMDB = problema del token del servidor: no se reenvía su detalle.
-    if (!response.ok) return fail(502, "upstream", `TMDB respondió con error ${response.status}.`);
+    if (!response.ok) return { ...fail(502, "upstream", `TMDB respondió con error ${response.status}.`), reason: `tmdb-${response.status}` };
 
     let body;
     try {
@@ -233,18 +247,18 @@ export function createTmdbProxy({
       },
       body,
     };
-  };
+  }
 }
 
 /**
  * Puerta ÚNICA de acceso a TMDB en producción (N07): /api/tmdb y /api/og la usan igual.
  * Sin Redis falla cerrada (503): ninguna entrada consulta al proveedor sin la cuota compartida.
  */
-export function createTmdbAccess(env = process.env, { fetchImpl } = {}) {
+export function createTmdbAccess(env = process.env, { fetchImpl, log } = {}) {
   const sharedLimiter = env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN
     ? createUpstashRateLimiter({ url: env.UPSTASH_REDIS_REST_URL, token: env.UPSTASH_REDIS_REST_TOKEN, ...(fetchImpl && { fetchImpl }) })
-    : async () => ({ unavailable: true });
-  return createTmdbProxy({ token: env.TMDB_READ_TOKEN, sharedLimiter, ...(fetchImpl && { fetchImpl }) });
+    : async () => ({ unavailable: "redis-not-configured" });
+  return createTmdbProxy({ token: env.TMDB_READ_TOKEN, sharedLimiter, ...(fetchImpl && { fetchImpl }), ...(log && { log }) });
 }
 
 /** Opciones de identidad del adaptador desde el entorno (ver .env.example: se confirman en staging, N16). */
@@ -283,7 +297,8 @@ export function nodeHandler(handle, ipOptions = {}) {
       res.statusCode = result.status;
       for (const [key, value] of Object.entries(result.headers)) res.setHeader(key, value);
       res.end(result.body);
-    } catch {
+    } catch (error) {
+      console.error("[tmdb-proxy]", JSON.stringify({ code: "internal", error: error?.name ?? "Error" }));
       if (res.headersSent) return;
       res.statusCode = 500;
       res.setHeader("content-type", "application/json; charset=utf-8");
