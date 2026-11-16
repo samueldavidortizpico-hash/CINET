@@ -253,8 +253,8 @@
 
 /* Revelación: una luz de proyector finita detrás de la elegida. El resultado ya está calculado y se puede ver sin esperar. */
 .duo-reveal { display: grid; justify-items: center; gap: 18px; padding: 10px 0 6px; }
-.duo-reveal-stage { position: relative; isolation: isolate; width: min(220px, 60vw); animation: duo-reveal 900ms ease-out both; }
-.duo-reveal-light { position: absolute; inset: -40% -60%; z-index: -1; background: radial-gradient(ellipse at 50% 40%, #fff4d488, #f4c36c33 38%, transparent 66%); animation: duo-beam 900ms ease-out both; }
+.duo-reveal-stage { position: relative; isolation: isolate; width: min(220px, 60vw); animation: duo-reveal 900ms ease-out both; pointer-events: none; }
+.duo-reveal-light { position: absolute; inset: -40% -60%; z-index: -1; pointer-events: none; background: radial-gradient(ellipse at 50% 40%, #fff4d488, #f4c36c33 38%, transparent 66%); animation: duo-beam 900ms ease-out both; }
 @keyframes duo-reveal { from { opacity: 0.2; transform: scale(0.94); filter: brightness(0.5); } to { opacity: 1; transform: none; filter: none; } }
 @keyframes duo-beam { from { opacity: 0; transform: scaleY(0.4); } 60% { opacity: 1; } to { opacity: 0.7; transform: none; } }
 

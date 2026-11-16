@@ -1,9 +1,9 @@
 import { useCallback, useMemo } from "react";
-import { useLocalStorage } from "./useLocalStorage.js";
+import { useAccountStorage } from "./useAccountStorage.js";
 import { useToast } from "./useToast.js";
 
 export function useFavorites() {
-  const [stored, setFavorites] = useLocalStorage("cinehub-favorites", []);
+  const [stored, setFavorites] = useAccountStorage("favorites", [], "cinehub-favorites");
   const { showToast } = useToast();
   const favorites = useMemo(() => (Array.isArray(stored) ? stored : []), [stored]);
 

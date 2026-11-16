@@ -151,7 +151,7 @@ export default function DuoVoteRound({ round, items, names, onRound, onComplete,
 
       {phase === "reveal" && top && (
         <section className="duo-reveal" aria-live="polite">
-          <div className="duo-reveal-stage" onAnimationEnd={(event) => event.target === event.currentTarget && onRound({ phase: "results" })}>
+          <div className="duo-reveal-stage" aria-hidden="true">
             <span className="duo-reveal-light" aria-hidden="true" />
             <div className="duo-round-poster">
               <PosterImage src={top.item.title.poster} alt="" fallback={<img src={fallbackPoster(top.item.title)} alt="" />} />

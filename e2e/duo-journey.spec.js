@@ -224,7 +224,7 @@ test("después de la fecha: «¿La vieron? ¿Les gustó?» es opcional, local y 
   await page.goto("/functions?movie=interstellar&time=20:30");
   await expect(page.getByLabel(/Hora propuesta/)).toHaveValue("20:30"); // la hora que traen de Duo llega como propuesta
   await page.getByLabel("Cadena de cine").selectOption("Cinemark");
-  await page.locator("#date-grid button").first().click();
+  await page.locator("#date-grid button").nth(2).click(); // siempre al menos dos días en el futuro de Bogotá
   await page.getByRole("button", { name: "Continuar →" }).click();
   await page.getByLabel("Nombre del plan").fill("Noche de Interstellar");
   await page.getByLabel("Tu nombre").fill("Ana");
@@ -234,16 +234,25 @@ test("después de la fecha: «¿La vieron? ¿Les gustó?» es opcional, local y 
 
   await page.evaluate(() => {
     const plans = JSON.parse(localStorage.getItem("cinehub-plans"));
-    plans[0] = { ...plans[0], dateISO: "2026-01-10", startsAt: undefined };
+    const parts = Object.fromEntries(new Intl.DateTimeFormat("en", { timeZone: "America/Bogota", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date()).map(({ type, value }) => [type, value]));
+    const year = Number(parts.year);
+    const month = Number(parts.month);
+    const day = Number(parts.day);
+    const past = new Date(Date.UTC(year, month - 1, day - 2));
+    const dateISO = `${past.getUTCFullYear()}-${String(past.getUTCMonth() + 1).padStart(2, "0")}-${String(past.getUTCDate()).padStart(2, "0")}`;
+    plans[0] = { ...plans[0], dateISO, startsAt: undefined };
     localStorage.setItem("cinehub-plans", JSON.stringify(plans));
+    localStorage.setItem("__duo_past_date", dateISO);
   });
   await page.reload();
   await expect(page.getByRole("heading", { name: "¿La vieron? ¿Les gustó?" })).toBeVisible();
   await page.getByRole("button", { name: "Sí, la vimos" }).click();
   await page.getByRole("button", { name: "Sí, nos gustó" }).click();
   await expect(page.getByRole("button", { name: "Sí, nos gustó" })).toHaveAttribute("aria-pressed", "true");
-  await expect(page.locator(".plan-memory blockquote")).toHaveText(/^Vimos «Interstellar» el 10 de enero\. Nos gustó\.$/);
+  const dateISO = await page.evaluate(() => localStorage.getItem("__duo_past_date"));
+  const expectedDate = new Intl.DateTimeFormat("es-CO", { timeZone: "America/Bogota", day: "numeric", month: "long" }).format(new Date(`${dateISO}T12:00:00-05:00`));
+  await expect(page.locator(".plan-memory blockquote")).toHaveText(`Vimos «Interstellar» el ${expectedDate}. Nos gustó.`);
   await expect(page.locator(".plan-memory blockquote")).not.toContainText("Ana");
-  const seen = await page.evaluate(() => JSON.parse(localStorage.getItem("cinehub-duo-history")).seen);
+  const seen = await page.evaluate(() => JSON.parse(localStorage.getItem("cinet:account:duo-history:visitor")).seen);
   expect(seen).toContain("interstellar");
 });

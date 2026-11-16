@@ -34,11 +34,30 @@ test("gustos privados por cuenta en el mismo navegador", async ({ page }) => {
   await expect(page.getByText("Partimos de los gustos guardados en tu cuenta")).toBeVisible();
   await expect(page.locator(".room-prefs .duo-fieldset").first().getByRole("checkbox", { name: "Comedia" })).toBeChecked();
 
+  // Favoritos e historial Duo también deben volver al cambiar de cuenta.
+  await page.goto("/movie/interstellar");
+  await page.getByRole("button", { name: /Añadir a favoritos/ }).click();
+  await page.getByRole("button", { name: /Marcar como vista/ }).click();
+  await expect(page.getByRole("button", { name: /En favoritos/ })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: /Ya la vi/ })).toHaveAttribute("aria-pressed", "true");
+
   // Bea entra en el mismo navegador: no ve nada de Ana.
+  await page.goto("/profile");
   await page.getByRole("button", { name: /Tu cuenta/ }).click();
   await page.getByRole("button", { name: "Cerrar sesión" }).click();
   await signIn(page, "bea@cinet.test");
   await expect(panel.getByRole("button", { name: "Guardar mis gustos" })).toBeVisible();
   await expect(panel.locator(".duo-fieldset", { hasText: "Te apetece" }).getByRole("checkbox", { name: "Comedia" })).not.toBeChecked();
   await expect(panel.getByRole("button", { name: "Descargar (.json)" })).toHaveCount(0);
+  await page.goto("/movie/interstellar");
+  await expect(page.getByRole("button", { name: /Añadir a favoritos/ })).toHaveAttribute("aria-pressed", "false");
+  await expect(page.getByRole("button", { name: /Marcar como vista/ })).toHaveAttribute("aria-pressed", "false");
+
+  await page.goto("/profile");
+  await page.getByRole("button", { name: /Tu cuenta/ }).click();
+  await page.getByRole("button", { name: "Cerrar sesión" }).click();
+  await signIn(page, "ana@cinet.test");
+  await page.goto("/movie/interstellar");
+  await expect(page.getByRole("button", { name: /En favoritos/ })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: /Ya la vi/ })).toHaveAttribute("aria-pressed", "true");
 });

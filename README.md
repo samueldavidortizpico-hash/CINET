@@ -149,7 +149,7 @@ catálogo local. CI: `.github/workflows/ci.yml` (lint, pruebas, build y E2E en c
 
 | Ruta | Página | Notas |
 | --- | --- | --- |
-| `/` | — | Redirige a `/home` |
+| `/` | `AuthPage` | Entrada: bienvenida y acceso; con sesión abre el contenido o el destino pendiente |
 | `/home` | `HomePage` | Carrusel de tendencias, buscador, filas de descubrimiento, planes recientes y FAQ |
 | `/duo` | `DuoPage` | CineHub Duo: película, serie o maratón para 1 a 8 personas (`?from=id` parte de un título) |
 | `/movies` | `MoviesPage` | Catálogo con búsqueda, filtros por género y orden |
@@ -165,10 +165,11 @@ catálogo local. CI: `.github/workflows/ci.yml` (lint, pruebas, build y E2E en c
 | `/aliados` | `PartnerPage` | Panel de cines y organizadores verificados: sedes, funciones, ofertas y equipo |
 | `/plus` | `PlusPage` | CINET Plus: qué es gratis, qué es Plus, prueba sin cobro (si el sandbox está encendido) y prueba de precio |
 | `/my-plans` | `MyPlansPage` | Estadísticas, filtro, importar planes locales a la cuenta, eliminar |
-| `/` | `AuthPage` | Entrada: bienvenida animada (una vez por sesión) → acceso. Con sesión va directo a `/home` o al destino pendiente |
-| `/login` · `/register` | `AuthPage` | Iniciar sesión / crear cuenta en la misma pantalla (vuelven a la página de origen) |
+| `/login` · `/register` · `/registro` | `AuthPage` | Iniciar sesión / crear cuenta en la misma pantalla (vuelven a la página de origen) |
 | `/recuperar` · `/nueva-contrasena` | `AuthPage` | Pedir enlace de recuperación / crear contraseña nueva desde el enlace del correo |
-| `/profile` | `ProfilePage` | Perfil y ajustes de la cuenta (sin sesión lleva a `/login` y vuelve) |
+| `/profile` · `/perfil` | `ProfilePage` | Perfil y ajustes de la cuenta |
+| `/catalogo` · `/peliculas` | `MoviesPage` | Alias del catálogo `/movies` |
+| `/planes` | `MyPlansPage` | Alias de `/my-plans` |
 | `/legal` · `/legal/:doc` | `LegalPage` | Legal y privacidad (públicas): términos, privacidad, cancelaciones y créditos. **Borradores** (ver `docs/LEGAL-PENDIENTES.md`) |
 | `/plans` | — | Alias: redirige a `/my-plans` |
 | `/cine` · `/cine/:id` | `CinemaPage` · `CinemaTicketsPage` | Cartelera TMDB (región CO) y enlace a la página oficial de cada cadena |

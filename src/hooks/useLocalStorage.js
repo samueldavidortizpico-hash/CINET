@@ -8,10 +8,14 @@ import { readStorage, subscribeStorage, writeStorage } from "../utils/storage.js
  */
 export function useLocalStorage(key, initialValue) {
   const initialRef = useRef(initialValue);
-  const [value, setValue] = useState(() => readStorage(key, initialValue));
+  const [state, setState] = useState(() => ({ key, value: readStorage(key, initialValue) }));
+  // Al cambiar de clave (por ejemplo, al iniciar/cerrar sesión), nunca renderizar
+  // el valor que pertenecía a la clave anterior durante un frame.
+  const value = state.key === key ? state.value : readStorage(key, initialValue);
 
   useEffect(() => {
-    const sync = () => setValue(readStorage(key, initialRef.current));
+    const sync = () => setState({ key, value: readStorage(key, initialRef.current) });
+    sync();
     return subscribeStorage(key, sync); // cleanup: elimina los listeners
   }, [key]);
 
