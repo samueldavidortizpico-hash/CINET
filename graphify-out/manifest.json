@@ -726,15 +726,15 @@
     "semantic_hash": ""
   },
   "src/services/tmdbClient.js": {
-    "mtime": 1794617647.802076,
-    "seen": 1794618202.5115492,
-    "ast_hash": "30e1d8fdc885052892dc4376f5b8f8d6",
+    "mtime": 1794804984.2324097,
+    "seen": 1794805118.1156638,
+    "ast_hash": "d28cf5e461306acccb054f30158a383b",
     "semantic_hash": ""
   },
   "src/services/tmdbClient.test.js": {
-    "mtime": 1794617651.8198771,
-    "seen": 1794618202.511552,
-    "ast_hash": "4d8b47262cb78321347da9483a0489b5",
+    "mtime": 1794804998.9419415,
+    "seen": 1794805118.1156688,
+    "ast_hash": "c20bee68e141fede2b4a60d683ff3101",
     "semantic_hash": ""
   },
   "src/utils/palette.js": {

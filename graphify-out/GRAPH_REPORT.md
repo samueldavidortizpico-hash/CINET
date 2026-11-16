@@ -1,16 +1,16 @@
 # Graph Report - CINET  (2026-11-15)
 
 ## Corpus Check
-- 322 files · ~296,013 words
+- 322 files · ~296,334 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2081 nodes · 5348 edges · 137 communities (107 shown, 17 thin omitted)
+- 2083 nodes · 5354 edges · 131 communities (101 shown, 17 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 68 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `ac7869c6`
+- Built from commit: `98564b15`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -25,9 +25,9 @@
 - Avatares de CINET
 - tmdbClient.js
 - Milestone 2 — React Frontend
-- MoviesPage.jsx
+- MovieSearch.jsx
 - partnerRepository.js
-- HeroCarousel.jsx
+- DuoPage.jsx
 - vercel.json
 - DuoRoomPage.jsx
 - duo-eval.mjs
@@ -38,7 +38,7 @@
 - public/images/SOURCES.md
 - 20261009120000_shared_plans.sql
 - CINET: prompt para Claude — continuación, experiencia y crecimiento
-- roomRepository.js
+- DuoPersonStep.jsx
 - tmdbProxy.js
 - Prompt de ejecución para Codex: CINET
 - recommender.test.js
@@ -48,21 +48,21 @@
 - devDependencies
 - 20260929024739_create_profiles.sql
 - scripts
-- react
+- useAsync
 - dependencies
-- analytics.js
+- searchCatalog
 - useAuth
-- DuoPage.jsx
-- platforms.js
-- calendar.js
+- DuoPage
+- data/tmdb.js
+- fairness.js
 - rooms.test.js
 - commands.js
 - partnerWebhook.js
 - useToast
-- authService.js
+- PlanHero.jsx
 - naturalQuery.js
 - Copia desde aquí para ejecutar
-- usePlans
+- HomePage.jsx
 - 20261012120000_groups.sql
 - CineHub (marca visible: CINET)
 - Analítica de producto de CINET
@@ -72,20 +72,19 @@
 - Funcionalidades principales
 - TmdbStatus.jsx
 - @playwright/test
-- App.jsx
+- roomRepository.js
 - api.js
-- PosterImage.jsx
-- ogMeta.js
+- ShowtimeOptions.jsx
+- useInstallPrompt.js
 - showtimeService.js
 - tmdbClient.test.js
 - 20261013120000_plan_time_poll.sql
-- vite.config.js
+- MovieBackdrop.jsx
 - nightExperience.js
 - 20261015120000_plus_sandbox.sql
 - Costos y salida al mercado — documento de preparación
 - Piloto con cines — documento de preparación
-- DuoMarathon.jsx
-- react-router-dom
+- buildMarathon
 - Legal y privacidad — decisiones pendientes (documento interno)
 - Auditoría de seguridad de CINET — 2026-11-10
 - 20261011120000_user_preferences.sql
@@ -96,10 +95,8 @@
 - billing-order.test.js
 - useDuoSession.js
 - groupRepository.js
-- billing-webhook.js
 - db.js
 - palette.js
-- DuoSeats.jsx
 - Evidencia y hallazgos
 - Por hallazgo
 - router.jsx
@@ -116,15 +113,12 @@
 - partners.test.js
 - ExampleInstrumentedTest.java
 - PreferencesPanel.jsx
-- PlusPage.jsx
+- plusRepository.js
 - groups.test.js
 - plus.test.js
 - planService.js
 - PlanContext.jsx
 - as
-- AuthPage
-- usePrefersReducedMotion.js
-- toPlanError
 - Despliegue, promoción y rollback (auditoría H-10)
 - 20261105130000_serialize_plan_operations.sql
 - time-poll.test.js
@@ -153,41 +147,41 @@
 10. `track()` - 27 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `handler()` --calls--> `failureReply()`  [EXTRACTED]
-  api/billing-webhook.js → server/partnerWebhook.js
-- `handler()` --calls--> `failureReply()`  [EXTRACTED]
-  api/partner-webhook.js → server/partnerWebhook.js
 - `restWrite()` --calls--> `as()`  [EXTRACTED]
   e2e/support/fake-supabase.mjs → supabase/tests/db.js
 - `restGet()` --calls--> `as()`  [EXTRACTED]
   e2e/support/fake-supabase.mjs → supabase/tests/db.js
 - `rpc()` --calls--> `as()`  [EXTRACTED]
   e2e/support/fake-supabase.mjs → supabase/tests/db.js
+- `public.plan_members` --references--> `auth()`  [EXTRACTED]
+  supabase/migrations/20261009120000_shared_plans.sql → e2e/support/fake-supabase.mjs
+- `public.plans` --references--> `auth()`  [EXTRACTED]
+  supabase/migrations/20261009120000_shared_plans.sql → e2e/support/fake-supabase.mjs
 
 ## Import Cycles
 - None detected.
 
-## Communities (137 total, 17 thin omitted)
+## Communities (131 total, 17 thin omitted)
 
 ### Community 0 - "20261010120000_duo_rooms.sql"
 Cohesion: 0.10
 Nodes (24): pg_publication_tables, public.touch_room, plan_members_touch, public.choose_room_title(), public.close_room_round(), public.create_duo_room(), public.drop_room_member(), public.duo_rooms (+16 more)
 
 ### Community 1 - "recommender.js"
-Cohesion: 0.10
-Nodes (45): item(), profile, byRank(), calibrationLike(), capitalize(), checkTitle(), clamp01(), closest() (+37 more)
+Cohesion: 0.12
+Nodes (39): SERIES_STATUS_LABELS, calibrationLike(), checkTitle(), clamp01(), closest(), describeHit(), diversify(), everyoneReason() (+31 more)
 
 ### Community 2 - "DuoFinal.jsx"
-Cohesion: 0.09
-Nodes (32): Icon(), answerOf(), DuoCalibration(), loadDeck(), snapshot(), suggestions(), DuoFinal(), endTime() (+24 more)
+Cohesion: 0.10
+Nodes (34): PosterImage(), DuoFinal(), endTime(), voteOf(), CRITERIA, DuoRecommendationCard(), fitState(), hitText() (+26 more)
 
 ### Community 3 - "movieService.js"
 Cohesion: 0.08
-Nodes (38): ALIASES, BY_TMDB_ID, capitalize(), COLLECTIONS, countryName(), discovered(), favoriteGenres(), favoriteSeeds() (+30 more)
+Nodes (36): genreKeysFor(), genreLabel(), ALIASES, BY_TMDB_ID, capitalize(), COLLECTIONS, countryName(), discovered() (+28 more)
 
 ### Community 4 - "FunctionsPage.jsx"
-Cohesion: 0.14
-Nodes (18): FunctionsPage, BookingSummary(), AmbienceOptions(), SelectedMovie(), CinemaOptions(), DateOptions(), optionClass(), TimeOptions() (+10 more)
+Cohesion: 0.17
+Nodes (18): react-router-dom, ROLE_LABELS, Button(), EmptyState(), clock(), DuoMarathon(), BookingSummary(), ShowtimeStep() (+10 more)
 
 ### Community 5 - "package.json"
 Cohesion: 0.12
@@ -195,51 +189,51 @@ Nodes (17): description, name, private, type, version, @capacitor/android, @capa
 
 ### Community 6 - "duoService.js"
 Cohesion: 0.20
-Nodes (18): discoverForDuo(), discoverParams(), enrich(), fetchSources(), genreIds(), getDuoCandidates(), mergeTitlesById(), pairSources() (+10 more)
+Nodes (17): FORMAT_GENRES, SERIES_STATUS, VOTE_POINTS, discoverForDuo(), discoverParams(), enrich(), fetchSources(), genreIds() (+9 more)
 
 ### Community 7 - "Avatares de CINET"
 Cohesion: 0.22
 Nodes (8): Archivos de la implementación, Avatares de CINET, Cómo funciona, Estado y alcance, Probar en localhost, Pruebas locales reproducibles, Seguridad, SQL manual en Supabase
 
 ### Community 8 - "tmdbClient.js"
-Cohesion: 0.09
-Nodes (36): ActorPicker(), getHeroPreferences(), cache, config, CONNECTION_ERRORS, counts, discoverMovies(), discoverTv() (+28 more)
+Cohesion: 0.10
+Nodes (36): RouteError(), ActorPicker(), matchesTitleDetails(), cache, config, CONNECTION_ERRORS, counts, discoverMovies() (+28 more)
 
 ### Community 9 - "Milestone 2 — React Frontend"
 Cohesion: 0.20
 Nodes (10): Arquitectura, Capa offline (HW07), Cartelera y cadenas de cine, CineHub Duo, Cómo ejecutarlo, Decisiones clave (para la defensa), Milestone 2 — React Frontend, Prototipo anterior (+2 more)
 
-### Community 10 - "MoviesPage.jsx"
-Cohesion: 0.11
-Nodes (22): MoviesPage, AdvancedFilters(), RATINGS, RUNTIMES, MovieFilters(), INITIAL_FILTERS, MovieContext, MovieProvider() (+14 more)
+### Community 10 - "MovieSearch.jsx"
+Cohesion: 0.16
+Nodes (16): MoviesPage, MovieFilters(), DEPARTMENTS, MovieSearch(), thumb(), useMovies(), useTheme(), DEPARTMENTS (+8 more)
 
 ### Community 11 - "partnerRepository.js"
-Cohesion: 0.11
-Nodes (37): PlanHero(), CINEMA_CHAINS, MONTHS, WEEKDAYS, PendingPartners(), acceptOrgInvite(), addListing(), addOffer() (+29 more)
+Cohesion: 0.14
+Nodes (31): RFC-5545, acceptOrgInvite(), addListing(), addOffer(), addVenue(), audit(), db(), declineOrgInvite() (+23 more)
 
-### Community 12 - "HeroCarousel.jsx"
-Cohesion: 0.19
-Nodes (17): DashboardPage, HeroCarousel(), SCENE_COLORS, shorten(), DuoSpotlight(), HomeExperiences(), PATHS, MovieGrid() (+9 more)
+### Community 12 - "DuoPage.jsx"
+Cohesion: 0.10
+Nodes (34): react, DashboardPage, Modal(), SkeletonRow(), HeroCarousel(), SCENE_COLORS, shorten(), TrailerModal() (+26 more)
 
 ### Community 13 - "vercel.json"
 Cohesion: 0.29
 Nodes (6): includeFiles, functions, api/og.js, headers, rewrites, $schema
 
 ### Community 14 - "DuoRoomPage.jsx"
-Cohesion: 0.17
-Nodes (12): DuoRoomPage, Room(), RoomGate(), STATUS_TEXT, useRoomState(), DECK_SIZE, describeResult(), ROOM_VOTES (+4 more)
+Cohesion: 0.18
+Nodes (11): Room(), RoomGate(), STATUS_TEXT, useRoomState(), DECK_SIZE, describeResult(), ROOM_VOTES, roomSession() (+3 more)
 
 ### Community 15 - "duo-eval.mjs"
 Cohesion: 0.08
-Nodes (39): RFC-4180, jaccard(), NETFLIX, person(), root, rows, SCENARIOS, session() (+31 more)
+Nodes (38): RFC-4180, jaccard(), NETFLIX, person(), root, rows, SCENARIOS, session() (+30 more)
 
 ### Community 17 - "Intervención 2026-10-11 — Claude Code (Claude Opus 5.5) · Entrada de app, panel de cuenta y centro legal"
 Cohesion: 0.06
 Nodes (35): AI-LOG — CINET (antes CineHub), Cambios, Cambios, Cambios realizados, Cambios realizados, Cambios realizados, Configuración externa (no se tocó nada remoto), Continuación 2026-10-09/10 · Fase P1 (salas de Duo e invitados) (+27 more)
 
 ### Community 18 - "planRepository.js"
-Cohesion: 0.15
-Nodes (25): PlanGroupPanel(), PlanTimePoll(), PlanPage(), useRemotePlan(), acceptInvite(), call(), cancelPlan(), chooseTime() (+17 more)
+Cohesion: 0.13
+Nodes (34): PlanGroupPanel(), PlanTimePoll(), pad(), toDiscoverParams(), toISODate(), acceptInvite(), call(), cancelPlan() (+26 more)
 
 ### Community 19 - "Auditoría técnica de CINET: instrucciones de remediación"
 Cohesion: 0.10
@@ -253,21 +247,21 @@ Nodes (19): pg_catalog.pg_timezone_names, public.accept_plan_invite(), public.ca
 Cohesion: 0.10
 Nodes (19): A1. Corrige los fallos detectados, A2. Completa el recorrido de plan e invitación, A3. Horarios, copy, CI y medición, A. Cierra primero P0: planes reales y confianza, B. Haz social Duo: cada persona desde su celular, C. Personalización y descubrimiento que ahorran tiempo, CINET: prompt para Claude — continuación, experiencia y crecimiento, D. Grupos, familias y planes completos (+11 more)
 
-### Community 23 - "roomRepository.js"
-Cohesion: 0.19
-Nodes (17): call(), castVote(), chooseTitle(), client(), closeRoom(), closeRound(), createRoom(), deckPreferences() (+9 more)
+### Community 23 - "DuoPersonStep.jsx"
+Cohesion: 0.12
+Nodes (21): answerOf(), DuoCalibration(), loadDeck(), snapshot(), suggestions(), Chip(), ChoiceChips(), Question() (+13 more)
 
 ### Community 24 - "tmdbProxy.js"
-Cohesion: 0.15
-Nodes (14): ipOptions, APPEND, clientIp(), clientIpOptions(), createTmdbAccess(), createUpstashRateLimiter(), fail(), json() (+6 more)
+Cohesion: 0.08
+Nodes (32): ipOptions, vite, @vitejs/plugin-react, clip(), createOgHandler(), DEFAULT, escapeHtml(), injectMeta() (+24 more)
 
 ### Community 25 - "Prompt de ejecución para Codex: CINET"
 Cohesion: 0.12
 Nodes (16): 1A. TMDB en servidor, 1B. Persistencia compartida y permisos, 1C. Honestidad y entrega continua, Entregables y condición de cierre, Estado de partida que debes revalidar, Fase 0. Auditoría y contratos, Fase 1. Base segura y un plan realmente compartido, Fase 2. Duo desde cada celular (+8 more)
 
 ### Community 26 - "recommender.test.js"
-Cohesion: 0.14
-Nodes (16): COUNT, DuoResults(), learnedText(), learningSummary(), newRound(), groupLiked(), fillBoard(), findSimilar() (+8 more)
+Cohesion: 0.12
+Nodes (20): DuoEmptyState(), REASONS, COUNT, DuoResults(), learnedText(), learningSummary(), newRound(), groupLiked() (+12 more)
 
 ### Community 27 - "fake-supabase.mjs"
 Cohesion: 0.13
@@ -293,33 +287,33 @@ Nodes (6): public.handle_new_user, public.profiles_before_update, on_auth_user_c
 Cohesion: 0.15
 Nodes (13): scripts, apk, build, catalog:snapshot, dev, eas-build-post-install, lint, pretest:e2e (+5 more)
 
-### Community 33 - "react"
-Cohesion: 0.16
-Nodes (14): react, PartnerPage, Modal(), CollectionSection(), TrailerModal(), useAsync(), useDebounced(), TOOLS (+6 more)
+### Community 33 - "useAsync"
+Cohesion: 0.20
+Nodes (11): GroupsPage, useAsync(), GroupList(), GroupsPage(), JoinGroup(), names(), OrgPanel(), PartnerPage() (+3 more)
 
 ### Community 34 - "dependencies"
 Cohesion: 0.25
 Nodes (8): dependencies, @capacitor/android, @capacitor/core, qrcode-generator, react, react-dom, react-router-dom, @supabase/supabase-js
 
-### Community 35 - "analytics.js"
-Cohesion: 0.18
-Nodes (10): AnalyticsConsent(), BrandLogo(), Footer(), analytics, analyticsEnabled, createAnalytics(), EVENTS, getAnalyticsConsent (+2 more)
+### Community 35 - "searchCatalog"
+Cohesion: 0.20
+Nodes (15): search(), AdvancedFilters(), applySearchError(), EMPTY, mergeSearchPage(), unique(), useDebounced(), useTitleSearch() (+7 more)
 
 ### Community 39 - "useAuth"
-Cohesion: 0.18
-Nodes (16): CreatePlanPage, AvatarUpload(), ProfileCard(), ROLE_LABELS, FIELDS, ProfileForm(), Button(), EMPTY (+8 more)
-
-### Community 40 - "DuoPage.jsx"
 Cohesion: 0.12
-Nodes (30): DuoPage, DuoPersonStep(), DuoSummary(), DEFAULT_DUO_SESSION, DEFAULT_PERSON, personName(), candidatesKey(), DuoPage() (+22 more)
+Nodes (23): CreatePlanPage, PlusPage, ProfilePage, AvatarUpload(), ProfileCard(), FIELDS, ProfileForm(), Loading() (+15 more)
 
-### Community 41 - "platforms.js"
-Cohesion: 0.27
-Nodes (7): LOGOS, PlatformLogo(), WatchModal(), withAvailability(), OFFER_TYPES, PLATFORMS, STATUS_LABELS
+### Community 40 - "DuoPage"
+Cohesion: 0.15
+Nodes (12): candidatesKey(), DuoPage(), mergeRoundVotes(), shortlistItems(), startOccasion(), withAccountTaste(), groupRejected(), setVote() (+4 more)
 
-### Community 42 - "calendar.js"
-Cohesion: 0.26
-Nodes (11): RFC-5545, displayZone(), downloadIcs(), escapeText(), fold(), pad(), planStart(), planToIcs() (+3 more)
+### Community 41 - "data/tmdb.js"
+Cohesion: 0.12
+Nodes (18): Availability(), formatDate(), MovieExtras(), WhereToWatch(), LOGOS, PlatformLogo(), WatchModal(), withAvailability() (+10 more)
+
+### Community 42 - "fairness.js"
+Cohesion: 0.31
+Nodes (9): decayed(), EMPTY_TURNS, MAX_TURN, recordYield(), T0, TURN_POINTS, turnCredits(), turnKey() (+1 more)
 
 ### Community 43 - "rooms.test.js"
 Cohesion: 0.17
@@ -330,28 +324,28 @@ Cohesion: 0.18
 Nodes (12): availableCommands(), COMMANDS, normalize(), resolveCommand(), admin, user, toOption(), ACCESS (+4 more)
 
 ### Community 45 - "partnerWebhook.js"
-Cohesion: 0.18
-Nodes (20): createBillingWebhook(), KINDS, parseBillingEvent(), activated, NOW, setup(), checkSignature(), commissionFor() (+12 more)
+Cohesion: 0.13
+Nodes (30): handle, handler(), store, handle, handler(), secrets(), store, createBillingWebhook() (+22 more)
 
 ### Community 46 - "useToast"
-Cohesion: 0.29
-Nodes (15): MovieActions(), LIKED, LIKED_TEXT, PlanAfterglow(), RsvpPanel(), useDuoHistory(), useShare(), useToast() (+7 more)
+Cohesion: 0.16
+Nodes (24): MyPlansPage, Toast(), MovieActions(), PlanCard(), PlanStats(), RsvpPanel(), MONTHS, usePlans() (+16 more)
 
-### Community 47 - "authService.js"
-Cohesion: 0.32
-Nodes (15): appUrl(), client(), continueAsGuest(), getProfile(), login(), logout(), MESSAGES, publicOrigin() (+7 more)
+### Community 47 - "PlanHero.jsx"
+Cohesion: 0.51
+Nodes (7): PlanHero(), officialChainFor(), parseHttps(), safeHostname(), safeHttpsUrl(), CHAINS, withoutWww()
 
 ### Community 48 - "naturalQuery.js"
-Cohesion: 0.23
-Nodes (12): describeQuery(), GENRE_WORDS, genreName(), MOOD_WORDS, negated(), norm(), NUMBERS, parseQuery() (+4 more)
+Cohesion: 0.18
+Nodes (16): CHAPTERS, DuoIntro(), POSTERS, MAX_PEOPLE, describeQuery(), GENRE_WORDS, genreName(), MOOD_WORDS (+8 more)
 
 ### Community 49 - "Copia desde aquí para ejecutar"
 Cohesion: 0.15
 Nodes (13): 10. Orden de entregas y aceptación, 11. Evaluación de recomendación y UX, 12. Pruebas y condición de cierre, 1. La experiencia que vamos a construir, 2. Dirección visual: transformar el recorrido, 3. Movimiento y diversión con propósito, 4. Aprender gustos con películas, sin convertirlo en examen, 5. Mejorar el motor: corrección, señales y tres propuestas como conjunto (+5 more)
 
-### Community 50 - "usePlans"
-Cohesion: 0.23
-Nodes (12): FaqItem(), FaqSection(), PlansPreview(), PlanCard(), PlanStats(), FAQ, usePlans(), useReveal() (+4 more)
+### Community 50 - "HomePage.jsx"
+Cohesion: 0.22
+Nodes (12): CollectionSection(), FaqItem(), FaqSection(), DuoSpotlight(), HomeExperiences(), PATHS, PlansPreview(), DUO_PREFERENCES_KEY (+4 more)
 
 ### Community 51 - "20261012120000_groups.sql"
 Cohesion: 0.14
@@ -382,40 +376,40 @@ Cohesion: 0.33
 Nodes (6): 1. Buscar y explorar películas, 2. Consultar una película y sus funciones, 3. Crear un plan, 4. Consultar un plan, 5. Responder a un plan, Funcionalidades principales
 
 ### Community 58 - "TmdbStatus.jsx"
-Cohesion: 0.36
-Nodes (8): LABELS, TmdbStatus(), subscribe(), useNetworkStatus(), checkTmdbConnection(), getTmdbStatus(), subscribeTmdbStatus(), usingProxy()
+Cohesion: 0.48
+Nodes (6): LABELS, TmdbStatus(), checkTmdbConnection(), getTmdbStatus(), subscribeTmdbStatus(), usingProxy()
 
-### Community 60 - "App.jsx"
-Cohesion: 0.13
-Nodes (16): App(), router, AuthContext, AuthProvider(), ToastContext, ToastProvider(), AVATAR_ACCEPT, AVATAR_BUCKET (+8 more)
+### Community 60 - "roomRepository.js"
+Cohesion: 0.06
+Nodes (51): @supabase/supabase-js, App(), router, AuthContext, AuthProvider(), ToastContext, ToastProvider(), appUrl() (+43 more)
 
 ### Community 61 - "api.js"
 Cohesion: 0.12
 Nodes (35): appRole(), authenticate(), captcha(), createApi(), getPlan(), HttpError, invalid(), jwtClaims() (+27 more)
 
-### Community 62 - "PosterImage.jsx"
-Cohesion: 0.13
-Nodes (13): PosterImage(), SkeletonRow(), CHAPTERS, DuoIntro(), POSTERS, formatDate(), MovieExtras(), WhereToWatch() (+5 more)
+### Community 62 - "ShowtimeOptions.jsx"
+Cohesion: 0.70
+Nodes (4): CinemaOptions(), DateOptions(), optionClass(), TimeOptions()
 
-### Community 63 - "ogMeta.js"
-Cohesion: 0.25
-Nodes (9): clip(), createOgHandler(), DEFAULT, escapeHtml(), injectMeta(), ogFor(), PRIVATE, publicTitle() (+1 more)
+### Community 63 - "useInstallPrompt.js"
+Cohesion: 0.60
+Nodes (4): listeners, notify(), subscribe(), useInstallPrompt()
 
 ### Community 64 - "showtimeService.js"
 Cohesion: 0.26
 Nodes (13): PartnerListings(), updated(), formatBudget(), getListingsForTitle(), getOffersForTitle(), httpsUrl(), isCurrent(), lookups() (+5 more)
 
 ### Community 65 - "tmdbClient.test.js"
-Cohesion: 0.27
-Nodes (5): configureTmdb(), connect(), fakeApi(), rateLimitedApi(), tmdbRetryAt()
+Cohesion: 0.14
+Nodes (12): item(), profile, DEFAULT_DUO_SESSION, DEFAULT_PERSON, EMPTY_ADVANCED, buildProfile(), calibrated(), rank() (+4 more)
 
 ### Community 66 - "20261013120000_plan_time_poll.sql"
 Cohesion: 0.24
 Nodes (10): plan_time_options_touch, plan_time_votes_touch, public.choose_plan_time(), public.owned_active_plan(), public.plan_time_options, public.plan_time_votes, public.propose_plan_times(), auth.users (+2 more)
 
-### Community 67 - "vite.config.js"
-Cohesion: 0.19
-Nodes (9): vite, @vitejs/plugin-react, createTmdbProxy(), handle(), limited(), nodeHandler(), validParams(), withoutAdultContent() (+1 more)
+### Community 67 - "MovieBackdrop.jsx"
+Cohesion: 1.00
+Nodes (3): createParticles(), MovieBackdrop(), prefersReducedMotion()
 
 ### Community 68 - "nightExperience.js"
 Cohesion: 0.48
@@ -433,13 +427,9 @@ Nodes (10): 1. Qué usa CINET hoy (verificado en el código), 2. Modelo de ingre
 Cohesion: 0.20
 Nodes (9): 1. Propuesta de valor para el cine, 2. Alcance del piloto (propuesto), 3. Lo que ya está construido (verificado localmente, no desplegado), 4. Reglas de medición (propuestas), 5. Guía de entrevista (30 min, antes de proponer nada), 6. Responsabilidades (borrador), 7. Borrador de acuerdo — SOLO PARA REVISIÓN HUMANA, 8. Clubes y eventos (+1 more)
 
-### Community 72 - "DuoMarathon.jsx"
-Cohesion: 0.22
-Nodes (17): DuoEmptyState(), REASONS, clock(), DuoMarathon(), buildMarathon(), byRelease(), chooseNext(), describeMarathon() (+9 more)
-
-### Community 73 - "react-router-dom"
-Cohesion: 0.13
-Nodes (16): react-router-dom, UserAvatar(), Toast(), Header(), Layout(), LINKS, Navbar(), LINKS (+8 more)
+### Community 72 - "buildMarathon"
+Cohesion: 0.42
+Nodes (9): buildMarathon(), byRelease(), chooseNext(), minutesOf(), preferStrict(), sagaMarathon(), seriesMarathon(), split() (+1 more)
 
 ### Community 74 - "Legal y privacidad — decisiones pendientes (documento interno)"
 Cohesion: 0.29
@@ -450,16 +440,16 @@ Cohesion: 0.29
 Nodes (6): Acciones manuales pendientes (no se pueden resolver desde el repositorio), Auditoría de seguridad de CINET — 2026-11-10, Comandos en la barra de búsqueda (por rol), Lo que se verificó y está bien, Resumen, Seguimientos opcionales
 
 ### Community 77 - "AuthPage.jsx"
-Cohesion: 0.17
-Nodes (22): AuthForm(), FIELD_NAMES, TEXT_FIELDS, Captcha(), loadTurnstile(), CAPTCHA_MISSING, captchaEnabled, TURNSTILE_SITE_KEY (+14 more)
+Cohesion: 0.05
+Nodes (59): AuthForm(), FIELD_NAMES, TEXT_FIELDS, Captcha(), loadTurnstile(), CAPTCHA_MISSING, captchaEnabled, TURNSTILE_SITE_KEY (+51 more)
 
 ### Community 78 - "expo"
 Cohesion: 0.40
 Nodes (4): projectId, expo, extra, eas
 
 ### Community 81 - "duo.js"
-Cohesion: 0.06
-Nodes (58): DuoCommonStep(), limitsOf(), names(), toneNames(), valueLabel(), Chip(), ChoiceChips(), Question() (+50 more)
+Cohesion: 0.08
+Nodes (43): DuoCommonStep(), limitsOf(), names(), toneNames(), valueLabel(), DuoModeStep(), FANS, MARATHON_TYPES (+35 more)
 
 ### Community 83 - "useDuoSession.js"
 Cohesion: 0.27
@@ -469,10 +459,6 @@ Nodes (18): CALIBRATION_ANSWERS, DEFAULT_MARATHON, stepsFor(), asList(), asMarat
 Cohesion: 0.22
 Nodes (17): acceptInvite(), call(), client(), createGroup(), createInvite(), deleteGroup(), getGroup(), groupPlans() (+9 more)
 
-### Community 85 - "billing-webhook.js"
-Cohesion: 0.29
-Nodes (10): handle, handler(), store, handle, handler(), secrets(), store, bodyError() (+2 more)
-
 ### Community 86 - "db.js"
 Cohesion: 0.27
 Nodes (8): asAdmin(), createUsers(), errorCode(), MIGRATIONS, createPlan(), newPlan(), role(), ANON_READABLE
@@ -480,10 +466,6 @@ Nodes (8): asAdmin(), createUsers(), errorCode(), MIGRATIONS, createPlan(), newP
 ### Community 87 - "palette.js"
 Cohesion: 0.30
 Nodes (12): MoviePoster(), _analyze(), _avg(), _cache, _complement(), extractPalette(), FALLBACK, _fromHsv() (+4 more)
-
-### Community 88 - "DuoSeats.jsx"
-Cohesion: 0.18
-Nodes (13): DiceButton(), Availability(), CRITERIA, fitState(), hitText(), ORDER, SeatFit(), short() (+5 more)
 
 ### Community 89 - "Evidencia y hallazgos"
 Cohesion: 0.12
@@ -495,11 +477,11 @@ Nodes (16): Evidencia local (2026-11-13), H-01 Perfiles públicos (P1) → corre
 
 ### Community 91 - "router.jsx"
 Cohesion: 0.08
-Nodes (36): AdminPage, CinemaTicketsPage, GroupsPage, InvitePage, LegalPage, MovieDetailPage, MyPlansPage, PlanPage (+28 more)
+Nodes (32): AdminPage, CinemaPage, CinemaTicketsPage, DuoPage, DuoRoomPage, FunctionsPage, ImportPage, InvitePage (+24 more)
 
 ### Community 92 - "isTmdbEnabled"
-Cohesion: 0.12
-Nodes (26): COLLECTIONS, generatedAt, snapshot, search(), CinemaPage, DuoSeenStep(), findTitles(), popularTitles() (+18 more)
+Cohesion: 0.17
+Nodes (15): COLLECTIONS, generatedAt, snapshot, DuoSeenStep(), findTitles(), popularTitles(), INITIAL_FILTERS, MovieContext (+7 more)
 
 ### Community 93 - "20261107100000_plan_data_contracts.sql"
 Cohesion: 0.16
@@ -514,8 +496,8 @@ Cohesion: 0.15
 Nodes (9): public.duo_rooms, public.group_invites, public.groups, public.accept_group_invite(), public.billing_state, public.create_duo_room(), auth.users, public.group_members (+1 more)
 
 ### Community 97 - "planContract.js"
-Cohesion: 0.25
-Nodes (15): decodeDetails(), decodeMarathon(), decodePlace(), decodeTitle(), httpUrl(), isObject(), number(), scalar() (+7 more)
+Cohesion: 0.35
+Nodes (12): decodeDetails(), decodeMarathon(), decodePlace(), decodeTitle(), httpUrl(), isObject(), number(), scalar() (+4 more)
 
 ### Community 99 - "20261107110000_org_invitations.sql"
 Cohesion: 0.26
@@ -541,9 +523,9 @@ Nodes (5): ExampleInstrumentedTest, ExampleUnitTest, androidx.test.ext.junit.run
 Cohesion: 0.36
 Nodes (9): EMPTY, PreferencesForm(), PreferencesPanel(), useAccountPreferences(), accountPreferencesAvailable(), deleteMyPreferences(), exportPreferences(), getMyPreferences() (+1 more)
 
-### Community 107 - "PlusPage.jsx"
-Cohesion: 0.21
-Nodes (14): @supabase/supabase-js, PlusPage, day(), FREE, PLUS, price, Status(), call() (+6 more)
+### Community 107 - "plusRepository.js"
+Cohesion: 0.36
+Nodes (8): day(), Status(), call(), cancelPlusSandbox(), getPlusStatus(), PLUS_PRICE_COP, rows(), startPlusSandbox()
 
 ### Community 108 - "groups.test.js"
 Cohesion: 0.22
@@ -554,28 +536,16 @@ Cohesion: 0.27
 Nodes (8): A, adminRows(), asService(), B, billing(), G, json(), rows()
 
 ### Community 110 - "planService.js"
-Cohesion: 0.33
-Nodes (10): createPlan(), buildPlan(), capitalize(), describeStart(), getRsvpStatus(), parseBudget(), RSVP_OPTIONS, to24h() (+2 more)
+Cohesion: 0.23
+Nodes (13): PlanSummary(), createPlan(), capitalize(), describeStart(), getPlanPoster(), getRsvpStatus(), HOME_TIMES, marathonTitles() (+5 more)
 
 ### Community 111 - "PlanContext.jsx"
-Cohesion: 0.40
-Nodes (8): asList(), PlanContext, PlanProvider(), asMap(), importsForAccount(), mergeAccountImports(), canManagePlan(), setRsvp()
+Cohesion: 0.36
+Nodes (9): asList(), PlanContext, PlanProvider(), asMap(), importsForAccount(), mergeAccountImports(), buildPlan(), canManagePlan() (+1 more)
 
 ### Community 112 - "as"
 Cohesion: 0.29
 Nodes (7): as(), rpc(), solicitar(), crear(), hasPlus(), save(), vote()
-
-### Community 113 - "AuthPage"
-Cohesion: 0.38
-Nodes (9): AuthPage(), markSplashSeen(), splashSeen(), AUTH_PATHS, clearPendingNext(), pendingNext(), rememberNext(), safeNext() (+1 more)
-
-### Community 114 - "usePrefersReducedMotion.js"
-Cohesion: 0.60
-Nodes (5): applyMotionChoice(), setLessMotion(), subscribe(), useLessMotion(), userChoice()
-
-### Community 115 - "toPlanError"
-Cohesion: 0.60
-Nodes (5): client(), listInvites(), listPlans(), listTimeOptions(), toPlanError()
 
 ### Community 116 - "Despliegue, promoción y rollback (auditoría H-10)"
 Cohesion: 0.29
@@ -605,17 +575,17 @@ Nodes (3): overrides, minimatch, rimraf
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `react` connect `react` to `recommender.js`, `DuoFinal.jsx`, `FunctionsPage.jsx`, `package.json`, `MoviesPage.jsx`, `HeroCarousel.jsx`, `DuoRoomPage.jsx`, `duo-eval.mjs`, `recommender.test.js`, `analytics.js`, `useAuth`, `DuoPage.jsx`, `platforms.js`, `useToast`, `usePlans`, `TmdbStatus.jsx`, `App.jsx`, `PosterImage.jsx`, `showtimeService.js`, `DuoMarathon.jsx`, `react-router-dom`, `AuthPage.jsx`, `duo.js`, `useDuoSession.js`, `palette.js`, `DuoSeats.jsx`, `router.jsx`, `isTmdbEnabled`, `PreferencesPanel.jsx`, `PlusPage.jsx`, `PlanContext.jsx`, `usePrefersReducedMotion.js`?**
+- **Why does `react` connect `DuoPage.jsx` to `DuoFinal.jsx`, `FunctionsPage.jsx`, `package.json`, `MovieSearch.jsx`, `DuoRoomPage.jsx`, `duo-eval.mjs`, `planRepository.js`, `DuoPersonStep.jsx`, `recommender.test.js`, `useAsync`, `searchCatalog`, `useAuth`, `data/tmdb.js`, `useToast`, `naturalQuery.js`, `HomePage.jsx`, `TmdbStatus.jsx`, `roomRepository.js`, `useInstallPrompt.js`, `showtimeService.js`, `tmdbClient.test.js`, `MovieBackdrop.jsx`, `AuthPage.jsx`, `duo.js`, `useDuoSession.js`, `palette.js`, `router.jsx`, `isTmdbEnabled`, `PreferencesPanel.jsx`, `PlanContext.jsx`?**
   _High betweenness centrality (0.127) - this node is a cross-community bridge._
 - **Why does `auth()` connect `fake-supabase.mjs` to `20261010120000_duo_rooms.sql`, `20261015120000_plus_sandbox.sql`, `20261012120000_groups.sql`, `20261009120000_shared_plans.sql`, `20261014120000_partners.sql`?**
   _High betweenness centrality (0.102) - this node is a cross-community bridge._
-- **Why does `react-router-dom` connect `react-router-dom` to `recommender.js`, `DuoFinal.jsx`, `FunctionsPage.jsx`, `package.json`, `HeroCarousel.jsx`, `DuoRoomPage.jsx`, `duo-eval.mjs`, `react`, `analytics.js`, `useAuth`, `DuoPage.jsx`, `useToast`, `App.jsx`, `PosterImage.jsx`, `DuoMarathon.jsx`, `AuthPage.jsx`, `DuoSeats.jsx`, `router.jsx`, `isTmdbEnabled`, `PlusPage.jsx`?**
+- **Why does `react-router-dom` connect `FunctionsPage.jsx` to `tmdbClient.test.js`, `DuoFinal.jsx`, `useAsync`, `package.json`, `useAuth`, `data/tmdb.js`, `MovieSearch.jsx`, `DuoPage.jsx`, `AuthPage.jsx`, `useToast`, `duo-eval.mjs`, `isTmdbEnabled`, `DuoRoomPage.jsx`, `HomePage.jsx`, `planRepository.js`, `router.jsx`, `roomRepository.js`?**
   _High betweenness centrality (0.041) - this node is a cross-community bridge._
 - **What connects `store`, `store`, `ipOptions` to the rest of the system?**
   _476 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `20261010120000_duo_rooms.sql` be split into smaller, more focused modules?**
   _Cohesion score 0.10338680926916222 - nodes in this community are weakly interconnected._
 - **Should `recommender.js` be split into smaller, more focused modules?**
-  _Cohesion score 0.09551020408163265 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.11829268292682926 - nodes in this community are weakly interconnected._
 - **Should `DuoFinal.jsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.09080841638981174 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.09620721554116558 - nodes in this community are weakly interconnected._

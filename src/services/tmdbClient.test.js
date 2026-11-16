@@ -456,3 +456,27 @@ test("V48: tres favoritas y una ficha caída → dos visibles, una pendiente de 
   assert.deepEqual(ids, saved, "los ids guardados no cambian");
   configureTmdb({ token: "" });
 });
+
+test("tmdb offline: la caché guardada tiene tope de tamaño para no llenar localStorage (sesión de Supabase)", async () => {
+  const store = new Map();
+  const previous = globalThis.localStorage;
+  globalThis.localStorage = {
+    getItem: (key) => store.get(key) ?? null,
+    setItem: (key, value) => store.set(key, String(value)),
+    removeItem: (key) => store.delete(key),
+  };
+  try {
+    const big = (n) => page([{ id: n, media_type: "movie", title: "x".repeat(60_000) }]);
+    connect({ "/search/multi": () => big(1) });
+    for (let i = 0; i < 40; i += 1) await searchMulti(`peso-${i}`);
+    const used = [...store].filter(([key]) => key.startsWith("cinehub-tmdb:")).reduce((sum, [, value]) => sum + value.length, 0);
+    assert.ok(used <= 1_100_000, `la caché ocupó ${used} caracteres`);
+
+    store.clear();
+    connect({ "/search/multi": () => page([{ id: 2, media_type: "movie", title: "y".repeat(200_000) }]) });
+    await searchMulti("ficha-enorme");
+    assert.equal([...store.keys()].some((key) => key.includes("ficha-enorme")), false, "una respuesta enorme no se guarda");
+  } finally {
+    globalThis.localStorage = previous;
+  }
+});

@@ -193,16 +193,42 @@ async function send(url, retries = 1) {
 
 const OFFLINE_PREFIX = "cinehub-tmdb:";
 
+// localStorage tiene ~5 M de caracteres para TODO el sitio, incluida la sesión de Supabase (sb-…-auth-token).
+// La caché sin conexión no puede ocupar más de esto: si lo llena, iniciar sesión falla con «exceeded the quota».
+const MAX_OFFLINE_CHARS = 1_000_000;
+const MAX_ENTRY_CHARS = 150_000;
+const storedSize = (storageKey) => {
+  try { return globalThis.localStorage?.getItem(storageKey)?.length ?? 0; } catch { return 0; }
+};
+
+/** Quita las entradas más antiguas hasta respetar el máximo de claves y el presupuesto de caracteres. */
+function pruneOffline() {
+  const indexKey = `${OFFLINE_PREFIX}index`;
+  const previous = readStorage(indexKey, []);
+  const keys = Array.isArray(previous) ? previous.filter((item) => typeof item === "string") : [];
+  let total = keys.reduce((sum, item) => sum + storedSize(item), 0);
+  while (keys.length > 1 && (keys.length > MAX_OFFLINE_ENTRIES || total > MAX_OFFLINE_CHARS)) {
+    const oldest = keys.shift();
+    total -= storedSize(oldest);
+    removeStorage(oldest);
+  }
+  writeStorage(indexKey, keys);
+}
+
 function saveOffline(key, data) {
   const storageKey = OFFLINE_PREFIX + key;
-  writeStorage(storageKey, { savedAt: Date.now(), data });
+  const entry = { savedAt: Date.now(), data };
+  if (JSON.stringify(entry).length > MAX_ENTRY_CHARS) return; // una ficha enorme no se guarda: sigue en la caché de memoria
+  writeStorage(storageKey, entry);
   const indexKey = `${OFFLINE_PREFIX}index`;
   const previous = readStorage(indexKey, []);
   const keys = Array.isArray(previous) ? previous.filter((item) => typeof item === "string" && item !== storageKey) : [];
-  keys.push(storageKey);
-  while (keys.length > MAX_OFFLINE_ENTRIES) removeStorage(keys.shift());
-  writeStorage(indexKey, keys);
+  writeStorage(indexKey, [...keys, storageKey]);
+  pruneOffline();
 }
+
+// Al cargar la app: recorta lo que versiones anteriores dejaron guardado (antes de que se intente iniciar sesión).
+if (inBrowser) pruneOffline();
 
 /** Datos guardados de `key`, o null si no hay o están dañados. */
 function loadOffline(key) {
