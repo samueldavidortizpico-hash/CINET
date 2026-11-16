@@ -14,7 +14,7 @@
       sesión · sin estrenar · géneros rechazados · animación/documental si
       nadie los eligió · TODOS los imprescindibles · duración máxima ·
       temporadas y estado de serie · plataformas marcadas · modo familia
-      (en discover) · no encaja con nadie.
+      (prueba de discover compatible con el perfil) · no encaja con nadie.
       DATOS DESCONOCIDOS: con un límite activo, un dato que no se puede
       comprobar no cumple (unknownRuntime, unknownSeasons, unknownStatus,
       unknownPlatform). Un filtro de discover (runtimeCap, filtered.*) vale
@@ -303,7 +303,7 @@ function isUnreleased(title, now) {
  * Solo el quórum de gustos (preferencia flexible) devuelve `misses`: ese título puede completar la lista
  * como alternativa. Todo lo demás es un límite duro y nunca se relaja para rellenar.
  * reason: type | history | unreleased | rejected | format | must | taste | oneSided | runtime | seasons | status |
- *         platform | unknownRuntime | unknownSeasons | unknownStatus | unknownPlatform
+ *         platform | family | unknownRuntime | unknownSeasons | unknownStatus | unknownPlatform
  */
 export function checkTitle(title, profile, { excluded = new Set(), now = today() } = {}) {
   const relaxed = [];
@@ -314,6 +314,14 @@ export function checkTitle(title, profile, { excluded = new Set(), now = today()
   if (excluded.has(title.id)) return fail("history");
   if (profile.people.length && seenBy(title, profile).length === profile.people.length) return fail("history");
   if (isUnreleased(title, now)) return fail("unreleased");
+  // La clasificación debe estar comprobada por la consulta de origen. Un dato
+  // ausente no se vuelve apto al llamar al motor fuera de getDuoCandidates.
+  if (profile.family) {
+    const verified = title.filtered?.family;
+    if (profile.type !== "movie" || verified?.country !== profile.family.country ||
+        !Array.isArray(verified.certifications) || !verified.certifications.length ||
+        verified.certifications.some((value) => !profile.family.certifications.includes(value))) return fail("family");
+  }
   if (genres.some((key) => profile.rejected.includes(key))) return fail("rejected");
   if (genres.some((key) => FORMAT_GENRES.includes(key) && !profile.liked.includes(key))) return fail("format");
   // Imprescindibles: TODOS. Cumplir uno de dos no es cumplir la condición.
@@ -625,25 +633,46 @@ function similarity(a, b) {
  * (cobertura del grupo; con pareja o solo casi nunca cambia nada). Las alternativas siempre van después.
  */
 export function diversify(items, penalty = DIVERSITY_PENALTY) {
-  // ponytail: O(n²) sobre ~100 candidatos; si crecen a miles, comparar por grupos de género.
+  // Conserva la selección voraz O(n²), pero calcula los datos inmutables una
+  // vez por llamada en vez de crear Sets y arrays en cada comparación.
   const pool = [...items];
   const out = [];
   const covered = new Set(); // índices de persona que ya tienen una opción suya
-  const pleases = (item) => (item.seats ?? []).flatMap((seat, index) => (seat.expressed && seat.pleased ? [index] : []));
+  const facts = new Map(items.map((item) => {
+    const genres = item.title.genreKeys ?? [];
+    return [item, { genres, members: new Set(genres), unique: new Set(genres.filter((value) => value != null)), collection: item.title.collection?.id,
+      pleased: (item.seats ?? []).flatMap((seat, index) => seat.expressed && seat.pleased ? [index] : []) }];
+  }));
+  const pleases = (item) => facts.get(item).pleased;
   const feeds = (item) => pleases(item).some((index) => !covered.has(index));
+  const closenessOf = (item, picked) => {
+    const a = facts.get(item);
+    const b = facts.get(picked);
+    let common = 0;
+    let distinct = 0;
+    for (const genre of a.genres) if (b.members.has(genre)) common += 1;
+    for (const genre of a.unique) if (b.unique.has(genre)) distinct += 1;
+    const size = a.unique.size + b.unique.size - distinct;
+    return 0.6 * (size ? common / size : 0) + 0.4 * Number(a.collection != null && a.collection === b.collection);
+  };
   while (pool.length) {
     const hungry = out.length > 0 && pool.some(feeds);
     let bestIndex = -1;
     let bestValue = -Infinity;
-    pool.forEach((item, index) => {
-      if (hungry && !feeds(item)) return;
-      const closeness = Math.max(0, ...out.slice(-3).map((picked) => similarity(picked.title, item.title)));
+    for (let index = 0; index < pool.length; index += 1) {
+      const item = pool[index];
+      if (hungry && !feeds(item)) continue;
+      let closeness = 0;
+      for (let chosen = Math.max(0, out.length - 3); chosen < out.length; chosen += 1) {
+        // Mantener el orden original de argumentos, incluso con datos duplicados.
+        closeness = Math.max(closeness, closenessOf(out[chosen], item));
+      }
       const value = item.score - penalty * closeness - 1000 * item.relaxed.length;
       if (value > bestValue) {
         bestValue = value;
         bestIndex = index;
       }
-    });
+    }
     const [picked] = pool.splice(bestIndex, 1);
     out.push(picked);
     pleases(picked).forEach((index) => covered.add(index));
@@ -902,6 +931,9 @@ function sagaMarathon(pool, settings, random) {
 const split = (total, parts) => Array.from({ length: parts }, (_, index) => Math.floor(total / parts) + (index < total % parts ? 1 : 0));
 
 function seriesMarathon(pool, settings, random) {
+  // La serie inicial también debe permitir al menos un episodio; de lo
+  // contrario una opción larga oculta otras que sí caben en la sesión.
+  pool = pool.filter((item) => minutesOf(item.title) <= settings.maxMinutes);
   const oneSeries = settings.scope === "saga" || settings.style === "thematic";
   const maxSeries = Math.min(oneSeries ? 1 : settings.style === "balanced" ? 2 : settings.count, settings.count);
   const firstOptions = preferStrict(pool);

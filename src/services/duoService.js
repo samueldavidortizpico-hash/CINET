@@ -106,7 +106,11 @@ function pairSources(profile, pages = [1]) {
           lists.slice(i + 1).flatMap((second) => first.slice(0, 2).flatMap((a) => second.slice(0, 2).filter((b) => b !== a).map((b) => [a, b])))
         );
   const score = (ids) => ids.reduce((total, id) => total + fans(id), 0);
-  return [...new Map(combos.sort((a, b) => score(b) - score(a)).map((ids) => [ids.join(","), ids])).keys()]
+  const unique = [...new Map(combos.map((ids) => {
+    const ordered = [...ids].sort((a, b) => a - b);
+    return [ordered.join(","), ordered];
+  })).values()];
+  return unique.sort((a, b) => score(b) - score(a) || a.join(",").localeCompare(b.join(","))).map((ids) => ids.join(","))
     .slice(0, MAX_PAIR_SOURCES)
     .map((genres) => ({ origin: "pair", pages, params: { sort_by: "popularity.desc", "vote_count.gte": 50, with_genres: genres } }));
 }
@@ -129,7 +133,7 @@ function sources(profile) {
   const date = profile.type === "tv" ? "first_air_date" : "primary_release_date";
   const cast =
     profile.type === "movie" // TMDB solo filtra por reparto en películas
-      ? profile.actors.slice(0, MAX_CAST_SOURCES).map((actor) => ({
+      ? [...profile.actors].sort((a, b) => Number(a.id) - Number(b.id)).slice(0, MAX_CAST_SOURCES).map((actor) => ({
           origin: "cast",
           pages: [1],
           params: { sort_by: "popularity.desc", with_cast: actor.id },
@@ -207,7 +211,8 @@ async function sagaParts(enriched, all, region) {
 async function fetchSources(list, base, profile, required = false) {
   const discover = profile.type === "tv" ? discoverTv : discoverMovies;
   // Lo que discover ya comprobó en el servidor: cuenta como dato comprobado mientras no llegue el detalle.
-  const filtered = { providers: Boolean(base.with_watch_providers), status: Boolean(base.with_status) };
+  const filtered = { providers: Boolean(base.with_watch_providers), status: Boolean(base.with_status),
+    ...(base.certification_country && { family: { country: base.certification_country, certifications: base.certification.split("|") } }) };
   const batches = await Promise.all(
     list.flatMap(({ origin, pages, params, castMatch }) =>
       pages.map((page) =>

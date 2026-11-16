@@ -36,6 +36,95 @@ const session = (a = {}, b = {}, patch = {}) => ({
 });
 const rank = (s, context = {}, titles = catalog) => rankTitles(titles, buildProfile(s), { history: EMPTY_HISTORY, ...context });
 const ids = (items) => items.map((item) => item.title.id);
+
+test("evaluación Dev2: 1 2 3 y 8 personas conservan límites duros y responden al vacío", () => {
+  for (const size of [1, 2, 3, 8]) {
+    const profile = buildProfile({ ...DEFAULT_DUO_SESSION, region: "CO", providers: ["netflix"], people: Array.from({ length: size }, (_, i) => person({ name: `P${i}`, genres: ["drama"], mustGenres: ["drama"], rejectedGenres: ["horror"], maxRuntime: 100 })) });
+    const candidates = [
+      film("ok", ["drama"], { providers: [{ id: 8 }] }),
+      film("unknown-runtime", ["drama"], { runtime: null, providers: [{ id: 8 }] }),
+      film("long", ["drama"], { runtime: 101, providers: [{ id: 8 }] }),
+      film("unknown-platform", ["drama"]),
+      film("wrong-platform", ["drama"], { providers: [] }),
+      film("negative", ["drama", "horror"], { providers: [{ id: 8 }] }),
+      film("wrong-type", ["drama"], { type: "tv", providers: [{ id: 8 }] }),
+    ];
+    assert.deepEqual(ids(rankTitles(candidates, profile, { history: EMPTY_HISTORY }).items), ["ok"]);
+    assert.deepEqual(rankTitles([], profile, { history: EMPTY_HISTORY }).items, []);
+    assert.deepEqual(rankTitles(candidates, profile, { history: { ...EMPTY_HISTORY, seen: ["ok"] } }).items, []);
+  }
+});
+
+test("evaluación Dev2: permutar participantes conserva puntuación orden y finalistas", () => {
+  const permutations = (list) => list.length <= 1 ? [list] : list.flatMap((entry, index) => permutations(list.filter((_, other) => index !== other)).map((rest) => [entry, ...rest]));
+  const people = [person({ name: "Ana", genres: ["drama"] }), person({ name: "Bea", genres: ["comedy"] }), person({ name: "Cam", genres: ["drama", "comedy"] })];
+  const candidates = [film("both", ["drama", "comedy"]), film("drama", ["drama"]), film("comedy", ["comedy"]), film("negative", ["horror"])];
+  const signature = (group) => {
+    const profile = buildProfile({ ...DEFAULT_DUO_SESSION, people: group });
+    const result = rankTitles(candidates, profile, { history: EMPTY_HISTORY, now: "2026-11-15" });
+    return { ranking: result.items.map((item) => [item.title.id, item.score, item.breakdown, item.relaxed]), finalists: pickFinalists(result.items, profile).map((item) => [item.id, item.role]) };
+  };
+  for (const group of permutations(people)) assert.deepEqual(signature(group), signature(people));
+  const eight = Array.from({ length: 8 }, (_, index) => ({ ...people[index % 3], name: `P${index}` }));
+  for (let index = 0; index < eight.length; index += 1) assert.deepEqual(signature([...eight.slice(index), ...eight.slice(0, index)]), signature(eight));
+});
+
+test("modo familia en el motor exige prueba compatible y no admite desconocidos al ampliar", () => {
+  const profile = buildProfile(group({ genres: ["drama"] }));
+  const kids = { ...profile, family: { country: "US", certifications: ["G", "PG"] }, relax: { runtime: 30, platforms: true, oneSided: true } };
+  const candidate = (id, proof) => film(id, ["drama"], { filtered: { family: proof } });
+  const result = rankTitles([
+    candidate("unknown"), candidate("wrong-country", { country: "MX", certifications: ["A"] }),
+    candidate("adult", { country: "US", certifications: ["R"] }), candidate("empty", { country: "US", certifications: [] }),
+    candidate("ok", { country: "US", certifications: ["G", "PG"] }), candidate("narrower", { country: "US", certifications: ["G"] }),
+  ], kids);
+  assert.deepEqual(ids(result.items).sort(), ["narrower", "ok"]);
+  assert.equal(result.rejectedBy.family, 4);
+  assert.equal(rankTitles([candidate("broader", { country: "US", certifications: ["G", "PG"] })], { ...kids, family: { country: "US", certifications: ["G"] } }).items.length, 0);
+  assert.equal(rankTitles([film("tv", ["drama"], { type: "tv", filtered: { family: { country: "US", certifications: ["G"] } } })], { ...kids, type: "tv" }).items.length, 0);
+});
+
+test("maratón TV no deja sin resultado por una serie inicial que no cabe", () => {
+  const profile = buildProfile({ ...group({ genres: ["drama"] }), mode: "tv" });
+  const { items } = rankTitles([film("long", ["drama"], { type: "tv", runtime: 100, rating: 9 }), film("short", ["drama"], { type: "tv", runtime: 30, rating: 6 })], profile);
+  assert.equal(items[0].title.id, "long");
+  for (const style of ["thematic", "balanced", "varied"]) {
+    const settings = { type: "tv", maxMinutes: 60, count: 2, scope: "mix", style };
+    const result = buildMarathon(items, settings);
+    assert.deepEqual(result.entries, [{ id: "short", episodes: 2 }]);
+    assert.equal(describeMarathon(result, items, settings).remaining, 0);
+    assert.deepEqual(buildMarathon(items.slice(0, 1), settings).entries, []);
+  }
+});
+
+test("diversidad optimizada conserva exactamente la selección de referencia y no cachea datos mutables", () => {
+  const unique = (...lists) => [...new Set(lists.flat().filter((value) => value != null))];
+  const similarity = (a, b) => {
+    const genresA = a.genreKeys ?? [], genresB = b.genreKeys ?? [], all = unique(genresA, genresB);
+    return 0.6 * (all.length ? genresA.filter((genre) => genresB.includes(genre)).length / all.length : 0) + 0.4 * Number(a.collection?.id != null && a.collection.id === b.collection?.id);
+  };
+  const reference = (items, penalty) => {
+    const pool = [...items], out = [], covered = new Set();
+    const pleases = (item) => (item.seats ?? []).flatMap((seat, index) => seat.expressed && seat.pleased ? [index] : []);
+    const feeds = (item) => pleases(item).some((index) => !covered.has(index));
+    while (pool.length) {
+      const hungry = out.length > 0 && pool.some(feeds); let bestIndex = -1, bestValue = -Infinity;
+      pool.forEach((item, index) => {
+        if (hungry && !feeds(item)) return;
+        const value = item.score - penalty * Math.max(0, ...out.slice(-3).map((picked) => similarity(picked.title, item.title))) - 1000 * item.relaxed.length;
+        if (value > bestValue) { bestValue = value; bestIndex = index; }
+      });
+      const [picked] = pool.splice(bestIndex, 1); out.push(picked); pleases(picked).forEach((index) => covered.add(index));
+    }
+    return out;
+  };
+  const random = seeded(17), genres = [[], ["drama"], ["drama", "comedy"], ["comedy", "comedy"], [null, "drama"]];
+  const candidates = Array.from({ length: 120 }, (_, index) => ({ title: film(String(index), genres[index % genres.length], { collection: index % 4 ? null : { id: index % 9 } }), score: Math.floor(random() * 150), relaxed: index % 7 ? [] : ["oneSided"], seats: Array.from({ length: 8 }, () => ({ expressed: random() > .2, pleased: random() > .5 })) }));
+  for (const penalty of [0, 15, 40]) assert.deepEqual(diversify(candidates, penalty), reference(candidates, penalty));
+  candidates[0].title.genreKeys = ["horror"];
+  assert.deepEqual(diversify(candidates), reference(candidates, 15));
+  assert.deepEqual(diversify([]), []);
+});
 /** Aleatorio reproducible (Park–Miller) para probar el dado. */
 const seeded = (seed = 7) => () => (seed = (seed * 16807) % 2147483647) / 2147483647;
 
