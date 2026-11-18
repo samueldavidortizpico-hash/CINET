@@ -6,6 +6,7 @@
 }
 
 .status-page-inner { width: min(100%, 680px); }
+.status-actions { display: flex; justify-content: center; margin-top: 22px; }
 .status-card {
   position: relative;
   overflow: hidden;
