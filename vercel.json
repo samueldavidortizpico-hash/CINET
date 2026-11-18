@@ -26,6 +26,7 @@
     { "source": "/status/200", "destination": "/api/status?code=200" },
     { "source": "/status/301", "destination": "/api/status?code=301" },
     { "source": "/status/400", "destination": "/api/status?code=400" },
+    { "source": "/status/404", "destination": "/api/status?code=404" },
     { "source": "/api/tmdb/:path*", "destination": "/api/tmdb?path=:path*" },
     { "source": "/api/v1/:path*", "destination": "/api/v1?path=:path*" },
     { "source": "/movie/:id", "destination": "/api/og?path=/movie/:id" },
