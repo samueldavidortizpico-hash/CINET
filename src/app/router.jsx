@@ -29,6 +29,7 @@ const MoviesPage = lazy(() => import("../pages/MoviesPage.jsx"));
 const MyPlansPage = lazy(() => import("../pages/MyPlansPage.jsx"));
 const PlanPage = lazy(() => import("../pages/PlanPage.jsx"));
 const ProfilePage = lazy(() => import("../pages/ProfilePage.jsx"));
+const StatusPage = lazy(() => import("../components/status/StatusPage.jsx"));
 
 // handle.page → atributo data-page del Layout, que activa los estilos de esa página.
 const page = (name) => ({ handle: { page: name } });
@@ -46,6 +47,7 @@ export const router = createBrowserRouter(
       element: <Layout />,
       // Recuperación por ruta (N22): el error se pinta dentro del Layout; la cabecera y lo demás siguen.
       children: [{ errorElement: <RouteError />, children: [
+        { path: "status/:code", element: <StatusPage />, ...page("status") },
         { path: "home", element: <HomePage />, ...page("home") },
         { path: "movies", element: <MoviesPage />, ...page("movies") },
         { path: "catalogo", element: <MoviesPage />, ...page("movies") },
