@@ -5,6 +5,7 @@
 
 import { supabase } from "./supabaseClient.js";
 import { PLAN_SELECT, toPlanError, toUiPlans } from "./planRepository.js";
+import { queryKeysetPage } from "../utils/keysetCursor.js";
 
 const GROUP_SELECT = "id, owner_id, name, created_at, group_members (user_id, role, display_name, joined_at)";
 
@@ -35,9 +36,16 @@ export function toGroup(row, userId) {
   return { id: row.id, name: row.name, isOwner: row.owner_id === userId, members, createdAt: row.created_at };
 }
 
-export async function listGroups(userId) {
-  const data = await rows(client().from("groups").select(GROUP_SELECT).order("created_at", { ascending: true }).limit(100));
-  return data.map((row) => toGroup(row, userId));
+export const GROUP_PAGE_SIZE = 100;
+
+export async function listGroups(userId, cursor = null) {
+  let page;
+  try {
+    page = await queryKeysetPage(client(), { table: "groups", select: GROUP_SELECT, column: "created_at", direction: "asc", pageSize: GROUP_PAGE_SIZE, cursor });
+  } catch (error) {
+    throw toPlanError(error);
+  }
+  return { items: page.items.map((row) => toGroup(row, userId)), nextCursor: page.nextCursor, hasMore: page.hasMore };
 }
 
 /** null si no existe o no eres miembro (RLS no distingue). */
@@ -47,9 +55,16 @@ export async function getGroup(id, userId) {
 }
 
 /** Planes del grupo en los que estás (entrar al grupo no abre los planes anteriores). */
-export async function groupPlans(groupId, userId) {
-  const data = await rows(client().from("plans").select(PLAN_SELECT).eq("group_id", groupId).order("starts_at", { ascending: true }).limit(200));
-  return toUiPlans(data, userId);
+export const GROUP_PLAN_PAGE_SIZE = 200;
+
+export async function groupPlans(groupId, userId, cursor = null) {
+  let page;
+  try {
+    page = await queryKeysetPage(client(), { table: "plans", select: PLAN_SELECT, filters: [["group_id", groupId]], column: "starts_at", direction: "asc", pageSize: GROUP_PLAN_PAGE_SIZE, cursor });
+  } catch (error) {
+    throw toPlanError(error);
+  }
+  return { items: toUiPlans(page.items, userId), nextCursor: page.nextCursor, hasMore: page.hasMore };
 }
 
 export const createGroup = (name, displayName) => call("create_group", { p_name: name.trim(), p_display_name: displayName.trim().slice(0, 40) || "Organizador" });

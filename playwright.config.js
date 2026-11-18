@@ -34,7 +34,7 @@ export default defineConfig({
       url: `http://localhost:${ROOMS}`,
       timeout: 120_000,
       reuseExistingServer: false,
-      env: { ...NO_SECRETS, VITE_SUPABASE_URL: `http://localhost:${ROOMS}`, VITE_SUPABASE_PUBLISHABLE_KEY: "e2e-publishable-key", FAKE_SUPABASE_PORT: String(ROOMS) },
+      env: { ...NO_SECRETS, VITE_SUPABASE_URL: `http://localhost:${ROOMS}`, VITE_SUPABASE_PUBLISHABLE_KEY: "e2e-publishable-key", FAKE_SUPABASE_PORT: String(ROOMS), FAKE_SUPABASE_TEST_KEY: "local-e2e-fixture-only" },
     },
   ],
 });

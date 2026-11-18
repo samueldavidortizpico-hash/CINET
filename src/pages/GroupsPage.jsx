@@ -11,6 +11,7 @@ import { useToast } from "../hooks/useToast.js";
 import { isUpcoming } from "../services/planService.js";
 import * as repo from "../services/groupRepository.js";
 import { appUrl } from "../utils/share.js";
+import { appendUniquePage } from "../utils/keysetCursor.js";
 
 function Shell({ children, back = true }) {
   return (
@@ -23,6 +24,18 @@ function Shell({ children, back = true }) {
   );
 }
 
+function LoadMore({ label, hasMore, loading, error, onLoad }) {
+  if (!hasMore) return null;
+  return (
+    <div className="plans-load-more">
+      {error && <p className="error-message" role="alert">{error.message}</p>}
+      <Button variant="secondary" disabled={loading} onClick={onLoad}>
+        {loading ? "Cargando…" : error ? "Reintentar carga" : label}
+      </Button>
+    </div>
+  );
+}
+
 const names = (members) => {
   const list = members.map((member) => member.name);
   return list.length > 4 ? `${list.slice(0, 4).join(", ")} y ${list.length - 4} más` : list.join(", ");
@@ -31,9 +44,40 @@ const names = (members) => {
 /** /grupos — los grupos de los que eres parte y crear uno nuevo. */
 function GroupList({ user }) {
   const navigate = useNavigate();
-  const { data: groups, error, loading } = useAsync(`groups-${user.id}`, () => repo.listGroups(user.id));
+  const [version, setVersion] = useState(0);
+  const { data: groups, error, loading } = useAsync(`groups-${user.id}-${version}`, () => repo.listGroups(user.id));
+  const [more, setMore] = useState({ userId: null, items: [], nextCursor: null, hasMore: false, loading: false, error: null });
   const [name, setName] = useState("");
   const [state, setState] = useState({ busy: false, error: "" });
+  const currentMore = more.userId === user.id ? more : null;
+  const groupItems = appendUniquePage(groups?.items ?? [], currentMore?.items ?? []);
+  const groupCursor = currentMore?.nextCursor ?? groups?.nextCursor;
+  const groupHasMore = currentMore ? currentMore.hasMore : groups?.hasMore;
+
+  const loadMoreGroups = async () => {
+    if (!groupCursor || more.loading) return;
+    setMore((current) => ({
+      ...current,
+      userId: user.id,
+      nextCursor: current.userId === user.id ? current.nextCursor : groups?.nextCursor,
+      hasMore: current.userId === user.id ? current.hasMore : Boolean(groups?.hasMore),
+      loading: true,
+      error: null,
+    }));
+    try {
+      const page = await repo.listGroups(user.id, groupCursor);
+      setMore((current) => ({
+        userId: user.id,
+        items: appendUniquePage(current.userId === user.id ? current.items : [], page.items),
+        nextCursor: page.nextCursor,
+        hasMore: page.hasMore,
+        loading: false,
+        error: null,
+      }));
+    } catch (loadError) {
+      setMore((current) => ({ ...current, userId: user.id, loading: false, error: loadError }));
+    }
+  };
 
   const create = async (event) => {
     event.preventDefault();
@@ -53,10 +97,10 @@ function GroupList({ user }) {
         <p className="duo-lead">La familia, los del trabajo, el parche del colegio: guarda a tu gente una vez y compárteles planes o repítelos sin volver a invitar a cada quien.</p>
       </header>
       {loading && <Loading label="Cargando tus grupos" />}
-      {error && <p className="error-message" role="alert">{error.message}</p>}
-      {groups?.length > 0 && (
+      {error && <p className="error-message" role="alert">{error.message} <Button variant="secondary" onClick={() => setVersion((value) => value + 1)}>Reintentar</Button></p>}
+      {groupItems.length > 0 && (
         <ul className="group-list">
-          {groups.map((group) => (
+          {groupItems.map((group) => (
             <li key={group.id}>
               <Link className="room-card group-card" to={`/grupos/${group.id}`}>
                 <strong>{group.name}</strong>
@@ -66,7 +110,8 @@ function GroupList({ user }) {
           ))}
         </ul>
       )}
-      {groups?.length === 0 && <p className="plan-note">Aún no tienes grupos.</p>}
+      {groups?.items?.length === 0 && groupItems.length === 0 && <p className="plan-note">Aún no tienes grupos.</p>}
+      <LoadMore label="Cargar más grupos" hasMore={groupHasMore} loading={currentMore?.loading} error={currentMore?.error} onLoad={loadMoreGroups} />
       {user.guest ? (
         <p className="plan-note">Como invitado puedes unirte a grupos con un enlace; para crearlos necesitas una cuenta.</p>
       ) : (
@@ -92,13 +137,44 @@ function GroupDetail({ id, user }) {
   const [version, setVersion] = useState(0);
   const [link, setLink] = useState("");
   const [busy, setBusy] = useState(false);
+  const [morePlans, setMorePlans] = useState({ groupId: null, items: [], nextCursor: null, hasMore: false, loading: false, error: null });
   const { data, error, loading } = useAsync(`group-${id}-${user.id}-${version}`, async () => {
     const group = await repo.getGroup(id, user.id);
     if (!group) return null;
-    const [plans, invites] = await Promise.all([repo.groupPlans(id, user.id), group.isOwner ? repo.listInvites(id) : []]);
-    return { group, plans, invites };
+    const [planPage, invites] = await Promise.all([repo.groupPlans(id, user.id), group.isOwner ? repo.listInvites(id) : []]);
+    return { group, planPage, invites };
   });
+  const currentMorePlans = morePlans.groupId === id ? morePlans : null;
+  const firstPlanPage = data?.planPage;
+  const groupPlanItems = appendUniquePage(firstPlanPage?.items ?? [], currentMorePlans?.items ?? []);
+  const planCursor = currentMorePlans?.nextCursor ?? firstPlanPage?.nextCursor;
+  const planHasMore = currentMorePlans ? currentMorePlans.hasMore : firstPlanPage?.hasMore;
   const reload = () => setVersion((value) => value + 1);
+
+  const loadMoreGroupPlans = async () => {
+    if (!planCursor || morePlans.loading) return;
+    setMorePlans((current) => ({
+      ...current,
+      groupId: id,
+      nextCursor: current.groupId === id ? current.nextCursor : firstPlanPage?.nextCursor,
+      hasMore: current.groupId === id ? current.hasMore : Boolean(firstPlanPage?.hasMore),
+      loading: true,
+      error: null,
+    }));
+    try {
+      const page = await repo.groupPlans(id, user.id, planCursor);
+      setMorePlans((current) => ({
+        groupId: id,
+        items: appendUniquePage(current.groupId === id ? current.items : [], page.items),
+        nextCursor: page.nextCursor,
+        hasMore: page.hasMore,
+        loading: false,
+        error: null,
+      }));
+    } catch (loadError) {
+      setMorePlans((current) => ({ ...current, groupId: id, loading: false, error: loadError }));
+    }
+  };
 
   const run = async (action, message, after = reload) => {
     setBusy(true);
@@ -124,7 +200,8 @@ function GroupDetail({ id, user }) {
     );
   }
 
-  const { group, plans, invites } = data;
+  const { group, invites } = data;
+  const plans = groupPlanItems;
   const upcoming = plans.filter((plan) => isUpcoming(plan) && plan.status !== "cancelled");
   const past = plans.filter((plan) => !upcoming.includes(plan));
 
@@ -202,6 +279,7 @@ function GroupDetail({ id, user }) {
             </div>
           ) : null
         )}
+        <LoadMore label="Cargar más planes" hasMore={planHasMore} loading={currentMorePlans?.loading} error={currentMorePlans?.error} onLoad={loadMoreGroupPlans} />
         <div className="plan-actions">
           <Button variant="secondary" to="/movies">Elegir una película</Button>
           <Button variant="secondary" to="/duo/sala">Elegir en una sala de Duo</Button>

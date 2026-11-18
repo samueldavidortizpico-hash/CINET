@@ -159,12 +159,12 @@ catálogo local. CI: `.github/workflows/ci.yml` (lint, pruebas, build y E2E en c
 | `/plan/:id` | `PlanPage` | **Ruta dinámica** · plan compartido: invitar con enlace, RSVP de cada cuenta, editar/cancelar (organizador) |
 | `/invite/:token` | `InvitePage` | Unirse a un plan con un enlace de invitación (pide iniciar sesión) |
 | `/duo/sala` · `/duo/sala/:code` | `DuoRoomPage` | Sala de Duo: cada quien vota desde su teléfono (código, enlace o QR; invitados sin email si Supabase lo permite) |
-| `/grupos` · `/grupos/:id` · `/grupos/unirse/:token` | `GroupsPage` | Grupos guardados: invitar con enlace, sumar a un plan, ver sus planes |
+| `/grupos` · `/grupos/:id` · `/grupos/unirse/:token` | `GroupsPage` | Grupos guardados: invitar con enlace, sumar a un plan, ver sus planes y cargarlos por páginas |
 | `/importar` | `ImportPage` | Importar historial CSV (Letterboxd/IMDb) sin duplicar ni inventar coincidencias |
 | `/resumen` | `RecapPage` | Resumen de lo visto y de los planes |
 | `/aliados` | `PartnerPage` | Panel de cines y organizadores verificados: sedes, funciones, ofertas y equipo |
 | `/plus` | `PlusPage` | CINET Plus: qué es gratis, qué es Plus, prueba sin cobro (si el sandbox está encendido) y prueba de precio |
-| `/my-plans` | `MyPlansPage` | Estadísticas, filtro, importar planes locales a la cuenta, eliminar |
+| `/my-plans` | `MyPlansPage` | Estadísticas, filtros, importar planes locales a la cuenta, eliminar y cargar historial anterior por páginas |
 | `/login` · `/register` · `/registro` | `AuthPage` | Iniciar sesión / crear cuenta en la misma pantalla (vuelven a la página de origen) |
 | `/recuperar` · `/nueva-contrasena` | `AuthPage` | Pedir enlace de recuperación / crear contraseña nueva desde el enlace del correo |
 | `/profile` · `/perfil` | `ProfilePage` | Perfil y ajustes de la cuenta |

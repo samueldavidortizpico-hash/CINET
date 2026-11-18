@@ -309,6 +309,40 @@ const server = createServer(async (req, res) => {
     if (url.pathname.startsWith("/api/tmdb")) return send(res, 503, { error: { code: "no-token", message: "Sin catálogo en vivo en E2E." } });
     if (url.pathname.startsWith("/api/v1")) return await api(req, res);
     if (url.pathname.startsWith("/auth/v1/")) return await auth(req, res, url.pathname, url.searchParams);
+    if (url.pathname === "/__e2e/seed-plans" && req.method === "POST") {
+      if (!process.env.FAKE_SUPABASE_TEST_KEY || req.headers["x-e2e-test-key"] !== process.env.FAKE_SUPABASE_TEST_KEY) return send(res, 404, { error: "No encontrado" });
+      const user = requester(req);
+      if (!user || user.anonymous) return send(res, 401, { error: "Inicia sesión para crear el fixture" });
+      const { count, prefix, deletePrefix } = await readBody(req);
+      if (/^[a-zA-Z0-9-]{8,36}$/.test(deletePrefix ?? "")) {
+        const removed = await exclusive(async () => {
+          await db.exec("reset role");
+          const { rows } = await db.query("select id from public.plans where owner_id = $1 and name like $2", [user.id, `Cursor-${deletePrefix}-%`]);
+          for (const { id } of rows) await db.query("delete from public.plans where id = $1 and owner_id = $2", [id, user.id]);
+          return rows.length;
+        });
+        return send(res, 200, { removed });
+      }
+      if (!Number.isInteger(count) || count < 1 || count > 250 || !/^[a-zA-Z0-9-]{8,36}$/.test(prefix ?? "")) return send(res, 400, { error: "Fixture no válido" });
+      const createdAt = Date.now() + 86_400_000;
+      const ids = await exclusive(async () => {
+        await db.exec("reset role");
+        const seeded = [];
+        for (let index = 0; index < count; index += 1) {
+          const id = randomUUID();
+          const at = new Date(createdAt + index * 1000).toISOString();
+          const title = `Cursor-${prefix}-${String(index).padStart(3, "0")}`;
+          await db.query(
+            "insert into public.plans (id, owner_id, client_ref, name, mode, title_id, title, place, starts_at, time_zone, time_source, details, created_at, updated_at) values ($1, $2, $3, $4, 'home', 'interstellar', $5::jsonb, '{}'::jsonb, $6, 'America/Bogota', 'organizer', '{}'::jsonb, $7, $7)",
+            [id, user.id, `fixture-${prefix}-${index}`, title, JSON.stringify({ title: "Interstellar", year: "2014", genres: ["Ciencia ficción"] }), at, at]
+          );
+          await db.query("insert into public.plan_members (plan_id, user_id, role, display_name) values ($1, $2, 'owner', $3)", [id, user.id, user.name || "Ana"]);
+          seeded.push(id);
+        }
+        return seeded;
+      });
+      return send(res, 201, { count: ids.length, first: `Cursor-${prefix}-000`, last: `Cursor-${prefix}-${String(count - 1).padStart(3, "0")}` });
+    }
     // Solo E2E: el enlace que llegaría por correo (fragmento con la sesión de recuperación, flujo implícito).
     if (url.pathname === "/__e2e/recovery-link") {
       const email = url.searchParams.get("email");

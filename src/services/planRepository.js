@@ -9,7 +9,7 @@
 import { supabase } from "./supabaseClient.js";
 import { describeStart, parseBudget, toStartParts } from "./planService.js";
 import { decodeDetails, decodePlace, decodeTitle } from "./planContract.js";
-import { keysetFilter, takeKeysetPage } from "../utils/keysetCursor.js";
+import { queryKeysetPage } from "../utils/keysetCursor.js";
 
 const SELECT = "id, owner_id, name, message, mode, title_id, title, place, starts_at, time_zone, time_source, details, status, version, created_at, updated_at, group_id, repeat_every, plan_members (user_id, role, display_name, rsvp, responded_at)";
 export { SELECT as PLAN_SELECT }; // la usa groupRepository (planes de un grupo)
@@ -105,16 +105,12 @@ export const PLAN_PAGE_SIZE = 200;
 export const PLAN_LIST_LIMIT = PLAN_PAGE_SIZE; // compatibilidad para quienes importan el límite.
 
 export async function listPlans(userId, cursor = null) {
-  let request = client()
-    .from("plans")
-    .select(SELECT)
-    .order("created_at", { ascending: false })
-    .order("id", { ascending: false })
-    .limit(PLAN_PAGE_SIZE + 1);
-  if (cursor) request = request.or(keysetFilter(cursor, "created_at", "desc"));
-  const { data, error } = await request;
-  if (error) throw toPlanError(error);
-  const page = takeKeysetPage(data ?? [], PLAN_PAGE_SIZE, "created_at");
+  let page;
+  try {
+    page = await queryKeysetPage(client(), { table: "plans", select: SELECT, column: "created_at", direction: "desc", pageSize: PLAN_PAGE_SIZE, cursor });
+  } catch (error) {
+    throw toPlanError(error);
+  }
   return {
     items: toUiPlans(page.items.reverse(), userId), // conserva el orden cronológico ascendente de la app
     nextCursor: page.nextCursor,

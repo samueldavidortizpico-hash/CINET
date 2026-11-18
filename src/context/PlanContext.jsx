@@ -36,7 +36,9 @@ export function PlanProvider({ children }) {
     let active = true;
     repo.listPlans(userId).then(
       (page) => active && setRemoteState({ userId, plans: page.items, nextCursor: page.nextCursor, hasMore: page.hasMore, error: null, loadingMore: false, loadMoreError: null }),
-      (error) => active && setRemoteState((state) => ({ ...state, userId, plans: state.userId === userId ? state.plans : [], error }))
+      (error) => active && setRemoteState((state) => state.userId === userId
+        ? { ...state, error }
+        : { userId, plans: [], nextCursor: null, hasMore: false, loadingMore: false, loadMoreError: null, error })
     );
     return () => {
       active = false;
