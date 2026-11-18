@@ -219,11 +219,16 @@ export function createTmdbProxy({
       response = await fetchImpl(`${TMDB_URL}${path}?${params}`, {
         headers: { accept: "application/json", authorization: `Bearer ${token}` },
         signal: AbortSignal.timeout(timeoutMs),
+        redirect: "manual",
       });
     } catch (cause) {
       return cause?.name === "TimeoutError"
         ? fail(504, "timeout", "TMDB tardó demasiado en responder.")
         : fail(502, "network", "No hay conexión con TMDB.");
+    }
+    // TMDB no debería redirigir estas rutas. No se sigue una ubicación que venga del proveedor.
+    if (response.status >= 300 && response.status < 400) {
+      return { ...fail(502, "upstream-redirect", "TMDB respondió con una redirección inesperada."), reason: `tmdb-${response.status}` };
     }
     if (response.status === 404) return fail(404, "not-found", "TMDB no encontró ese recurso.");
     if (response.status === 429) return { ...fail(429, "rate-limit", "TMDB limitó las consultas; intenta en unos segundos.", { "retry-after": response.headers.get("retry-after") ?? "2" }), reason: "tmdb-429" };

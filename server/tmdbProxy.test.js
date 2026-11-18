@@ -141,6 +141,22 @@ test("errores de TMDB sin filtrar el token ni su detalle", async () => {
   assert.equal(JSON.parse(noToken.body).error.code, "no-token");
 });
 
+test("rechaza redirecciones 3xx de TMDB sin seguir su destino", async () => {
+  let redirectMode;
+  const proxy = createTmdbProxy({
+    token: TOKEN,
+    fetchImpl: async (_url, options) => {
+      redirectMode = options.redirect;
+      return new Response(null, { status: 302, headers: { location: "https://attacker.example/collect" } });
+    },
+  });
+  const result = await get(proxy, "/movie/1");
+  assert.equal(redirectMode, "manual");
+  assert.equal(result.status, 502);
+  assert.equal(JSON.parse(result.body).error.code, "upstream-redirect");
+  assert.ok(!result.body.includes("attacker.example"));
+});
+
 test("caché por tipo de dato y límite por IP (por instancia)", async () => {
   let time = 0;
   const proxy = createTmdbProxy({ token: TOKEN, fetchImpl: okFetch(), limit: { max: 2, windowMs: 1000 }, now: () => time });
