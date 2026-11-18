@@ -258,6 +258,7 @@ cartelera oficial de la cadena para confirmar función y precio.
 ### Vercel
 
 - `vite.config.js` define `base: "/"` y el router usa ese `basename` (`import.meta.env.BASE_URL`).
+- **Páginas de estado HTTP:** `/status/200`, `/status/301`, `/status/400`, `/status/404` y `/status/500` sirven la SPA con su código HTTP correspondiente en Vite y Vercel. `/status/301` redirige a `/status/200`; los códigos sin configurar responden 404. React muestra una página de estado accesible y un enlace de regreso a `/home`. Para conservar el código HTTP hay que abrir la ruta mediante una solicitud directa; la navegación interna de React Router no crea una nueva respuesta HTTP.
 - **Refresh en rutas profundas:** `vercel.json` envía `/api/tmdb/*` a la función `api/tmdb.js` y reescribe el
   resto de rutas a `index.html`, así `/movie/dune` carga la SPA y React Router resuelve la ruta.
 - **Deploy:** Vercel detecta Vite (`npm run build`, salida `dist/`) y publica cada push a `main`.
