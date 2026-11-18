@@ -1,4 +1,5 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import Button from "../common/Button.jsx";
 import SkeletonRow from "../common/SkeletonRow.jsx";
 import MovieGrid from "../movies/MovieGrid.jsx";
 import { useAsync } from "../../hooks/useAsync.js";
@@ -13,9 +14,10 @@ import { getCollection } from "../../services/movieService.js";
 export default function CollectionSection({ collection, kicker, title, description, limit = 12, id, context, action, empty, reason }) {
   const [ref, revealClass] = useReveal();
   const rowRef = useRef(null);
+  const [attempt, setAttempt] = useState(0);
   const visible = revealClass.includes("visible");
-  const key = visible ? `${collection}-${limit}-${JSON.stringify(context ?? {})}` : null;
-  const { data } = useAsync(key, () => getCollection(collection, limit, context));
+  const key = visible ? `${collection}-${limit}-${JSON.stringify(context ?? {})}-${attempt}` : null;
+  const { data, error, loading } = useAsync(key, () => getCollection(collection, limit, context));
 
   if (data && data.titles.length === 0 && !empty) return null;
 
@@ -45,9 +47,15 @@ export default function CollectionSection({ collection, kicker, title, descripti
         </div>
       </div>
 
-      {!data && <SkeletonRow />}
+      {loading && <SkeletonRow />}
       {data?.titles.length > 0 && <MovieGrid movies={data.titles} layout="row" rowRef={rowRef} reason={reason} />}
       {data?.titles.length === 0 && <div className="collection-empty">{empty}</div>}
+      {error && (
+        <div className="collection-empty collection-error" role="alert">
+          <p>No pudimos cargar esta colección. Tus demás recomendaciones siguen disponibles.</p>
+          <Button variant="secondary" onClick={() => setAttempt((value) => value + 1)}>Intentar de nuevo</Button>
+        </div>
+      )}
     </section>
   );
 }
