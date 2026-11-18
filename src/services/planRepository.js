@@ -9,6 +9,7 @@
 import { supabase } from "./supabaseClient.js";
 import { describeStart, parseBudget, toStartParts } from "./planService.js";
 import { decodeDetails, decodePlace, decodeTitle } from "./planContract.js";
+import { keysetFilter, takeKeysetPage } from "../utils/keysetCursor.js";
 
 const SELECT = "id, owner_id, name, message, mode, title_id, title, place, starts_at, time_zone, time_source, details, status, version, created_at, updated_at, group_id, repeat_every, plan_members (user_id, role, display_name, rsvp, responded_at)";
 export { SELECT as PLAN_SELECT }; // la usa groupRepository (planes de un grupo)
@@ -99,18 +100,26 @@ export function toUiPlans(rows, userId) {
   return plans;
 }
 
-/** Tope de la lista (H-07): nunca se descarga el historial completo. */
-export const PLAN_LIST_LIMIT = 200;
+/** Página acotada del historial; el cursor desempata created_at por id. */
+export const PLAN_PAGE_SIZE = 200;
+export const PLAN_LIST_LIMIT = PLAN_PAGE_SIZE; // compatibilidad para quienes importan el límite.
 
-// ponytail: los 200 más recientes sin cursor; paginar por created_at (keyset) cuando alguien los supere.
-export async function listPlans(userId) {
-  const { data, error } = await client()
+export async function listPlans(userId, cursor = null) {
+  let request = client()
     .from("plans")
     .select(SELECT)
     .order("created_at", { ascending: false })
-    .limit(PLAN_LIST_LIMIT);
+    .order("id", { ascending: false })
+    .limit(PLAN_PAGE_SIZE + 1);
+  if (cursor) request = request.or(keysetFilter(cursor, "created_at", "desc"));
+  const { data, error } = await request;
   if (error) throw toPlanError(error);
-  return toUiPlans([...(data ?? [])].reverse(), userId); // la app los usa del más antiguo al más nuevo
+  const page = takeKeysetPage(data ?? [], PLAN_PAGE_SIZE, "created_at");
+  return {
+    items: toUiPlans(page.items.reverse(), userId), // conserva el orden cronológico ascendente de la app
+    nextCursor: page.nextCursor,
+    hasMore: page.hasMore,
+  };
 }
 
 /** null si no existe o no eres miembro (RLS no distingue: así no se filtra si existe). */

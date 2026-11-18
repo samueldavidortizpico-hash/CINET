@@ -4,6 +4,7 @@ import { useLocalStorage } from "../hooks/useLocalStorage.js";
 import * as repo from "../services/planRepository.js";
 import { buildPlan, canManagePlan, setRsvp } from "../services/planService.js";
 import { importsForAccount, mergeAccountImports } from "../services/accountScopedImports.js";
+import { prependUniquePage } from "../utils/keysetCursor.js";
 
 export const PlanContext = createContext(null);
 
@@ -26,7 +27,7 @@ export function PlanProvider({ children }) {
   const imported = importsForAccount(importedByUser, userId);
 
   // userId marca de qué cuenta es la lista: al cambiar de sesión no se mezclan planes.
-  const [remoteState, setRemoteState] = useState({ userId: null, plans: [], error: null });
+  const [remoteState, setRemoteState] = useState({ userId: null, plans: [], error: null, nextCursor: null, hasMore: false, loadingMore: false, loadMoreError: null });
   const [version, setVersion] = useState(0);
   const refresh = useCallback(() => setVersion((value) => value + 1), []);
 
@@ -34,13 +35,28 @@ export function PlanProvider({ children }) {
     if (!remote) return undefined;
     let active = true;
     repo.listPlans(userId).then(
-      (plans) => active && setRemoteState({ userId, plans, error: null }),
-      (error) => active && setRemoteState((state) => ({ userId, plans: state.userId === userId ? state.plans : [], error }))
+      (page) => active && setRemoteState({ userId, plans: page.items, nextCursor: page.nextCursor, hasMore: page.hasMore, error: null, loadingMore: false, loadMoreError: null }),
+      (error) => active && setRemoteState((state) => ({ ...state, userId, plans: state.userId === userId ? state.plans : [], error }))
     );
     return () => {
       active = false;
     };
   }, [remote, userId, version]);
+
+  const loadMorePlans = useCallback(async () => {
+    const currentPage = remoteState;
+    if (!remote || currentPage.userId !== userId || !currentPage.hasMore || !currentPage.nextCursor || currentPage.loadingMore) return;
+    setRemoteState((state) => ({ ...state, loadingMore: true, loadMoreError: null }));
+    try {
+      const page = await repo.listPlans(userId, currentPage.nextCursor);
+      setRemoteState((state) => {
+        if (state.userId !== userId) return state;
+        return { ...state, plans: prependUniquePage(state.plans, page.items), nextCursor: page.nextCursor, hasMore: page.hasMore, loadingMore: false, loadMoreError: null };
+      });
+    } catch (loadError) {
+      setRemoteState((state) => ({ ...state, loadingMore: false, loadMoreError: loadError }));
+    }
+  }, [remote, remoteState, userId]);
 
   const localPlans = useMemo(
     () => asList(storedPlans).map((plan) => ({ ...plan, isOwner: canManagePlan(plan, user) })),
@@ -133,6 +149,10 @@ export function PlanProvider({ children }) {
       plans,
       loading: authLoading || (remote && !current),
       error: current?.error ?? null,
+      hasMore: Boolean(current?.hasMore),
+      loadingMore: Boolean(current?.loadingMore),
+      loadMoreError: current?.loadMoreError ?? null,
+      loadMorePlans,
       refresh,
       selection,
       selectShowtime: setSelection,
@@ -144,7 +164,7 @@ export function PlanProvider({ children }) {
       pendingImports,
       importLocalPlans,
     }),
-    [remote, plans, authLoading, current, refresh, selection, setSelection, createPlan, updatePlan, deletePlan, respondToPlan, pendingImports, importLocalPlans]
+    [remote, plans, authLoading, current, refresh, selection, setSelection, createPlan, updatePlan, deletePlan, respondToPlan, pendingImports, importLocalPlans, loadMorePlans]
   );
 
   return <PlanContext.Provider value={value}>{children}</PlanContext.Provider>;

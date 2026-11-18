@@ -340,3 +340,5 @@
 .plan-memory { margin: 18px 0 0; }
 .plan-memory figcaption { color: var(--text-muted); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; }
 .plan-memory blockquote { margin: 10px 0 12px; padding: 12px 14px; border-left: 3px solid var(--yellow); border-radius: 6px; background: var(--surface-2); font-size: 1rem; line-height: 1.5; }
+.plans-load-more { display: grid; justify-items: center; gap: 10px; margin: 24px auto 0; }
+.plans-load-more .error-message { margin: 0; text-align: center; }

@@ -47,7 +47,7 @@ function ImportNotice({ list, onImport }) {
 
 export default function MyPlansPage() {
   const { user } = useAuth();
-  const { plans, mode, loading, error, refresh, pendingImports, importLocalPlans } = usePlans();
+  const { plans, mode, loading, error, refresh, hasMore, loadingMore, loadMoreError, loadMorePlans, pendingImports, importLocalPlans } = usePlans();
   const { showToast } = useToast();
   const [filter, setFilter] = useState("all");
   const visiblePlans = filterPlans(plans, filter);
@@ -114,6 +114,14 @@ export default function MyPlansPage() {
           >
             Elige una película y crea tu primera salida al cine con tus amigos.
           </EmptyState>
+        )}
+        {mode === "remote" && hasMore && (
+          <div className="plans-load-more">
+            {loadMoreError && <p className="error-message" role="alert">{loadMoreError.message}</p>}
+            <Button variant="secondary" disabled={loadingMore} onClick={loadMorePlans}>
+              {loadingMore ? "Cargando planes anteriores…" : loadMoreError ? "Reintentar carga" : "Cargar planes anteriores"}
+            </Button>
+          </div>
         )}
       </div>
     </section>
