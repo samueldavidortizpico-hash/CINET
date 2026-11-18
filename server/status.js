@@ -1,4 +1,7 @@
-const statusCodes = new Map([["200", { status: 200 }]]);
+const statusCodes = new Map([
+  ["200", { status: 200 }],
+  ["301", { status: 301, location: "/status/200" }],
+]);
 
 /** Responde con la SPA y conserva el código HTTP de las páginas /status/:code. */
 export function createStatusHandler(getHtml) {
@@ -8,7 +11,11 @@ export function createStatusHandler(getHtml) {
     const response = statusCodes.get(code) ?? { status: 404 };
     const html = await getHtml(req);
 
-    res.writeHead(response.status, { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" });
+    res.writeHead(response.status, {
+      "content-type": "text/html; charset=utf-8",
+      "cache-control": "no-store",
+      ...(response.location && { location: response.location }),
+    });
     res.end(html);
   };
 }
