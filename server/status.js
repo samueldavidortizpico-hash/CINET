@@ -3,6 +3,7 @@ const statusCodes = new Map([
   ["301", { status: 301, location: "/status/200" }],
   ["400", { status: 400 }],
   ["404", { status: 404 }],
+  ["500", { status: 500 }],
 ]);
 
 /** Responde con la SPA y conserva el código HTTP de las páginas /status/:code. */
