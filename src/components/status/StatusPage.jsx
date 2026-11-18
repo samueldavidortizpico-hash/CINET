@@ -1,15 +1,11 @@
 import { useParams } from "react-router-dom";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle.js";
+import { HTTP_STATUS_MESSAGES } from "../../data/statusMessages.js";
 import Button from "../common/Button.jsx";
 import ErrorPage from "./ErrorPage.jsx";
 import NotFound from "./NotFound.jsx";
 
-const statusContent = {
-  200: { title: "Todo está en orden", message: "La solicitud se completó correctamente." },
-  301: { title: "Te estamos redirigiendo", message: "Esta dirección cambió de forma permanente." },
-  400: { title: "Solicitud inválida", message: "Revisa la dirección o los datos enviados e inténtalo de nuevo." },
-  500: { title: "Error del servidor", message: "No pudimos completar tu solicitud. Inténtalo de nuevo más tarde." },
-};
+const statusContent = HTTP_STATUS_MESSAGES;
 
 export default function StatusPage() {
   const { code: routeCode } = useParams();
