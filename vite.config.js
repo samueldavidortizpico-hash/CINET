@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import { createTmdbProxy, nodeHandler } from "./server/tmdbProxy.js";
+import { createStatusHandler } from "./server/status.js";
 
 /*
  * GitHub Pages no conoce las rutas de React Router: al refrescar /movie/dune
@@ -33,6 +34,22 @@ function tmdbDevProxy(token) {
     server.middlewares.use("/api/tmdb", nodeHandler(createTmdbProxy({ token })));
   };
   return { name: "tmdb-dev-proxy", configureServer: mount, configurePreviewServer: mount };
+}
+
+function statusPages() {
+  const mount = (server) => {
+    const handler = createStatusHandler((req) => {
+      const url = req.originalUrl ?? req.url;
+      const html = readFileSync(resolve(import.meta.dirname, "index.html"), "utf8");
+      return server.transformIndexHtml(url, html);
+    });
+    server.middlewares.use((req, res, next) => {
+      if (!new URL(req.url ?? "/", "http://localhost").pathname.startsWith("/status/")) return next();
+      req.url = req.originalUrl ?? req.url;
+      return handler(req, res).catch(next);
+    });
+  };
+  return { name: "status-pages", configureServer: mount, configurePreviewServer: mount };
 }
 
 /** Versiona public/sw.js con los nombres (con hash) del build: cada despliegue nuevo invalida las cachés viejas. */
@@ -87,6 +104,7 @@ export default defineConfig(({ mode }) => {
       spaFallback(),
       swVersion(),
       tmdbDevProxy(env.TMDB_READ_TOKEN || env.VITE_TMDB_READ_TOKEN),
+      statusPages(),
       secretGuard([
         env.TMDB_READ_TOKEN,
         env.VITE_TMDB_READ_TOKEN,
