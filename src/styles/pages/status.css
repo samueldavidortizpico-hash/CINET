@@ -1,0 +1,39 @@
+.status-page {
+  display: grid;
+  min-height: min(72svh, 760px);
+  place-items: center;
+  padding: 48px 20px;
+}
+
+.status-page-inner { width: min(100%, 680px); }
+.status-card {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(32px, 8vw, 64px);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: radial-gradient(ellipse at 90% 0%, color-mix(in srgb, var(--pink) 12%, transparent), transparent 50%), var(--surface);
+  box-shadow: 0 24px 80px #00000020;
+  text-align: center;
+}
+
+.status-code {
+  display: block;
+  margin-bottom: 14px;
+  color: var(--pink-light);
+  font-size: clamp(3.5rem, 14vw, 7rem);
+  font-weight: 700;
+  letter-spacing: -0.08em;
+  line-height: 0.95;
+  font-variant-numeric: tabular-nums;
+}
+
+.status-card h1 { margin: 0; color: var(--text); font: 700 clamp(1.6rem, 5vw, 2.4rem)/1.15 var(--font-display); }
+.status-card p { max-width: 48ch; margin: 14px auto 0; color: var(--text-soft); font-size: 1rem; line-height: 1.7; }
+.status-card--error .status-code { color: #ff8b78; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .status-card { animation: status-arrive 380ms var(--ease) both; }
+}
+
+@keyframes status-arrive { from { opacity: 0; transform: translateY(12px); } }
