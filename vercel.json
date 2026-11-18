@@ -1,7 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
-    "api/og.js": { "includeFiles": "dist/index.html" }
+    "api/og.js": { "includeFiles": "dist/index.html" },
+    "api/status.js": { "includeFiles": "dist/index.html" }
   },
   "headers": [
     { "source": "/sw.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
@@ -22,6 +23,7 @@
     }
   ],
   "rewrites": [
+    { "source": "/status/200", "destination": "/api/status?code=200" },
     { "source": "/api/tmdb/:path*", "destination": "/api/tmdb?path=:path*" },
     { "source": "/api/v1/:path*", "destination": "/api/v1?path=:path*" },
     { "source": "/movie/:id", "destination": "/api/og?path=/movie/:id" },
