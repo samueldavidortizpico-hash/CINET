@@ -20,3 +20,15 @@ test("/status/301 indica redirección permanente hacia /status/200", async () =>
   assert.equal(response.status, 301);
   assert.equal(response.headers.location, "/status/200");
 });
+
+test("/status/400, /status/404 y /status/500 preservan sus códigos HTTP", async () => {
+  for (const code of [400, 404, 500]) {
+    const response = await request(`/status/${code}`);
+    assert.equal(response.status, code, `HTTP ${code}`);
+    assert.match(response.headers["content-type"], /text\/html/);
+  }
+});
+
+test("un código no configurado responde 404", async () => {
+  assert.equal((await request("/status/418")).status, 404);
+});
