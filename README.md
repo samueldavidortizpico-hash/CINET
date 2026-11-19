@@ -320,6 +320,15 @@ La versión HTML/CSS/JS del Milestone 1 sigue en el historial de git (commits an
 
 ---
 
+## API REST y documentación de apoyo
+
+- **API (`/api/v1`)**: JWT de Supabase Auth, dos roles (`user`, `admin`) con permisos en el backend (403 por ruta + RLS en Postgres). Endpoints, errores y ejemplos en [docs/API.md](docs/API.md).
+- **Seguridad**: [auditoría 2026-11-10](docs/AUDITORIA-SEGURIDAD-2026-11-10.md) (hallazgos corregidos, con pruebas).
+- **Búsqueda con comandos**: escribe `/` en el buscador (`/cine`, `/sala CÓDIGO`, `/dashboard`, `/admin` solo para administradores).
+- **Uso de IA**: [docs/USO-DE-IA.md](docs/USO-DE-IA.md). **Guion del Demo Day**: [docs/DEMO-DAY.md](docs/DEMO-DAY.md).
+
+---
+
 ## Figma
 
 Los wireframes del proyecto fueron desarrollados en Figma.
