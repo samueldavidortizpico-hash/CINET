@@ -54,6 +54,7 @@ async function prepareNight(page) {
   await expect(page.getByRole("group", { name: "Límites que se cumplen siempre" })).toContainText("hasta 2 h 10 min");
   await expect(page.getByRole("list", { name: "Películas que le encantan a Ana" }).getByRole("img", { name: "Interstellar" })).toBeVisible();
   await page.getByRole("button", { name: "Ver finalistas →" }).click();
+  await expect(page.locator(".duo-finalist").first()).toBeVisible();
 }
 
 async function voteAll(page, count, key = null) {

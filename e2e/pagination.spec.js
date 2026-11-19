@@ -4,6 +4,7 @@ import { expect, test } from "@playwright/test";
 const PASSWORD = "cinet-e2e-123";
 const FIXTURE_KEY = "local-e2e-fixture-only";
 const fixturePrefixes = [];
+test.use({ serviceWorkers: "block" });
 
 test.afterEach(async ({ request }) => {
   for (const { prefix, token } of fixturePrefixes.splice(0)) {
@@ -77,4 +78,29 @@ test("el botón de paginación conserva el resto del historial si la siguiente p
   await expect(page.getByRole("alert")).toContainText("No pudimos conectar");
   await expect(page.locator(".plan-card")).toHaveCount(200);
   await expect(page.getByRole("button", { name: "Reintentar carga" })).toBeVisible();
+});
+
+test("la portada distingue una carga fallida de un historial vacío y permite reintentar", async ({ page }) => {
+  const plansRequest = "**/rest/v1/plans?*";
+  const loading = Promise.withResolvers();
+  await page.route(plansRequest, async (route) => {
+    await loading.promise;
+    await route.fulfill({ status: 503, json: { message: "fixture offline" } });
+  }, { times: 1 });
+
+  const preview = page.locator("#mis-planes");
+  try {
+    await signIn(page);
+    await preview.scrollIntoViewIfNeeded();
+    await expect(preview.getByRole("status")).toHaveText("Cargando tus planes…");
+    await expect(preview.getByText("Todavía no tienes planes")).toHaveCount(0);
+  } finally {
+    loading.resolve();
+  }
+
+  await expect(preview.getByRole("alert")).toHaveText("No pudimos actualizar tus planes.");
+  await expect(preview.getByText("Todavía no tienes planes")).toHaveCount(0);
+  await preview.getByRole("button", { name: "Reintentar" }).click();
+  await expect(preview.getByText("Todavía no tienes planes")).toBeVisible();
+  await expect(preview.getByRole("alert")).toHaveCount(0);
 });

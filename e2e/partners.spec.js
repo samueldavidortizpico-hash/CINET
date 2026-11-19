@@ -31,6 +31,8 @@ test("un cine verificado publica una función y el público la ve con su fuente"
   await ana.getByLabel("Nombre de la sede").fill("Andes Centro");
   await ana.getByLabel("Ciudad").fill("Bogotá");
   await ana.getByRole("button", { name: "Agregar sede" }).click();
+  // Guardar vuelve a montar el buscador después de consultar la lista de sedes.
+  await expect(ana.getByLabel("Sede", { exact: true })).toContainText("Andes Centro");
   await ana.getByLabel(/Película o evento/).first().fill("Interst");
   await ana.getByRole("button", { name: /^Interstellar/ }).first().click();
   await ana.getByLabel("Sede", { exact: true }).selectOption({ label: "Andes Centro" });
