@@ -44,7 +44,7 @@ export function keysetFilter(cursor, column, direction = "desc") {
   const operator = direction === "desc" ? "lt" : "gt";
   if (normalized.value === null) {
     if (direction !== "asc") throw new TypeError("Cursor nulo solo admite orden ascendente.");
-    return `${column}.is.null,and(${column}.is.null,id.gt.${normalized.id})`;
+    return `and(${column}.is.null,id.gt.${normalized.id})`;
   }
   const nullTail = column === "starts_at" && direction === "asc" ? `,${column}.is.null` : "";
   return `${column}.${operator}.${normalized.value},and(${column}.eq.${normalized.value},id.${operator}.${normalized.id})${nullTail}`;

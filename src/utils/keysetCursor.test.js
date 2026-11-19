@@ -32,7 +32,7 @@ test("las fechas de inicio nulas quedan al final y también admiten cursor estab
   const empty = makeKeysetCursor({ id: ids[1], starts_at: null }, "starts_at");
   assert.match(keysetFilter(timed, "starts_at", "asc"), /starts_at\.is\.null$/);
   assert.deepEqual(empty, { value: null, id: ids[1] });
-  assert.equal(keysetFilter(empty, "starts_at", "asc"), `starts_at.is.null,and(starts_at.is.null,id.gt.${ids[1]})`);
+  assert.equal(keysetFilter(empty, "starts_at", "asc"), `and(starts_at.is.null,id.gt.${ids[1]})`);
   assert.throws(() => keysetFilter(empty, "starts_at", "desc"), /ascendente/);
 });
 
