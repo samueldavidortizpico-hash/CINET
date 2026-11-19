@@ -106,7 +106,9 @@ export default function MyPlansPage() {
               <PlanCard key={plan.id} plan={plan} />
             ))}
           </div>
-        ) : (
+        ) : !error && hasMore ? (
+          <p className="plan-mode-notice" role="status">Ningún plan cargado coincide con este filtro. Puedes cargar más planes.</p>
+        ) : !error ? (
           <EmptyState
             id="empty-plans"
             title={plans.length ? "No hay planes en esta categoría" : "Todavía no tienes planes"}
@@ -114,7 +116,7 @@ export default function MyPlansPage() {
           >
             Elige una película y crea tu primera salida al cine con tus amigos.
           </EmptyState>
-        )}
+        ) : null}
         {mode === "remote" && hasMore && (
           <div className="plans-load-more">
             {loadMoreError && <p className="error-message" role="alert">{loadMoreError.message}</p>}
