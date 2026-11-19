@@ -12,14 +12,19 @@ import { to24h } from "../../services/planService.js";
 export default function PlanGroupPanel({ plan, user, onChanged }) {
   const navigate = useNavigate();
   const { showToast } = useToast();
-  const { data: groups } = useAsync(`plan-groups-${user.id}`, () => listGroups(user.id));
+  const [groupAttempt, setGroupAttempt] = useState(0);
+  const { data: groupPage, loading: groupsLoading, error: groupsError } = useAsync(
+    `plan-groups-${user.id}-${groupAttempt}`,
+    () => listGroups(user.id)
+  );
+  const groups = groupPage?.items;
   const [groupId, setGroupId] = useState("");
   const [when, setWhen] = useState({ dateISO: "", time: to24h(plan.time) ?? "20:00" });
   const [clientRef] = useState(() => crypto.randomUUID()); // repetir dos veces el mismo envío no duplica
   const [busy, setBusy] = useState(false);
   const [nextRef] = useState(() => crypto.randomUUID());
   const [needsPlus, setNeedsPlus] = useState(false);
-  const group =groups?.find((item) => item.id === plan.groupId);
+  const group = groups?.find((item) => item.id === plan.groupId);
   const cancelled = plan.status === "cancelled";
 
   const act = async (action) => {
@@ -73,6 +78,13 @@ export default function PlanGroupPanel({ plan, user, onChanged }) {
     <section className="rsvp-section plan-group-tools">
       <span className="section-kicker">CON TU GENTE</span>
       <h2>Grupo y próximas veces</h2>
+      {plan.isOwner && !cancelled && groupsLoading && <p className="plan-note" role="status">Cargando grupos…</p>}
+      {plan.isOwner && !cancelled && groupsError && (
+        <div className="plan-mode-notice">
+          <p role="alert">No pudimos cargar tus grupos.</p>
+          <Button variant="secondary" onClick={() => setGroupAttempt((value) => value + 1)}>Reintentar</Button>
+        </div>
+      )}
       {group && (
         <p className="plan-note">
           Plan del grupo <Link to={`/grupos/${group.id}`}>«{group.name}»</Link>.
