@@ -25,11 +25,12 @@ html:not(.dark) [data-page="home"] { --landing-accent: #bf1931; }
 }
 [data-page="home"] .hero-slides { position: relative; display: grid; min-height: inherit; height: auto; }
 [data-page="home"] .hero-slide { position: relative; grid-area: 1 / 1; min-width: 0; isolation: isolate; }
-[data-page="home"] .hero-placeholder { position: absolute; inset: 0; }
+[data-page="home"] .hero-placeholder { background: radial-gradient(ellipse at 70% 20%, #392134, #08090e 70%); }
 [data-page="home"] .hero-content,
 [data-page="home"] .hero-slide:has(.hero-poster) .hero-content { position: relative; max-width: 100%; width: 100%; padding: 170px var(--landing-gutter) 166px; }
 [data-page="home"] .hero-content > * { max-width: 660px; }
 [data-page="home"] .hero-title { max-width: min(15ch, 65%); margin-bottom: 22px; font-size: clamp(3rem, 6.1vw, 6.2rem); font-weight: 700; line-height: 0.98; letter-spacing: -0.045em; text-shadow: 0 4px 32px #00000030; }
+[data-page="home"] .hero-placeholder .hero-state-title { max-width: min(24ch, 100%); font-size: clamp(1.8rem, 5vw, 3.25rem); line-height: 1.08; }
 [data-page="home"] .hero-content .eyebrow { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; color: #ffabb5; font-size: 0.7rem; letter-spacing: 0.2em; }
 [data-page="home"] .hero-content .eyebrow::before { content: ""; width: 28px; height: 2px; background: #ff5368; }
 [data-page="home"] .hero-meta { gap: 6px 12px; margin-bottom: 18px; font-size: 0.88rem; }

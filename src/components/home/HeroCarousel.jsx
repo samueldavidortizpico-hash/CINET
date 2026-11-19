@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import MovieSearch from "../movies/MovieSearch.jsx";
 import TrailerModal from "../movie-detail/TrailerModal.jsx";
 import Icon from "../common/Icon.jsx";
+import Button from "../common/Button.jsx";
 import PosterImage from "../common/PosterImage.jsx";
 import { useAsync } from "../../hooks/useAsync.js";
 import { useFavorites } from "../../hooks/useFavorites.js";
@@ -57,7 +58,8 @@ export default function HeroCarousel() {
   const [heroPreferences] = useLocalStorage(HERO_PREFERENCES_KEY, { featuredIds: [] });
   const featuredIds = Array.isArray(heroPreferences?.featuredIds) ? heroPreferences.featuredIds : [];
   const slidesKey = `hero-slides-${featuredIds.join(",")}`;
-  const { data: slides = [], error } = useAsync(slidesKey, () => getHeroSlides(6, featuredIds));
+  const [attempt, setAttempt] = useState(0);
+  const { data: slides = [], error, loading } = useAsync(`${slidesKey}:${attempt}`, () => getHeroSlides(6, featuredIds));
   const [position, setPosition] = useState({ key: slidesKey, index: 0 });
   const index = position.key === slidesKey ? position.index : 0; // otra selección: vuelve a la primera
   const [paused, setPaused] = useState(false);
@@ -93,6 +95,7 @@ export default function HeroCarousel() {
   const goTo = (next) => setPosition({ key: slidesKey, index: (next + count) % count });
 
   const onKeyDown = (event) => {
+    if (count < 2) return;
     if (event.key === "ArrowRight") goTo(active + 1);
     else if (event.key === "ArrowLeft") goTo(active - 1);
     else return;
@@ -102,7 +105,7 @@ export default function HeroCarousel() {
   const onTouchEnd = (event) => {
     const start = touchX.current;
     touchX.current = null;
-    if (start == null) return;
+    if (start == null || count < 2) return;
     const delta = event.changedTouches[0].clientX - start;
     if (Math.abs(delta) >= SWIPE) goTo(active + (delta < 0 ? 1 : -1));
   };
@@ -132,18 +135,31 @@ export default function HeroCarousel() {
           <span className="hero-live-dot" /> TU PRÓXIMA GRAN HISTORIA
           {count > 0 && <span className="hero-stage-count">{String(active + 1).padStart(2, "0")} <span>/ {String(count).padStart(2, "0")}</span></span>}
         </div>
-        {!count && (
-          <div className="hero-slide is-active hero-placeholder" role="status">
-            <span className="visually-hidden">{error ? "No se pudieron cargar las destacadas." : "Cargando destacadas…"}</span>
-            <div className="hero-content">
-              <div className="skeleton-line wide" />
-              <div className="skeleton-line title" />
-              <div className="skeleton-line" />
-            </div>
-          </div>
-        )}
-
         <div className="hero-slides" aria-live={running ? "off" : "polite"}>
+          {!count && (
+            <div className="hero-slide is-active hero-placeholder">
+              <div className="hero-content">
+                {loading ? (
+                  <>
+                    <p role="status">Cargando destacadas…</p>
+                    <div className="skeleton-line wide" aria-hidden="true" />
+                    <div className="skeleton-line title" aria-hidden="true" />
+                    <div className="skeleton-line" aria-hidden="true" />
+                  </>
+                ) : (
+                  <>
+                    <h2 className="hero-title hero-state-title">
+                      {error ? "No pudimos cargar las destacadas" : "No hay títulos destacados por ahora"}
+                    </h2>
+                    <div className="hero-actions">
+                      {error && <Button variant="primary" onClick={() => setAttempt((value) => value + 1)}>Reintentar</Button>}
+                      <Button variant={error ? "secondary" : "primary"} to="/movies">Explorar películas</Button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
           {slides.map((slide, slideIndex) => {
             const isActive = slideIndex === active;
             const favorite = isFavorite(slide.id);
