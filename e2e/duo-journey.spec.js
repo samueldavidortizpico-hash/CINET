@@ -66,6 +66,8 @@ async function voteAll(page, count, key = null) {
 }
 
 test("Duo completo: gustos con películas → finalistas → ronda reanudable → revelación → elección → plan", async ({ page }) => {
+  // Este recorrido conserva las transiciones reales y recarga la página a mitad de la ronda.
+  test.setTimeout(45_000);
   await prepareNight(page);
 
   // Escena 4 · finalistas con papeles y diferencias.
@@ -112,7 +114,9 @@ test("Duo completo: gustos con películas → finalistas → ronda reanudable �
   await expect(page.getByText(/Terminarían hacia las \d\d:\d\d: estimado con .* de película, sin pausas\. Es una hora propuesta, no una función confirmada\./)).toBeVisible();
   await expect(page.locator(".duo-memory blockquote")).toHaveText(/^Esta noche vemos «.+»/);
   await expect(page.locator(".duo-memory blockquote")).not.toContainText("Ana");
-  await page.getByText("Incluir nuestros nombres").click();
+  const includeNames = page.getByRole("checkbox", { name: "Incluir nuestros nombres" });
+  await includeNames.press("Space");
+  await expect(includeNames).toBeChecked();
   await expect(page.locator(".duo-memory blockquote")).toHaveText(/^Ana y Luis vamos a ver «/);
   await page.getByRole("link", { name: /Una noche en casa/ }).click();
   await expect(page).toHaveURL(new RegExp(`/functions\\?movie=${winner}&mode=home&time=20:30$`));
