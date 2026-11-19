@@ -22,7 +22,7 @@ function fakeSupabase({ adminInDb = true } = {}) {
     const { pathname, searchParams } = new URL(url);
     const token = init.headers.authorization.replace("Bearer ", "");
     const body = init.body ? JSON.parse(init.body) : null;
-    calls.push({ pathname, method: init.method, token, body });
+    calls.push({ pathname, method: init.method, token, body, redirect: init.redirect });
     if (pathname === "/auth/v1/user") return valid.has(token) ? reply(200, { id: valid.get(token).id, is_anonymous: false }) : reply(401, { code: "bad_jwt" });
     if (pathname === "/auth/v1/signup") return body.email === "ya@cinet.test" ? reply(200, { id: "x", identities: [] }) : reply(200, { id: "y", identities: [{}] });
     if (pathname === "/auth/v1/token" && searchParams.get("grant_type") === "password") {
@@ -93,6 +93,7 @@ test("API: cada consulta viaja con el JWT de quien llama (RLS), nunca con la cla
   const rest = calls.filter((item) => item.pathname.startsWith("/rest/"));
   assert.ok(rest.length);
   assert.ok(rest.every((item) => item.token === USER_TOKEN));
+  assert.ok(calls.every((item) => item.redirect === "error"), "Auth y PostgREST rechazan redirecciones");
 });
 
 test("API: la base tiene la última palabra — claim admin viejo pero sin rol en la base → 403 sin filtrar el SQL", async () => {

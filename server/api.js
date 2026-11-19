@@ -191,6 +191,8 @@ function supabaseClient({ url, key, fetchImpl }) {
     try {
       return await fetchImpl(`${url}${path}`, {
         method,
+        // Auth y PostgREST tienen un origen configurado. Mantener las credenciales en ese origen.
+        redirect: "error",
         headers: { apikey: key, authorization: `Bearer ${token ?? key}`, accept: "application/json", ...(body && { "content-type": "application/json" }) },
         body: body ? JSON.stringify(body) : undefined,
         signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
