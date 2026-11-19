@@ -15,8 +15,8 @@ async function signIn(page, email) {
 test("gustos privados por cuenta en el mismo navegador", async ({ page }) => {
   await signIn(page, "ana@cinet.test");
   const panel = page.locator(".account-prefs");
-  await panel.locator(".duo-fieldset", { hasText: "Te apetece" }).getByText("Comedia", { exact: true }).click();
-  await panel.locator(".duo-fieldset", { hasText: "Prefieres evitar" }).getByText("Terror", { exact: true }).click();
+  await panel.locator(".duo-fieldset", { hasText: "Te apetece" }).getByRole("checkbox", { name: "Comedia", exact: true }).check();
+  await panel.locator(".duo-fieldset", { hasText: "Prefieres evitar" }).getByRole("checkbox", { name: "Terror", exact: true }).check();
   await panel.getByRole("button", { name: "Guardar mis gustos" }).click();
   await expect(panel.getByRole("button", { name: "Descargar (.json)" })).toBeVisible();
 
@@ -44,7 +44,7 @@ test("gustos privados por cuenta en el mismo navegador", async ({ page }) => {
   // Bea entra en el mismo navegador: no ve nada de Ana.
   await page.goto("/profile");
   await page.getByRole("button", { name: /Tu cuenta/ }).click();
-  await page.getByRole("button", { name: "Cerrar sesión" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Cerrar sesión", exact: true }).click();
   await signIn(page, "bea@cinet.test");
   await expect(panel.getByRole("button", { name: "Guardar mis gustos" })).toBeVisible();
   await expect(panel.locator(".duo-fieldset", { hasText: "Te apetece" }).getByRole("checkbox", { name: "Comedia" })).not.toBeChecked();
@@ -55,7 +55,7 @@ test("gustos privados por cuenta en el mismo navegador", async ({ page }) => {
 
   await page.goto("/profile");
   await page.getByRole("button", { name: /Tu cuenta/ }).click();
-  await page.getByRole("button", { name: "Cerrar sesión" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Cerrar sesión", exact: true }).click();
   await signIn(page, "ana@cinet.test");
   await page.goto("/movie/interstellar");
   await expect(page.getByRole("button", { name: /En favoritos/ })).toHaveAttribute("aria-pressed", "true");
