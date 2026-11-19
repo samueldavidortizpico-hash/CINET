@@ -901,7 +901,8 @@ function sagaMarathon(pool, settings, random) {
 /** Reparte `total` episodios entre `parts` series: 5 entre 2 → [3, 2]. */
 const split = (total, parts) => Array.from({ length: parts }, (_, index) => Math.floor(total / parts) + (index < total % parts ? 1 : 0));
 
-function seriesMarathon(pool, settings, random) {
+function seriesMarathon(items, settings, random) {
+  const pool = items.filter((item) => minutesOf(item.title) <= settings.maxMinutes);
   const oneSeries = settings.scope === "saga" || settings.style === "thematic";
   const maxSeries = Math.min(oneSeries ? 1 : settings.style === "balanced" ? 2 : settings.count, settings.count);
   const firstOptions = preferStrict(pool);

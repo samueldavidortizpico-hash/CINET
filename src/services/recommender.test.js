@@ -434,6 +434,15 @@ test("maratón de series: reparte episodios sin pasarse del tiempo", () => {
   assert.equal(buildMarathon(items, { ...roomy, style: "thematic" }).entries.length, 1, "temática: una sola serie");
 });
 
+test("maratón de series: una serie mejor puntuada que no cabe no oculta otra viable", () => {
+  const item = (id, runtime, score) => ({ title: { id, runtime, episodes: 8 }, score, relaxed: [] });
+  const items = [item("larga", 100, 90), item("corta", 30, 65)];
+  for (const style of ["thematic", "balanced", "varied"]) {
+    const settings = { type: "tv", maxMinutes: 60, count: 2, style, scope: "mix" };
+    assert.deepEqual(buildMarathon(items, settings).entries, [{ id: "corta", episodes: 2 }]);
+  }
+});
+
 test("ver otra parecida, diversidad y tablero", () => {
   const item = (id, genreKeys, score = 50) => ({ title: { id, genreKeys }, score, relaxed: [] });
   const mixed = diversify([item("1", ["drama"]), item("2", ["drama"]), item("3", ["drama"]), item("4", ["comedy"])]);
