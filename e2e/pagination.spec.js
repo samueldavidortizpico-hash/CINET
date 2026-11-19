@@ -73,7 +73,8 @@ test("el botón de paginación conserva el resto del historial si la siguiente p
 
   await page.goto("/my-plans");
   await expect(page.locator(".plan-card")).toHaveCount(200, { timeout: 15_000 });
-  await page.route("**/rest/v1/plans?*", (route) => route.fulfill({ status: 503, json: { message: "fixture offline" } }));
+  // Supabase puede reintentar un 503. Este caso comprueba el fallo que llega a la app.
+  await page.route("**/rest/v1/plans?*", (route) => route.fulfill({ status: 500, json: { message: "fixture offline" } }));
   await page.getByRole("button", { name: "Cargar planes anteriores" }).click();
   await expect(page.getByRole("alert")).toContainText("No pudimos conectar");
   await expect(page.locator(".plan-card")).toHaveCount(200);
@@ -85,7 +86,7 @@ test("la portada distingue una carga fallida de un historial vacío y permite re
   const loading = Promise.withResolvers();
   await page.route(plansRequest, async (route) => {
     await loading.promise;
-    await route.fulfill({ status: 503, json: { message: "fixture offline" } });
+    await route.fulfill({ status: 500, json: { message: "fixture offline" } });
   }, { times: 1 });
 
   const preview = page.locator("#mis-planes");
