@@ -137,6 +137,8 @@ html:not(.dark) [data-page="home"] { --landing-accent: #bf1931; }
 [data-page="home"] .movie-card:hover { transform: translateY(-5px); border-color: #ff4d6060; box-shadow: 0 16px 30px #00000025; }
 [data-page="home"] .movie-card:hover img { transform: scale(1.04); filter: brightness(0.88); }
 [data-page="home"] .collection-empty { padding: 25px; background: var(--surface); color: var(--text-soft); border-style: solid; font-size: 0.85rem; }
+[data-page="home"] .collection-error { display: flex; align-items: center; justify-content: space-between; gap: 18px; border-color: color-mix(in srgb, var(--landing-accent) 35%, var(--border)); }
+[data-page="home"] .collection-error p { max-width: 58ch; }
 
 /* Duo: composición con los pósteres locales, sin descargas adicionales. */
 .duo-spotlight { position: relative; isolation: isolate; display: grid; grid-template-columns: 1fr 1fr; align-items: center; min-height: 440px; margin: 42px var(--landing-gutter); overflow: hidden; border: 1px solid #ee775535; border-radius: 24px; background: radial-gradient(ellipse at 85% 15%, #b65a2055, transparent 55%), radial-gradient(ellipse at 40% 100%, #952f2950, transparent 60%), #1b1010; color: #fff; }
@@ -292,6 +294,9 @@ html:not(.dark) .duo-spotlight .duo-spotlight-cta { background: #e63a35; color: 
   .duo-spotlight { margin-top: 24px; margin-bottom: 24px; }
   .duo-spotlight-copy { padding: 30px 24px 0; }
   .duo-art { height: 330px; transform: scale(0.78); transform-origin: center top; margin-bottom: -32px; }
+}
+@media (max-width: 600px) {
+  [data-page="home"] .collection-error { align-items: flex-start; flex-direction: column; gap: 14px; }
 }
 
 /* Dirección de fotografía: color ambiental, luz y profundidad por escena. */
