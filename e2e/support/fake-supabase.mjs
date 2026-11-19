@@ -38,6 +38,7 @@ async function addUser({ id = randomUUID(), email = null, name = "", anonymous =
 await addUser({ email: "ana@cinet.test", name: "Ana" });
 await addUser({ email: "bea@cinet.test", name: "Bea" });
 await addUser({ email: "cleo@cinet.test", name: "Cleo" }); // solo auth-entry: cambia su contraseña
+await addUser({ email: "historial@cinet.test", name: "Historial" });
 // Operador de CINET (verifica aliados): rol admin en profiles, como se asignaría desde el SQL Editor.
 const operator = await addUser({ email: "op@cinet.test", name: "Operación" });
 await db.query("update public.profiles set role = 'admin' where id = $1", [operator.id]);
@@ -193,12 +194,34 @@ async function restWrite(req, res, table, params, user) {
   send(res, req.method === "POST" ? 201 : 200, rowsOut);
 }
 
+/** Subconjunto de PostgREST que usa el historial. Fechas e IDs siempre se parametrizan. */
+function keysetWhere(raw, values) {
+  const dated = raw.match(/^\((created_at|starts_at)\.(lt|gt)\.([^,]+),and\(\1\.eq\.\3,id\.\2\.([a-f0-9-]+)\)(,starts_at\.is\.null)?\)$/);
+  if (dated) {
+    const [, column, operator, date, id, nullTail] = dated;
+    const comparison = operator === "lt" ? "<" : ">";
+    const offset = values.length;
+    values.push(date, id);
+    return `((${ident(column)}, id) ${comparison} ($${offset + 1}::timestamptz, $${offset + 2}::uuid)${nullTail ? " or starts_at is null" : ""})`;
+  }
+  const undated = raw.match(/^\(and\(starts_at\.is\.null,id\.gt\.([a-f0-9-]+)\)\)$/);
+  if (undated) {
+    values.push(undated[1]);
+    return `(starts_at is null and id > $${values.length}::uuid)`;
+  }
+  throw Object.assign(new Error("Cursor de historial no soportado"), { code: "PGRST100" });
+}
+
 async function restGet(req, res, table, params, user) {
   const { columns, embedded } = parseSelect(params.get("select") ?? "*");
-  const { where, values } = filters(params);
+  const simpleParams = new URLSearchParams(params);
+  simpleParams.delete("or");
+  const { where, values } = filters(simpleParams);
+  if (params.has("or")) where.push(keysetWhere(params.get("or"), values));
   const order = params.get("order") ? params.get("order").split(",").map((item) => {
-    const [column, direction = "asc"] = item.split(".");
-    return `${ident(column)} ${direction === "desc" ? "desc" : "asc"}`;
+    const [column, direction = "asc", nulls] = item.split(".");
+    const nullOrder = nulls === "nullsfirst" ? " nulls first" : nulls === "nullslast" ? " nulls last" : "";
+    return `${ident(column)} ${direction === "desc" ? "desc" : "asc"}${nullOrder}`;
   }) : [];
   const limit = params.get("limit") ? ` limit ${Number(params.get("limit"))}` : "";
   const sql = `select ${columns.join(", ")} from public.${ident(table)}${where.length ? ` where ${where.join(" and ")}` : ""}${order.length ? ` order by ${order.join(", ")}` : ""}${limit}`;

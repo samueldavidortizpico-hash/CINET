@@ -7,7 +7,7 @@ const fixturePrefixes = [];
 
 test.afterEach(async ({ request }) => {
   for (const { prefix, token } of fixturePrefixes.splice(0)) {
-    await request.post("http://localhost:4176/__e2e/seed-plans", {
+    await request.post("/__e2e/seed-plans", {
       headers: { authorization: `Bearer ${token}`, "x-e2e-test-key": FIXTURE_KEY },
       data: { deletePrefix: prefix },
     }).catch(() => {});
@@ -16,7 +16,7 @@ test.afterEach(async ({ request }) => {
 
 async function signIn(page) {
   await page.goto("/login");
-  await page.locator("#email").fill("ana@cinet.test");
+  await page.locator("#email").fill("historial@cinet.test");
   await page.locator("#password").fill(PASSWORD);
   await page.locator("#signup-form [type=submit]").click();
   await expect(page).toHaveURL(/\/home$/);
@@ -35,7 +35,7 @@ test("el historial compartido carga más de 200 planes sin huecos ni duplicados"
   expect(token).toBeTruthy();
 
   const prefix = randomUUID().replaceAll("-", "").slice(0, 20);
-  const seed = await request.post("http://localhost:4176/__e2e/seed-plans", {
+  const seed = await request.post("/__e2e/seed-plans", {
     headers: { authorization: `Bearer ${token}`, "x-e2e-test-key": FIXTURE_KEY },
     data: { count: 205, prefix },
   });
@@ -63,7 +63,7 @@ test("el botón de paginación conserva el resto del historial si la siguiente p
   await signIn(page);
   const token = await accessToken(page);
   const prefix = randomUUID().replaceAll("-", "").slice(0, 20);
-  const seed = await request.post("http://localhost:4176/__e2e/seed-plans", {
+  const seed = await request.post("/__e2e/seed-plans", {
     headers: { authorization: `Bearer ${token}`, "x-e2e-test-key": FIXTURE_KEY },
     data: { count: 205, prefix },
   });
@@ -72,7 +72,7 @@ test("el botón de paginación conserva el resto del historial si la siguiente p
 
   await page.goto("/my-plans");
   await expect(page.locator(".plan-card")).toHaveCount(200, { timeout: 15_000 });
-  await page.route("http://localhost:4176/rest/v1/plans?*", (route) => route.fulfill({ status: 503, body: JSON.stringify({ message: "fixture offline" }) }));
+  await page.route("**/rest/v1/plans?*", (route) => route.fulfill({ status: 503, json: { message: "fixture offline" } }));
   await page.getByRole("button", { name: "Cargar planes anteriores" }).click();
   await expect(page.getByRole("alert")).toContainText("No pudimos conectar");
   await expect(page.locator(".plan-card")).toHaveCount(200);
